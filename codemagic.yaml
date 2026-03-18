@@ -8,13 +8,22 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install
+
       - name: Build web
         script: npm run build
+
       - name: Sync Capacitor
         script: npx cap sync ios
+
       - name: Build iOS
         script: |
-          cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -derivedDataPath ../build -archivePath ../build/App.xcarchive archive
+          xcodebuild \
+            -project ios/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -derivedDataPath ios/build \
+            -archivePath ios/build/App.xcarchive \
+            archive
+
     artifacts:
       - ios/build/App.xcarchive
