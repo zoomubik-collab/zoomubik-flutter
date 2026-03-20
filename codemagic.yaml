@@ -26,11 +26,6 @@ workflows:
           rm -rf ../build
           rm -rf ~/Library/Developer/Xcode/DerivedData
 
-      - name: Install CocoaPods dependencies
-        script: |
-          cd ios/App
-          pod install
-
       - name: Build iOS Archive
         script: |
           cd ios/App
