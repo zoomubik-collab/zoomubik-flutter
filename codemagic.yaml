@@ -36,8 +36,7 @@ workflows:
             -archivePath ../build/App.xcarchive \
             -derivedDataPath ../build \
             -allowProvisioningUpdates \
-            -destination generic/platform=iOS \
-            -sdk iphoneos \
+            -genericDestination \
             DEVELOPMENT_TEAM=6573BLNWHL \
             CODE_SIGN_STYLE=Automatic \
             clean archive
