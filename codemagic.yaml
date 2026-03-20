@@ -22,8 +22,14 @@ workflows:
       - name: Clean iOS project
         script: |
           cd ios/App
-          rm -rf build
+          xcodebuild -scheme App -configuration Release clean 2>/dev/null || true
+          rm -rf ../build
           rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios/App
+          pod install
 
       - name: Build iOS Archive
         script: |
@@ -31,8 +37,11 @@ workflows:
           mkdir -p ../build
 
           xcodebuild \
+            -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
             -archivePath ../build/App.xcarchive \
             -derivedDataPath ../build \
             -allowProvisioningUpdates \
@@ -41,7 +50,7 @@ workflows:
             -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
             DEVELOPMENT_TEAM=6573BLNWHL \
             CODE_SIGN_STYLE=Automatic \
-            clean archive
+            archive
 
       - name: Create ExportOptions.plist
         script: |
@@ -90,8 +99,7 @@ workflows:
             --upload-app \
             --file ios/build/ipa/App.ipa \
             --type ios \
-            --apiKey "$CM_APPLE_API_KEY_PATH" \
-            --apiKeyID "$CM_APPLE_API_KEY_ID" \
+            --apiKey "$CM_APPLE_API_KEY_ID" \
             --apiIssuer "$CM_APPLE_API_KEY_ISSUER_ID"
 
     artifacts:
