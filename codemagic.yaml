@@ -8,6 +8,11 @@ workflows:
       node: 22
       xcode: latest
       cocoapods: default
+      ios_signing:
+        provisioning_profiles:
+          - zoomubik-distribution-profile
+        certificates:
+          - zoomubik-distribution-cert
 
     scripts:
       - name: Install dependencies
@@ -23,9 +28,6 @@ workflows:
         script: |
           cd ios/App
           mkdir -p ../build
-          # Install provisioning profile from Codemagic
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          find ~/.codemagic/provisioning_profiles -name "*.mobileprovision" -exec cp {} ~/Library/MobileDevice/Provisioning\ Profiles/ \;
           xcodebuild \
             -scheme App \
             -configuration Release \
