@@ -8,11 +8,6 @@ workflows:
       node: 22
       xcode: latest
       cocoapods: default
-      ios_signing:
-        provisioning_profiles:
-          - zoomubik-distribution-profile
-        certificates:
-          - zoomubik-distribution-cert
 
     scripts:
       - name: Install dependencies
@@ -28,25 +23,14 @@ workflows:
         script: |
           cd ios/App
           mkdir -p ../build
-          # Install provisioning profiles from Codemagic
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          # Try multiple locations where Codemagic might store profiles
-          find ~ -name "*.mobileprovision" -type f 2>/dev/null | while read profile; do
-            cp "$profile" ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || true
-          done
-          # List installed profiles for debugging
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ || true
-          # Debug: show profile names
-          security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | grep Name || true
           xcodebuild \
             -scheme App \
             -configuration Release \
             -derivedDataPath ../build \
             -archivePath ../build/App.xcarchive \
+            -allowProvisioningUpdates \
             DEVELOPMENT_TEAM=6573BLNWHL \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="zoomubik-distribution-profile" \
+            CODE_SIGN_STYLE=Automatic \
             archive
 
       - name: Create ExportOptions.plist
@@ -59,12 +43,8 @@ workflows:
           '<string>app-store</string>' \
           '<key>signingStyle</key>' \
           '<string>automatic</string>' \
-          '<key>stripSwiftSymbols</key>' \
-          '<true/>' \
           '<key>teamID</key>' \
           '<string>6573BLNWHL</string>' \
-          '<key>uploadBitcode</key>' \
-          '<false/>' \
           '</dict>' \
           '</plist>' > ios/build/ExportOptions.plist
 
