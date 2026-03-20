@@ -22,6 +22,7 @@ workflows:
       - name: Build iOS Archive
         script: |
           cd ios/App
+          mkdir -p ../build
           xcodebuild \
             -scheme App \
             -configuration Release \
@@ -31,11 +32,9 @@ workflows:
             DEVELOPMENT_TEAM=6573BLNWHL \
             archive
 
-      - name: Export IPA
+      - name: Create ExportOptions.plist
         script: |
-          cd ios/App
-          # Create ExportOptions.plist if it doesn't exist
-          cat > ../build/ExportOptions.plist << 'EOF'
+          cat > ios/build/ExportOptions.plist << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -53,6 +52,10 @@ workflows:
 </dict>
 </plist>
 EOF
+
+      - name: Export IPA
+        script: |
+          cd ios/App
           xcodebuild \
             -exportArchive \
             -archivePath ../build/App.xcarchive \
@@ -77,5 +80,3 @@ EOF
       email:
         recipients:
           - danielpintal@gmail.com
-
-     
