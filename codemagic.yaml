@@ -36,9 +36,9 @@ workflows:
             -archivePath ../build/App.xcarchive \
             -derivedDataPath ../build \
             -allowProvisioningUpdates \
-            -authenticationKeyPath $AC_PRIVATE_KEY_PATH \
-            -authenticationKeyID $AC_PRIVATE_KEY_ID \
-            -authenticationKeyIssuerID $AC_PRIVATE_KEY_ISSUER_ID \
+            -authenticationKeyPath "$CM_APPLE_API_KEY_PATH" \
+            -authenticationKeyID "$CM_APPLE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
             DEVELOPMENT_TEAM=6573BLNWHL \
             CODE_SIGN_STYLE=Automatic \
             clean archive
@@ -90,9 +90,9 @@ workflows:
             --upload-app \
             --file ios/build/ipa/App.ipa \
             --type ios \
-            --apiKey $APP_STORE_API_KEY \
-            --apiIssuer $APP_STORE_API_ISSUER \
-            --apiKeyId $APP_STORE_KEY_ID
+            --apiKey "$CM_APPLE_API_KEY_PATH" \
+            --apiKeyID "$CM_APPLE_API_KEY_ID" \
+            --apiIssuer "$CM_APPLE_API_KEY_ISSUER_ID"
 
     artifacts:
       - ios/build/App.xcarchive
