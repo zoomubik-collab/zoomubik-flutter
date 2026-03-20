@@ -1,11 +1,13 @@
 workflows:
   ios-workflow:
-    name: iOS Build
+    name: iOS Build & Upload to App Store
     instance_type: mac_mini_m1
     max_build_duration: 120
 
     environment:
       node: 22
+      xcode: latest
+      cocoapods: default
 
     scripts:
       - name: Install dependencies
@@ -17,7 +19,12 @@ workflows:
       - name: Sync Capacitor
         script: npx cap sync ios
 
-      - name: Build iOS
+      - name: Install CocoaPods
+        script: |
+          cd ios/App
+          pod install
+
+      - name: Build iOS Archive
         script: |
           cd ios/App
           xcodebuild \
@@ -25,7 +32,37 @@ workflows:
             -configuration Release \
             -derivedDataPath ../build \
             -archivePath ../build/App.xcarchive \
+            -allowProvisioningUpdates \
+            DEVELOPMENT_TEAM=6573BLNWHL \
             archive
+
+      - name: Export IPA
+        script: |
+          cd ios/App
+          xcodebuild \
+            -exportArchive \
+            -archivePath ../build/App.xcarchive \
+            -exportOptionsPlist ../build/ExportOptions.plist \
+            -exportPath ../build/ipa
+
+      - name: Upload to App Store Connect
+        script: |
+          xcrun altool \
+            --upload-app \
+            --file ios/build/ipa/App.ipa \
+            --type ios \
+            --apiKey $APP_STORE_API_KEY \
+            --apiIssuer $APP_STORE_API_ISSUER
 
     artifacts:
       - ios/build/App.xcarchive
+      - ios/build/ipa/App.ipa
+
+    publishing:
+      email:
+        recipients:
+          - $DEVELOPER_EMAIL
+        notify:
+          success: true
+          failure: true
+
