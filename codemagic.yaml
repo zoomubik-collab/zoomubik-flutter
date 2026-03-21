@@ -14,12 +14,10 @@ workflows:
         CM_APPLE_API_KEY_ISSUER_ID: "f6677e56-c6f1-4b84-af63-9e93f843034a"
         CM_APPLE_API_KEY: |-
           -----BEGIN PRIVATE KEY-----
-          ---BEGIN PRIVATE KEY-----
-MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgAC7E6pfvrnlwgV0k
-fwj+RZAbhHonxJT4wjI1l0GjeaGgCgYIKoZIzj0DAQehRANCAAQPdk3UTXl9/JzC
-0agxbVBDoxXTDUyhhvIaeHsqf8vxcUhkvuO36DFl9nB7RLEV3Jcc9DrMis8kxEVE
-WvjpKpni
------END PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgAC7E6pfvrnlwgV0k
+          fwj+RZAbhHonxJT4wjI1l0GjeaGgCgYIKoZIzj0DAQehRANCAAQPdk3UTXl9/JzC
+          0agxbVBDoxXTDUyhhvIaeHsqf8vxcUhkvuO36DFl9nB7RLEV3Jcc9DrMis8kxEVE
+          WvjpKpni
           -----END PRIVATE KEY-----
       ios_signing:
         distribution_type: app_store
