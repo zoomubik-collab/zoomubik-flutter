@@ -12,8 +12,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.zoomubik.app
-        certificate: zoomubik-distribution
-        provisioning_profile: zoomubik-distribution-profile
     scripts:
       - name: Install dependencies
         script: npm ci
@@ -55,8 +53,6 @@ workflows:
             <string>manual</string>
             <key>teamID</key>
             <string>$CM_APPLE_DEV_TEAM_ID</string>
-            <key>signingCertificate</key>
-            <string>zoomubik-distribution</string>
             <key>provisioningProfiles</key>
             <dict>
               <key>com.zoomubik.app</key>
