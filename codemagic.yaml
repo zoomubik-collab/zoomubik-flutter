@@ -7,6 +7,8 @@ workflows:
       node: "22"
       xcode: latest
       cocoapods: default
+      groups:
+        - app-store-credentials3
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
       ios_signing:
@@ -86,9 +88,6 @@ workflows:
           </dict>
           </plist>
           EOF
-
-          echo "=== ExportOptions.plist generado ==="
-          cat build/ExportOptions.plist
 
           xcodebuild \
             -exportArchive \
