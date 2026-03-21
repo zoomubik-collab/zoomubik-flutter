@@ -39,7 +39,6 @@ workflows:
             -sdk iphoneos \
             -archivePath ../build/App.xcarchive \
             -derivedDataPath ../build \
-            -allowProvisioningUpdates \
             -authenticationKeyPath "$CM_APPLE_API_KEY_PATH" \
             -authenticationKeyID "$CM_APPLE_API_KEY_ID" \
             -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
@@ -61,20 +60,8 @@ workflows:
               <key>signingStyle</key>
               <string>automatic</string>
 
-              <key>stripSwiftSymbols</key>
-              <true/>
-
-              <key>uploadBitcode</key>
-              <false/>
-
               <key>teamID</key>
               <string>6573BLNWHL</string>
-
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>com.zoomubik.app</key>
-                  <string>match AppStore com.zoomubik.app</string>
-              </dict>
           </dict>
           </plist>
           EOF
@@ -100,7 +87,6 @@ workflows:
     artifacts:
       - ios/build/App.xcarchive
       - ios/build/ipa/App.ipa
-      
 
     publishing:
       email:
