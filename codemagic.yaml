@@ -33,6 +33,7 @@ workflows:
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
             -archivePath build/App.xcarchive \
+            -allowProvisioningUpdates \
             CODE_SIGN_STYLE="Automatic" \
             CODE_SIGNING_ALLOWED="YES" \
             DEVELOPMENT_TEAM="$CM_APPLE_DEV_TEAM_ID" \
@@ -63,7 +64,8 @@ workflows:
             -exportArchive \
             -archivePath build/App.xcarchive \
             -exportOptionsPlist build/ExportOptions.plist \
-            -exportPath build/ipa
+            -exportPath build/ipa \
+            -allowProvisioningUpdates
 
     artifacts:
       - ios/App/build/App.xcarchive
