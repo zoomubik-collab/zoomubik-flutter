@@ -8,6 +8,9 @@ workflows:
       node: 22
       xcode: latest
       cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.zoomubik.app
 
     scripts:
       - name: Install dependencies
@@ -30,7 +33,6 @@ workflows:
         script: |
           cd ios/App
           mkdir -p ../build
-
           xcodebuild \
             -project App.xcodeproj \
             -scheme App \
@@ -39,33 +41,10 @@ workflows:
             -sdk iphoneos \
             -archivePath ../build/App.xcarchive \
             -derivedDataPath ../build \
-            -authenticationKeyPath "$CM_APPLE_API_KEY_PATH" \
-            -authenticationKeyID "$CM_APPLE_API_KEY_ID" \
-            -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
             -allowProvisioningUpdates \
-            DEVELOPMENT_TEAM=6573BLNWHL \
             CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=6573BLNWHL \
             archive
-
-      - name: Create ExportOptions.plist
-        script: |
-          mkdir -p ios/build
-          cat > ios/build/ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-
-              <key>signingStyle</key>
-              <string>automatic</string>
-
-              <key>teamID</key>
-              <string>6573BLNWHL</string>
-          </dict>
-          </plist>
-          EOF
 
       - name: Export IPA
         script: |
@@ -73,7 +52,20 @@ workflows:
           xcodebuild \
             -exportArchive \
             -archivePath ../build/App.xcarchive \
-            -exportOptionsPlist ../build/ExportOptions.plist \
+            -exportOptionsPlist <(cat <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "[apple.com](http://www.apple.com/DTDs/PropertyList-1.0.dtd)">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>signingStyle</key>
+              <string>automatic</string>
+              <key>teamID</key>
+              <string>6573BLNWHL</string>
+          </dict>
+          </plist>
+          EOF) \
             -exportPath ../build/ipa
 
       - name: Upload to App Store Connect
