@@ -1,0 +1,24 @@
+name: iOS - Diagnose (schemes/targets)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: List iOS folder
+        run: |
+          ls -la ios || true
+          ls -la ios/App || true
+
+      - name: Show xcodeproj info (list)
+        working-directory: ios/App
+        run: |
+          echo "== xcodebuild -list =="
+          xcodebuild -list -project App.xcodeproj
