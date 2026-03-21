@@ -33,10 +33,9 @@ workflows:
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
             -archivePath build/App.xcarchive \
-            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_STYLE="Automatic" \
             CODE_SIGNING_ALLOWED="YES" \
             DEVELOPMENT_TEAM="$CM_APPLE_DEV_TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="zoomubik-distribution-profile" \
             archive
 
       - name: Export IPA
@@ -50,14 +49,9 @@ workflows:
             <key>method</key>
             <string>app-store</string>
             <key>signingStyle</key>
-            <string>manual</string>
+            <string>automatic</string>
             <key>teamID</key>
             <string>$CM_APPLE_DEV_TEAM_ID</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.zoomubik.app</key>
-              <string>zoomubik-distribution-profile</string>
-            </dict>
             <key>uploadBitcode</key>
             <false/>
             <key>uploadSymbols</key>
