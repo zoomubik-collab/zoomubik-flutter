@@ -48,17 +48,23 @@ workflows:
       - name: Export IPA
         script: |
           cd ios/App
+          PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | grep -A1 'UUID' | grep string | head -1 | sed 's/.*<string>\(.*\)<\/string>/\1/' || true)
           cat > build/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
             <key>signingStyle</key>
             <string>manual</string>
             <key>teamID</key>
             <string>$CM_APPLE_DEV_TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.zoomubik.app</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
             <key>uploadBitcode</key>
             <false/>
             <key>uploadSymbols</key>
