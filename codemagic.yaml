@@ -43,7 +43,7 @@ workflows:
             -authenticationKeyID "$CM_APPLE_API_KEY_ID" \
             -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
             -allowProvisioningUpdates \
-            DEVELOPMENT_TEAM=6573BLNWHL \
+            DEVELOPMENT_TEAM=69b9d673946f5ca97e31a0ee \
             CODE_SIGN_STYLE=Automatic \
             archive
 
@@ -62,7 +62,7 @@ workflows:
               <string>automatic</string>
 
               <key>teamID</key>
-              <string>6573BLNWHL</string>
+              <string>69b9d673946f5ca97e31a0ee</string>
           </dict>
           </plist>
           EOF
