@@ -34,6 +34,12 @@ workflows:
           keychain add-certificates
           xcode-project use-profiles
 
+      - name: Fix Info.plist
+        script: |
+          cd ios/App
+          plutil -convert xml1 App/Info.plist
+          plutil -lint App/Info.plist
+
       - name: Build iOS Archive
         script: |
           cd ios/App
