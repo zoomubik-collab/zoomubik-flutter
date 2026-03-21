@@ -15,6 +15,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Xcode version
+        run: xcodebuild -version
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -39,6 +42,7 @@ jobs:
             -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -derivedDataPath build \
+            DEVELOPMENT_TEAM=6573BLNWHL \
             build
 
       - name: Upload build artifacts
