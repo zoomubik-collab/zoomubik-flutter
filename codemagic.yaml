@@ -3,15 +3,20 @@ workflows:
     name: iOS Build & Upload to App Store
     instance_type: mac_mini_m1
     max_build_duration: 120
-
     environment:
-      node: 22
+      node: "22"
       xcode: latest
       cocoapods: default
-
+      groups:
+        - app-store-credentials3
+      vars:
+        CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.zoomubik.app
     scripts:
       - name: Install dependencies
-        script: npm install
+        script: npm ci
 
       - name: Build web
         script: npm run build
@@ -19,77 +24,90 @@ workflows:
       - name: Sync Capacitor
         script: npx cap sync ios
 
-      - name: Clean iOS project
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            com.zoomubik.app \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Fix Info.plist
         script: |
           cd ios/App
-          xcodebuild -scheme App -configuration Release clean 2>/dev/null || true
-          rm -rf ../build
-          rm -rf ~/Library/Developer/Xcode/DerivedData
+          plutil -convert xml1 App/Info.plist
+          plutil -lint App/Info.plist
 
       - name: Build iOS Archive
         script: |
           cd ios/App
-          mkdir -p ../build
-
+          mkdir -p build
           xcodebuild \
             -project App.xcodeproj \
             -scheme App \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
-            -archivePath ../build/App.xcarchive \
-            -derivedDataPath ../build \
-            -authenticationKeyPath "$CM_APPLE_API_KEY_PATH" \
-            -authenticationKeyID "$CM_APPLE_API_KEY_ID" \
-            -authenticationKeyIssuerID "$CM_APPLE_API_KEY_ISSUER_ID" \
-            -allowProvisioningUpdates \
-            DEVELOPMENT_TEAM=69b9d673946f5ca97e31a0ee \
-            CODE_SIGN_STYLE=Automatic \
+            -archivePath build/App.xcarchive \
             archive
-
-      - name: Create ExportOptions.plist
-        script: |
-          mkdir -p ios/build
-          cat > ios/build/ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-
-              <key>signingStyle</key>
-              <string>automatic</string>
-
-              <key>teamID</key>
-              <string>69b9d673946f5ca97e31a0ee</string>
-          </dict>
-          </plist>
-          EOF
 
       - name: Export IPA
         script: |
           cd ios/App
+
+          echo "=== Provisioning profiles encontrados ==="
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "Carpeta vacía"
+
+          PROFILE_PATH=$(ls ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | head -1)
+          echo "Profile path: $PROFILE_PATH"
+
+          if [ -n "$PROFILE_PATH" ]; then
+            PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+            echo "Profile UUID: $PROFILE_UUID"
+          else
+            echo "ERROR: No se encontró ningún perfil"
+            exit 1
+          fi
+
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>$CM_APPLE_DEV_TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.zoomubik.app</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
           xcodebuild \
             -exportArchive \
-            -archivePath ../build/App.xcarchive \
-            -exportOptionsPlist ../build/ExportOptions.plist \
-            -exportPath ../build/ipa
-
-      - name: Upload to App Store Connect
-        script: |
-          xcrun altool \
-            --upload-app \
-            --file ios/build/ipa/App.ipa \
-            --type ios \
-            --apiKey "$CM_APPLE_API_KEY_ID" \
-            --apiIssuer "$CM_APPLE_API_KEY_ISSUER_ID"
+            -archivePath build/App.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/ipa
 
     artifacts:
-      - ios/build/App.xcarchive
-      - ios/build/ipa/App.ipa
+      - ios/App/build/App.xcarchive
+      - ios/App/build/ipa/*.ipa
 
     publishing:
-      email:
-        recipients:
-          - danielpintal@gmail.com
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
