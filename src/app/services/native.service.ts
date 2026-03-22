@@ -1,4 +1,4 @@
-  import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Share } from '@capacitor/share';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -133,4 +133,22 @@ export class NativeService {
             title: title,
             body: body,
             id: Math.floor(Math.random() * 10000),
-            schedule: { at: new Date(Date.now() + delay*](#)
+            schedule: { at: new Date(Date.now() + delaySeconds * 1000) },
+            smallIcon: 'ic_stat_icon_config_sample',
+            iconColor: '#488AFF'
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Error enviando notificación:', error);
+    }
+  }
+
+  async cancelAllNotifications() {
+    try {
+      await LocalNotifications.cancel({ notifications: [] });
+    } catch (error) {
+      console.error('Error cancelando notificaciones:', error);
+    }
+  }
+}
