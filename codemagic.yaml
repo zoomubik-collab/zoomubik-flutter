@@ -1,4 +1,4 @@
- workflows:
+workflows:
   ios-workflow:
     name: iOS Build & Upload to App Store (Flutter)
     instance_type: mac_mini_m1
@@ -10,9 +10,6 @@
         - app-store-credentials3
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.zoomubik.app
     scripts:
       - name: Restore GoogleService-Info.plist
         script: |
@@ -31,13 +28,11 @@
           pod install
           cd ..
 
+      # ✅ Código signing automático
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files \
-            com.zoomubik.app \
-            --type IOS_APP_STORE \
-            --create
+          app-store-connect fetch-signing-files com.zoomubik.app --type IOS_APP_STORE --create --reference-name apple_zoomubik
           keychain add-certificates
           xcode-project use-profiles
 
@@ -58,19 +53,14 @@
         script: |
           cd ios
 
-          echo "=== Provisioning profiles encontrados ==="
-          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "Carpeta vacía"
-
           PROFILE_PATH=$(ls ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | head -1)
-          echo "Profile path: $PROFILE_PATH"
-
-          if [ -n "$PROFILE_PATH" ]; then
-            PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-            echo "Profile UUID: $PROFILE_UUID"
-          else
+          if [ -z "$PROFILE_PATH" ]; then
             echo "ERROR: No se encontró ningún perfil"
             exit 1
           fi
+
+          PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          echo "Profile UUID: $PROFILE_UUID"
 
           cat > build/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -108,7 +98,5 @@
 
     publishing:
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        integration: apple_zoomubik
         submit_to_testflight: true
