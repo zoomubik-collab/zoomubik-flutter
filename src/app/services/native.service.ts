@@ -144,4 +144,13 @@ export class NativeService {
     } catch (error) {
       console.error('Error enviando notificación:', error);
     }
- *](#)
+  }
+
+  async cancelAllNotifications() {
+    try {
+      await LocalNotifications.cancel({ notifications: [] });
+    } catch (error) {
+      console.error('Error cancelando notificaciones:', error);
+    }
+  }
+}
