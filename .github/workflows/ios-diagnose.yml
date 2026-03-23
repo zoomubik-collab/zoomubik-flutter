@@ -1,0 +1,41 @@
+name: iOS - Diagnose (schemes/targets)
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Capacitor sync (iOS)
+        run: npx cap sync ios
+
+      - name: List iOS folder
+        run: |
+          ls -la ios || true
+          ls -la ios/App || true
+          ls -la ios/App/CapApp-SPM || true
+
+      - name: Show xcodeproj info (list)
+        working-directory: ios/App
+        run: |
+          echo "== xcodebuild -list =="
+          xcodebuild -list -project App.xcodeproj

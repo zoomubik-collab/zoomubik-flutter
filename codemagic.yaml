@@ -1,0 +1,110 @@
+workflows:
+  ios-workflow:
+    name: iOS Build & Upload to App Store (Flutter)
+    instance_type: mac_mini_m1
+    max_build_duration: 120
+    environment:
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app-store-credentials3
+      vars:
+        CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.zoomubik.app
+    scripts:
+      - name: Install Flutter and dependencies
+        script: |
+          git clone https://github.com/flutter/flutter.git -b stable --depth 1
+          export PATH="$PATH:`pwd`/flutter/bin"
+          flutter --version
+          flutter pub get
+
+      - name: Pod Install
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            com.zoomubik.app \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build iOS Archive (Flutter)
+        script: |
+          flutter build ios --release --no-codesign
+
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/Runner.xcarchive \
+            archive
+          cd ..
+
+      - name: Export IPA
+        script: |
+          cd ios
+
+          echo "=== Provisioning profiles encontrados ==="
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "Carpeta vacía"
+
+          PROFILE_PATH=$(ls ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision 2>/dev/null | head -1)
+          echo "Profile path: $PROFILE_PATH"
+
+          if [ -n "$PROFILE_PATH" ]; then
+            PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+            echo "Profile UUID: $PROFILE_UUID"
+          else
+            echo "ERROR: No se encontró ningún perfil"
+            exit 1
+          fi
+
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>$CM_APPLE_DEV_TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.zoomubik.app</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/ipa
+
+    artifacts:
+      - ios/build/Runner.xcarchive
+      - ios/build/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true

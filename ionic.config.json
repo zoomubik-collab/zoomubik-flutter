@@ -1,0 +1,7 @@
+{
+  "name": "mi-app-ios",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

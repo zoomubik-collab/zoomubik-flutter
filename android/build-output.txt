@@ -1,0 +1,1759 @@
+Initialized native services in: /Users/nuriagarcia/.gradle/native
+Initialized jansi services in: /Users/nuriagarcia/.gradle/native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: /Users/nuriagarcia/.gradle/daemon/8.12 Command: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError -Xmx8G -Dfile.encoding=UTF-8 -Duser.country=ES -Duser.language=es -Duser.variant -cp /Users/nuriagarcia/.gradle/wrapper/dists/gradle-8.12-all/ejduaidbjup3bmmkhw3rie4zb/gradle-8.12/lib/gradle-daemon-main-8.12.jar -javaagent:/Users/nuriagarcia/.gradle/wrapper/dists/gradle-8.12-all/ejduaidbjup3bmmkhw3rie4zb/gradle-8.12/lib/agents/gradle-instrumentation-agent-8.12.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.12
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 3.004 secs.
+The client will now receive all logging from the daemon (pid: 8033). The daemon log file: /Users/nuriagarcia/.gradle/daemon/8.12/daemon-8033.out.log
+Daemon will be stopped at the end of the build 
+Using 4 worker leases.
+Received JVM installation metadata from '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home': {JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home, JAVA_VERSION=17.0.16, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.16+8, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.16+8, VM_VENDOR=Eclipse Adoptium, OS_ARCH=x86_64}
+Watching the file system is configured to be enabled if available
+File system watching is inactive
+Starting Build
+
+> Configure project :gradle
+Evaluating project ':gradle' using build file '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build.gradle.kts'.
+Resolved plugin [id: 'org.gradle.java-gradle-plugin']
+Resolved plugin [id: 'org.gradle.groovy']
+Resolved plugin [id: 'org.gradle.kotlin.kotlin-dsl', version: '5.1.2']
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '1.9.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+file or directory '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/java', not found
+Resolved plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+Resolved plugin [id: 'com.android.application', version: '8.9.1', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.1.0', apply: false]
+Resolve mutations for :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle:checkKotlinGradlePluginConfigurationErrors (Thread[included builds,5,main]) started.
+
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle:compileKotlin (Thread[included builds,5,main]) started.
+:gradle:compileKotlin (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle:pluginDescriptors (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:pluginDescriptors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:pluginDescriptors' as it is up-to-date.
+Resolve mutations for :gradle:processResources (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:processResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :gradle:processResources UP-TO-DATE
+Caching disabled for task ':gradle:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:processResources' as it is up-to-date.
+
+> Task :gradle:compileKotlin
+Caching disabled for task ':gradle:compileKotlin' because:
+  Build cache is disabled
+Task ':gradle:compileKotlin' is not up-to-date because:
+  Value of input property 'kotlinJavaToolchainProvider.javaVersion' has changed for task ':gradle:compileKotlin'
+The input changes require a full rebuild for incremental task ':gradle:compileKotlin'.
+file or directory '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/java', not found
+file or directory '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/java', not found
+file or directory '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/java', not found
+file or directory '/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/java', not found
+Kotlin source files: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/VersionUtils.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPluginConstants.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/tasks/FlutterTaskHelper.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/tasks/BaseFlutterTask.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/tasks/BaseFlutterTaskHelper.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/tasks/FlutterTask.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/IntentFilterCheck.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/plugins/PluginHandler.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/BaseApplicationNameHandler.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/VersionFetcher.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/AppLinkSettings.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/NativePluginLoaderReflectionBridge.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPluginUtils.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterAppPluginLoaderPlugin.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+i: starting the daemon as: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java -cp /Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar -Djava.awt.headless=true -Djava.rmi.server.hostname=127.0.0.1 -Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -Dkotlin.environment.keepalive -ea -XX:+UseCodeCacheFlushing -XX:+UseParallelGC --add-exports java.base/sun.nio.ch=ALL-UNNAMED org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-runFilesPath /Users/nuriagarcia/Library/Application Support/kotlin/daemon --daemon-autoshutdownIdleSeconds=7200 --daemon-compilerClasspath /Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar
+i: #1 retrying connecting to the daemon 
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=false, modifiedFiles=null, deletedFiles=null, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build/kotlin/compileKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build/kotlin/compileKotlin/local-state/build-history.bin, useModuleDetection=false), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false), outputFiles=[/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build/classes/kotlin/main, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build/kotlin/compileKotlin/cacheable, /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/build/kotlin/compileKotlin/local-state])
+w: file:///Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt:194:39 'getter for minSdkVersion: AndroidVersion' is deprecated. Will be removed in v9.0
+w: file:///Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:11:37 'ApkVariant' is deprecated. Deprecated in Java
+w: file:///Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:628:69 'ApkVariant' is deprecated. Deprecated in Java
+Finished executing kotlin compiler using DAEMON strategy
+Resolve mutations for :gradle:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :gradle:compileJava NO-SOURCE
+Skipping task ':gradle:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle:compileGroovy (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:compileGroovy (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :gradle:compileGroovy NO-SOURCE
+Skipping task ':gradle:compileGroovy' as it has no source files and no previous output files.
+Resolve mutations for :gradle:classes (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:classes (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :gradle:classes UP-TO-DATE
+Skipping task ':gradle:classes' as it has no actions.
+Resolve mutations for :gradle:jar (Thread[Execution worker Thread 3,5,main]) started.
+:gradle:jar (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :gradle:jar UP-TO-DATE
+Caching disabled for task ':gradle:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:jar' as it is up-to-date.
+Settings evaluated using settings file '/Users/nuriagarcia/zoomubik/android/settings.gradle.kts'.
+Projects loaded. Root project using build file '/Users/nuriagarcia/zoomubik/android/build.gradle.kts'.
+Included projects: [root project 'android', project ':app']
+
+> Configure project :
+Evaluating root project 'android' using build file '/Users/nuriagarcia/zoomubik/android/build.gradle.kts'.
+
+> Configure project :app
+Evaluating project ':app' using build file '/Users/nuriagarcia/zoomubik/android/app/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application']
+Resolved plugin [id: 'kotlin-android']
+Resolved plugin [id: 'dev.flutter.flutter-gradle-plugin']
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+All projects evaluated.
+Task name matched 'clean'
+Task name matched 'bundleRelease'
+Selected primary task 'clean' from project :
+Selected primary task 'bundleRelease' from project :
+Tasks to be executed: [task ':clean', task ':app:externalNativeBuildCleanDebug', task ':app:externalNativeBuildCleanProfile', task ':app:externalNativeBuildCleanRelease', task ':app:clean', task ':app:preBuild', task ':app:preReleaseBuild', task ':app:extractReleaseVersionControlInfo', task ':app:cleanMergeReleaseAssets', task ':app:mergeReleaseShaders', task ':app:compileReleaseShaders', task ':app:generateReleaseAssets', task ':app:compileFlutterBuildRelease', task ':app:packJniLibsflutterBuildRelease', task ':app:mergeReleaseAssets', task ':app:buildKotlinToolingMetadata', task ':app:checkReleaseDuplicateClasses', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:checkReleaseAarMetadata', task ':app:copyFlutterAssetsRelease', task ':app:generateReleaseResValues', task ':app:mapReleaseSourceSetPaths', task ':app:generateReleaseResources', task ':app:mergeReleaseResources', task ':app:packageReleaseResources', task ':app:parseReleaseLocalResources', task ':app:createReleaseCompatibleScreenManifests', task ':app:extractDeepLinksRelease', task ':app:processReleaseMainManifest', task ':app:processReleaseManifest', task ':app:processReleaseManifestForPackage', task ':app:processReleaseResources', task ':app:compileReleaseKotlin', task ':app:javaPreCompileRelease', task ':app:compileReleaseJavaWithJavac', task ':app:mergeReleaseArtProfile', task ':app:expandReleaseArtProfileWildcards', task ':app:extractProguardFiles', task ':app:mergeReleaseGeneratedProguardFiles', task ':app:processReleaseJavaRes', task ':app:mergeReleaseJavaResource', task ':app:mergeReleaseStartupProfile', task ':app:minifyReleaseWithR8', task ':app:configureCMakeRelease[arm64-v8a]', task ':app:buildCMakeRelease[arm64-v8a]', task ':app:configureCMakeRelease[armeabi-v7a]', task ':app:buildCMakeRelease[armeabi-v7a]', task ':app:configureCMakeRelease[x86_64]', task ':app:buildCMakeRelease[x86_64]', task ':app:mergeReleaseJniLibFolders', task ':app:mergeReleaseNativeLibs', task ':app:stripReleaseDebugSymbols', task ':app:writeReleaseAppMetadata', task ':app:buildReleasePreBundle', task ':app:compileReleaseArtProfile', task ':app:collectReleaseDependencies', task ':app:configureReleaseDependencies', task ':app:extractReleaseNativeSymbolTables', task ':app:generateReleaseLintVitalReportModel', task ':app:lintVitalAnalyzeRelease', task ':app:lintVitalReportRelease', task ':app:lintVitalRelease', task ':app:parseReleaseIntegrityConfig', task ':app:packageReleaseBundle', task ':app:validateSigningRelease', task ':app:signReleaseBundle', task ':app:produceReleaseBundleIdeListingFile', task ':app:createReleaseBundleListingFileRedirect', task ':app:bundleRelease']
+Tasks that were excluded: []
+Resolve mutations for :clean (Thread[Execution worker Thread 3,5,main]) started.
+producer locations for task group 0 (Thread[Execution worker Thread 2,5,main]) started.
+:clean (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :clean
+Caching disabled for task ':clean' because:
+  Build cache is disabled
+Task ':clean' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:externalNativeBuildCleanDebug (Thread[Execution worker Thread 3,5,main]) started.
+:app:externalNativeBuildCleanDebug (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:externalNativeBuildCleanDebug
+Caching disabled for task ':app:externalNativeBuildCleanDebug' because:
+  Build cache is disabled
+Task ':app:externalNativeBuildCleanDebug' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+C/C++: starting clean
+C/C++: finding existing JSONs
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/debug/3f3y3u32/armeabi-v7a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/debug/3f3y3u32/arm64-v8a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/debug/3f3y3u32/x86_64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/debug/3f3y3u32/riscv64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/debug/3f3y3u32/x86/android_gradle_build.json
+C/C++: about to execute 0 clean command batches
+C/C++: clean complete
+Resolve mutations for :app:externalNativeBuildCleanProfile (Thread[Execution worker Thread 3,5,main]) started.
+:app:externalNativeBuildCleanProfile (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:externalNativeBuildCleanProfile
+Caching disabled for task ':app:externalNativeBuildCleanProfile' because:
+  Build cache is disabled
+Task ':app:externalNativeBuildCleanProfile' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+C/C++: starting clean
+C/C++: finding existing JSONs
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/profile/5f46j5h4/armeabi-v7a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/profile/5f46j5h4/arm64-v8a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/profile/5f46j5h4/x86_64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/profile/5f46j5h4/riscv64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/profile/5f46j5h4/x86/android_gradle_build.json
+C/C++: about to execute 0 clean command batches
+C/C++: clean complete
+Resolve mutations for :app:externalNativeBuildCleanRelease (Thread[Execution worker Thread 3,5,main]) started.
+:app:externalNativeBuildCleanRelease (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:externalNativeBuildCleanRelease
+Caching disabled for task ':app:externalNativeBuildCleanRelease' because:
+  Build cache is disabled
+Task ':app:externalNativeBuildCleanRelease' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+C/C++: starting clean
+C/C++: finding existing JSONs
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/riscv64/android_gradle_build.json
+C/C++: Json file not found so contents couldn't be cleaned /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86/android_gradle_build.json
+C/C++: about to execute 0 clean command batches
+C/C++: clean complete
+Resolve mutations for :app:clean (Thread[Execution worker Thread 2,5,main]) started.
+:app:clean (Thread[Execution worker Thread 2,5,main]) started.
+destroyer locations for task group 0 (Thread[included builds,5,main]) started.
+
+> Task :app:clean UP-TO-DATE
+Caching disabled for task ':app:clean' because:
+  Build cache is disabled
+Task ':app:clean' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+:app:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preReleaseBuild (Thread[Execution worker Thread 2,5,main]) started.
+:app:preReleaseBuild (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:preReleaseBuild UP-TO-DATE
+Skipping task ':app:preReleaseBuild' as it has no actions.
+Resolve mutations for :app:extractReleaseVersionControlInfo (Thread[Execution worker Thread 2,5,main]) started.
+:app:extractReleaseVersionControlInfo (Thread[included builds,5,main]) started.
+
+> Task :app:extractReleaseVersionControlInfo
+Caching disabled for task ':app:extractReleaseVersionControlInfo' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:extractReleaseVersionControlInfo' is not up-to-date because:
+  Output property 'vcInfoFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/version_control_info_file/release/extractReleaseVersionControlInfo/version-control-info.textproto has been removed.
+Resolve mutations for :app:cleanMergeReleaseAssets (Thread[included builds,5,main]) started.
+:app:cleanMergeReleaseAssets (Thread[included builds,5,main]) started.
+
+> Task :app:cleanMergeReleaseAssets UP-TO-DATE
+Caching disabled for task ':app:cleanMergeReleaseAssets' because:
+  Build cache is disabled
+Task ':app:cleanMergeReleaseAssets' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:mergeReleaseShaders (Thread[included builds,5,main]) started.
+:app:mergeReleaseShaders (Thread[included builds,5,main]) started.
+
+> Task :app:mergeReleaseShaders
+Caching disabled for task ':app:mergeReleaseShaders' because:
+  Build cache is disabled
+  Simple merging task
+Task ':app:mergeReleaseShaders' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_shaders/release/mergeReleaseShaders/out has been removed.
+The input changes require a full rebuild for incremental task ':app:mergeReleaseShaders'.
+Resolve mutations for :app:compileReleaseShaders (Thread[included builds,5,main]) started.
+:app:compileReleaseShaders (Thread[included builds,5,main]) started.
+
+> Task :app:compileReleaseShaders NO-SOURCE
+Skipping task ':app:compileReleaseShaders' as it has no source files and no previous output files.
+Resolve mutations for :app:generateReleaseAssets (Thread[included builds,5,main]) started.
+:app:generateReleaseAssets (Thread[included builds,5,main]) started.
+
+> Task :app:generateReleaseAssets UP-TO-DATE
+Skipping task ':app:generateReleaseAssets' as it has no actions.
+Resolve mutations for :app:compileFlutterBuildRelease (Thread[included builds,5,main]) started.
+:app:compileFlutterBuildRelease (Thread[included builds,5,main]) started.
+
+> Task :app:compileFlutterBuildRelease
+Caching disabled for task ':app:compileFlutterBuildRelease' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Task ':app:compileFlutterBuildRelease' is not up-to-date because:
+  Value of input property 'dartDefines' has changed for task ':app:compileFlutterBuildRelease'
+  Value of input property 'treeShakeIcons' has changed for task ':app:compileFlutterBuildRelease'
+  Value of input property 'verbose' has changed for task ':app:compileFlutterBuildRelease'
+Starting process 'command '/Users/nuriagarcia/flutter/bin/flutter''. Working directory: /Users/nuriagarcia/zoomubik Command: /Users/nuriagarcia/flutter/bin/flutter --quiet assemble --no-version-check --depfile /Users/nuriagarcia/zoomubik/build/app/intermediates/flutter/release/flutter_build.d --output /Users/nuriagarcia/zoomubik/build/app/intermediates/flutter/release -dTargetFile=lib/main.dart -dTargetPlatform=android -dBuildMode=release -dTrackWidgetCreation=true -dFlavor= -dAndroidArchs=android-arm android-arm64 android-x64 -dMinSdkVersion=24 android_aot_bundle_release_android-arm android_aot_bundle_release_android-arm64 android_aot_bundle_release_android-x64
+Successfully started process 'command '/Users/nuriagarcia/flutter/bin/flutter''
+Resolve mutations for :app:packJniLibsflutterBuildRelease (Thread[included builds,5,main]) started.
+:app:packJniLibsflutterBuildRelease (Thread[included builds,5,main]) started.
+
+> Task :app:packJniLibsflutterBuildRelease
+Caching disabled for task ':app:packJniLibsflutterBuildRelease' because:
+  Build cache is disabled
+  Not worth caching
+Task ':app:packJniLibsflutterBuildRelease' is not up-to-date because:
+  Output property 'archiveFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/flutter/release/libs.jar has been removed.
+file or directory '/Users/nuriagarcia/zoomubik/build/native_assets/android/jniLibs/lib/armeabi-v7a', not found
+file or directory '/Users/nuriagarcia/zoomubik/build/native_assets/android/jniLibs/lib/arm64-v8a', not found
+file or directory '/Users/nuriagarcia/zoomubik/build/native_assets/android/jniLibs/lib/x86_64', not found
+Resolve mutations for :app:mergeReleaseAssets (Thread[included builds,5,main]) started.
+:app:mergeReleaseAssets (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:mergeReleaseAssets
+Caching disabled for task ':app:mergeReleaseAssets' because:
+  Build cache is disabled
+  Simple merging task
+Task ':app:mergeReleaseAssets' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/assets/release/mergeReleaseAssets has been removed.
+The input changes require a full rebuild for incremental task ':app:mergeReleaseAssets'.
+Resolve mutations for :app:buildKotlinToolingMetadata (Thread[Execution worker Thread 2,5,main]) started.
+:app:buildKotlinToolingMetadata (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:buildKotlinToolingMetadata
+Caching disabled for task ':app:buildKotlinToolingMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:buildKotlinToolingMetadata' is not up-to-date because:
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/kotlinToolingMetadata has been removed.
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/kotlinToolingMetadata/kotlin-tooling-metadata.json has been removed.
+Resolve mutations for :app:checkReleaseDuplicateClasses (Thread[Execution worker Thread 3,5,main]) started.
+:app:checkReleaseDuplicateClasses (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :app:checkReleaseAarMetadata (Thread[Execution worker,5,main]) started.
+:app:checkReleaseAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :app:checkReleaseDuplicateClasses
+Caching disabled for JetifyTransform: /Users/nuriagarcia/zoomubik/build/app/intermediates/flutter/release/libs.jar because:
+  Build cache is disabled
+Caching disabled for IdentityTransform: /Users/nuriagarcia/.gradle/caches/8.12/transforms/edaf3533cb1cefc1ce899bd926866720/transformed/jetified-libs.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for EnumerateClassesTransform: /Users/nuriagarcia/.gradle/caches/8.12/transforms/edaf3533cb1cefc1ce899bd926866720/transformed/jetified-libs.jar because:
+  Build cache is disabled
+Caching disabled for task ':app:checkReleaseDuplicateClasses' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:checkReleaseDuplicateClasses' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/duplicate_classes_check/release/checkReleaseDuplicateClasses has been removed.
+Resolve mutations for :app:copyFlutterAssetsRelease (Thread[Execution worker Thread 3,5,main]) started.
+:app:copyFlutterAssetsRelease (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:checkReleaseAarMetadata
+Caching disabled for task ':app:checkReleaseAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:checkReleaseAarMetadata' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/aar_metadata_check/release/checkReleaseAarMetadata has been removed.
+
+> Task :app:copyFlutterAssetsRelease
+Caching disabled for task ':app:copyFlutterAssetsRelease' because:
+  Build cache is disabled
+  Not worth caching
+Task ':app:copyFlutterAssetsRelease' is not up-to-date because:
+  Output property 'destinationDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/assets/release/mergeReleaseAssets/flutter_assets has been removed.
+  Output property 'destinationDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/assets/release/mergeReleaseAssets/flutter_assets/AssetManifest.bin has been removed.
+  Output property 'destinationDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/assets/release/mergeReleaseAssets/flutter_assets/AssetManifest.json has been removed.
+  and more...
+Resolve mutations for :app:generateReleaseResValues (Thread[Execution worker Thread 2,5,main]) started.
+:app:generateReleaseResValues (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:generateReleaseResValues
+Caching disabled for task ':app:generateReleaseResValues' because:
+  Build cache is disabled
+Task ':app:generateReleaseResValues' is not up-to-date because:
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/generated/res/resValues/release has been removed.
+Resolve mutations for :app:mapReleaseSourceSetPaths (Thread[Execution worker Thread 2,5,main]) started.
+:app:mapReleaseSourceSetPaths (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:mapReleaseSourceSetPaths
+Caching disabled for task ':app:mapReleaseSourceSetPaths' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:mapReleaseSourceSetPaths' is not up-to-date because:
+  Output property 'filepathMappingFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/source_set_path_map/release/mapReleaseSourceSetPaths/file-map.txt has been removed.
+Resolve mutations for :app:generateReleaseResources (Thread[Execution worker Thread 2,5,main]) started.
+:app:generateReleaseResources (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:generateReleaseResources
+Caching disabled for task ':app:generateReleaseResources' because:
+  Build cache is disabled
+Task ':app:generateReleaseResources' is not up-to-date because:
+  Output property 'validationReportFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt has been removed.
+Resolve mutations for :app:mergeReleaseResources (Thread[Execution worker Thread 2,5,main]) started.
+:app:mergeReleaseResources (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:packageReleaseResources (Thread[Execution worker Thread 3,5,main]) started.
+:app:packageReleaseResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeReleaseResources
+Caching disabled for task ':app:mergeReleaseResources' because:
+  Build cache is disabled
+Task ':app:mergeReleaseResources' is not up-to-date because:
+  Output property 'blameLogOutputFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res_blame_folder/release/mergeReleaseResources/out has been removed.
+  Output property 'blameLogOutputFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res_blame_folder/release/mergeReleaseResources/out/multi-v2 has been removed.
+  Output property 'blameLogOutputFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res_blame_folder/release/mergeReleaseResources/out/multi-v2/mergeReleaseResources.json has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:mergeReleaseResources'.
+[MergeResources] Inputs are non-incremental full task action.
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-de/values-de.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-de_values-de.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values/values.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values_values.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-hi/values-hi.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-hi_values-hi.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-lo/values-lo.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-lo_values-lo.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-lt/values-lt.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-lt_values-lt.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-lv/values-lv.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-lv_values-lv.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-hr/values-hr.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-hr_values-hr.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-uk/values-uk.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-uk_values-uk.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-hy/values-hy.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-hy_values-hy.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ml/values-ml.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ml_values-ml.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-en-rIN/values-en-rIN.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-en-rIN_values-en-rIN.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-mk/values-mk.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-mk_values-mk.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-mn/values-mn.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-mn_values-mn.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-af/values-af.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-af_values-af.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-in/values-in.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-in_values-in.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-zh-rTW/values-zh-rTW.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-zh-rTW_values-zh-rTW.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-el/values-el.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-el_values-el.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-fr-rCA/values-fr-rCA.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-fr-rCA_values-fr-rCA.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-my/values-my.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-my_values-my.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ms/values-ms.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ms_values-ms.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-it/values-it.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-it_values-it.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-es/values-es.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-es_values-es.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-b+sr+Latn/values-b+sr+Latn.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-b+sr+Latn_values-b+sr+Latn.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-is/values-is.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-is_values-is.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ar/values-ar.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ar_values-ar.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-as/values-as.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-as_values-as.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-iw/values-iw.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-iw_values-iw.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-v21/values-v21.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-v21_values-v21.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-es-rUS/values-es-rUS.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-es-rUS_values-es-rUS.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-eu/values-eu.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-eu_values-eu.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-az/values-az.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-az_values-az.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-nb/values-nb.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-nb_values-nb.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ro/values-ro.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ro_values-ro.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ja/values-ja.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ja_values-ja.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-fi/values-fi.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-fi_values-fi.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ne/values-ne.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ne_values-ne.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-fa/values-fa.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-fa_values-fa.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-fr/values-fr.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-fr_values-fr.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-zu/values-zu.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-zu_values-zu.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-en-rGB/values-en-rGB.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-en-rGB_values-en-rGB.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sl/values-sl.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sl_values-sl.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-be/values-be.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-be_values-be.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-kk/values-kk.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-kk_values-kk.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-bg/values-bg.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-bg_values-bg.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sv/values-sv.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sv_values-sv.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-en-rCA/values-en-rCA.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-en-rCA_values-en-rCA.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ta/values-ta.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ta_values-ta.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sk/values-sk.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sk_values-sk.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-cs/values-cs.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-cs_values-cs.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-zh-rCN/values-zh-rCN.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-zh-rCN_values-zh-rCN.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sr/values-sr.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sr_values-sr.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-en-rXC/values-en-rXC.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-en-rXC_values-en-rXC.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-tl/values-tl.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-tl_values-tl.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-or/values-or.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-or_values-or.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-en-rAU/values-en-rAU.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-en-rAU_values-en-rAU.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-bs/values-bs.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-bs_values-bs.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-gl/values-gl.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-gl_values-gl.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-si/values-si.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-si_values-si.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_open_exit.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_open_exit.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-pt-rBR/values-pt-rBR.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-pt-rBR_values-pt-rBR.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ca/values-ca.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ca_values-ca.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-kn/values-kn.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-kn_values-kn.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-pt/values-pt.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-pt_values-pt.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-th/values-th.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-th_values-th.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-hu/values-hu.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-hu_values-hu.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ur/values-ur.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ur_values-ur.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-uz/values-uz.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-uz_values-uz.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-tr/values-tr.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-tr_values-tr.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout-v21/notification_action.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout-v21_notification_action.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ko/values-ko.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ko_values-ko.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-mr/values-mr.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-mr_values-mr.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-gu/values-gu.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-gu_values-gu.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-pa/values-pa.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-pa_values-pa.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-zh-rHK/values-zh-rHK.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-zh-rHK_values-zh-rHK.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-am/values-am.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-am_values-am.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-da/values-da.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-da_values-da.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-et/values-et.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-et_values-et.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout/custom_dialog.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout_custom_dialog.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-vi/values-vi.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-vi_values-vi.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-night-v8/values-night-v8.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-night-v8_values-night-v8.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-pt-rPT/values-pt-rPT.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-pt-rPT_values-pt-rPT.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable/notification_bg_low.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable_notification_bg_low.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_decline_low.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_decline_low.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_close_exit.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_close_exit.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_answer_low.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_answer_low.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-nl/values-nl.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-nl_values-nl.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable/notification_bg.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable_notification_bg.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout-v21/notification_action_tombstone.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout-v21_notification_action_tombstone.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_fade_exit.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_fade_exit.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_answer.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_answer.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ru/values-ru.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ru_values-ru.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_open_enter.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_open_enter.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-v21/notification_action_background.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-v21_notification_action_background.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout/ime_base_split_test_activity.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout_ime_base_split_test_activity.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable/notification_tile_bg.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable_notification_tile_bg.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout/notification_template_part_time.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout_notification_template_part_time.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout-v21/notification_template_icon_group.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout-v21_notification_template_icon_group.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_decline.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_decline.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_answer_video_low.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_answer_video_low.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout/ime_secondary_split_test_activity.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout_ime_secondary_split_test_activity.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout/notification_template_part_chronometer.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout_notification_template_part_chronometer.xml.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-bn/values-bn.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-bn_values-bn.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ka/values-ka.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ka_values-ka.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sq/values-sq.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sq_values-sq.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-km/values-km.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-km_values-km.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-sw/values-sw.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-sw_values-sw.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-ky/values-ky.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-ky_values-ky.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-te/values-te.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-te_values-te.arsc.flat
+Compiling XML table /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/mergeReleaseResources/merged.dir/values-pl/values-pl.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/values-pl_values-pl.arsc.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/layout-v21/notification_template_custom_big.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/layout-v21_notification_template_custom_big.xml.flat
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #0: starting
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #2: starting
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #1: starting
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable-anydpi-v21/ic_call_answer_video.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-anydpi-v21_ic_call_answer_video.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/anim-v21/fragment_fast_out_extra_slow_in.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/anim-v21_fragment_fast_out_extra_slow_in.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_close_enter.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_close_enter.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/res/drawable/notification_icon_background.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable_notification_icon_background.xml.flat
+Compiling xml file /Users/nuriagarcia/zoomubik/android/app/src/main/res/drawable-v21/launch_background.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/drawable-v21_launch_background.xml.flat
+Compiling xml file /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/res/animator/fragment_fade_enter.xml to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_res/release/mergeReleaseResources/animator_fragment_fade_enter.xml.flat
+
+> Task :app:packageReleaseResources
+Caching disabled for task ':app:packageReleaseResources' because:
+  Build cache is disabled
+Task ':app:packageReleaseResources' is not up-to-date because:
+  Output property 'dataBindingLayoutInfoOutFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/data_binding_layout_info_type_package/release/packageReleaseResources/out has been removed.
+  Output property 'incrementalFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/packageReleaseResources has been removed.
+  Output property 'incrementalFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:packageReleaseResources'.
+[MergeResources] Inputs are non-incremental full task action.
+Resolve mutations for :app:parseReleaseLocalResources (Thread[Execution worker Thread 3,5,main]) started.
+:app:parseReleaseLocalResources (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:createReleaseCompatibleScreenManifests (Thread[Execution worker,5,main]) started.
+:app:createReleaseCompatibleScreenManifests (Thread[Execution worker,5,main]) started.
+
+> Task :app:createReleaseCompatibleScreenManifests
+Caching disabled for task ':app:createReleaseCompatibleScreenManifests' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:createReleaseCompatibleScreenManifests' is not up-to-date because:
+  Output property 'outputFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/compatible_screen_manifest/release/createReleaseCompatibleScreenManifests has been removed.
+  Output property 'outputFolder' file /Users/nuriagarcia/zoomubik/build/app/intermediates/compatible_screen_manifest/release/createReleaseCompatibleScreenManifests/output-metadata.json has been removed.
+Resolve mutations for :app:extractDeepLinksRelease (Thread[Execution worker,5,main]) started.
+:app:extractDeepLinksRelease (Thread[Execution worker,5,main]) started.
+
+> Task :app:extractDeepLinksRelease
+Caching disabled for task ':app:extractDeepLinksRelease' because:
+  Build cache is disabled
+Task ':app:extractDeepLinksRelease' is not up-to-date because:
+  Output property 'navigationJson' file /Users/nuriagarcia/zoomubik/build/app/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json has been removed.
+Resolve mutations for :app:processReleaseMainManifest (Thread[Execution worker,5,main]) started.
+:app:processReleaseMainManifest (Thread[Execution worker,5,main]) started.
+
+> Task :app:parseReleaseLocalResources
+Caching disabled for task ':app:parseReleaseLocalResources' because:
+  Build cache is disabled
+Task ':app:parseReleaseLocalResources' is not up-to-date because:
+  Output property 'librarySymbolsFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt has been removed.
+The input changes require a full rebuild for incremental task ':app:parseReleaseLocalResources'.
+
+> Task :app:processReleaseMainManifest
+Caching disabled for task ':app:processReleaseMainManifest' because:
+  Build cache is disabled
+Task ':app:processReleaseMainManifest' is not up-to-date because:
+  Output property 'mergeBlameFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/manifest_merge_blame_file/release/processReleaseMainManifest/manifest-merger-blame-release-report.txt has been removed.
+  Output property 'mergedManifest' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml has been removed.
+  Output property 'reportFile' file /Users/nuriagarcia/zoomubik/build/app/outputs/logs/manifest-merger-release-report.txt has been removed.
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/bf65acc7f777a00d59a317272535c12d/transformed/jetified-window-java-1.2.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/4cf3214028424c9d85b548dd56ac3cf2/transformed/jetified-activity-1.8.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/7e78032489b765334547e61e6ea7aed3/transformed/loader-1.0.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/cc7fe6a7e987b9713215c3be18f59936/transformed/viewpager-1.0.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d24b8272075e098c083ed9c95fc52958/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ae506c879913254faf8ad4a868cb5691/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/444bb99b45d5f3093a14f2f3c82161dc/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d6de01df90fa1cbbf544d2f267f1650c/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/47080e52f42fb85d5acc0d8bd39630dc/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/364b6d67c783a7ef23e5e4907033002f/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/657debf020188ac0cc762afb07718e33/transformed/customview-1.0.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/c225580ff9ba548683b0b22a7305e036/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ed1f2a84141e93c19d75fdc67842bc1f/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/38e3f381553bfb1e561f2f5b45f177d5/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/42d478d6013065b32538b12d3ef7b157/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/f51db27e9bc46f3ecc6c36bd261e5748/transformed/jetified-tracing-1.2.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/2f86bb2847f8c1eeeb6a949d522eada3/transformed/core-runtime-2.2.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ad54c48eb38304d58afae8e4a7584e91/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/e10bd6e0b3c29c24c447df1b19c41e12/transformed/interpolator-1.0.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d51c9be43c7540b3db5b1d2f2e0cebbc/transformed/jetified-core-1.0.0/AndroidManifest.xml
+Loading library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/f19d59ee3776eb9cd1a214b3d04fe751/transformed/jetified-relinker-1.4.5/AndroidManifest.xml
+Merging main manifest /Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml
+
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/AndroidManifest.xml
+Merging manifest with lower [androidx.fragment:fragment:1.7.1] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.fragment:fragment:1.7.1] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml
+Merging manifest with lower [androidx.window:window:1.2.0] AndroidManifest.xml:17:1-31:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.window:window:1.2.0] AndroidManifest.xml:20:5-44
+application defined in both files...
+Merging application with lower [androidx.window:window:1.2.0] AndroidManifest.xml:22:5-29:19
+Adopted [uses-library: null]
+Adopted [uses-library: null]
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/bf65acc7f777a00d59a317272535c12d/transformed/jetified-window-java-1.2.0/AndroidManifest.xml
+Merging manifest with lower [androidx.window:window-java:1.2.0] AndroidManifest.xml:17:1-21:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.window:window-java:1.2.0] AndroidManifest.xml:19:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/4cf3214028424c9d85b548dd56ac3cf2/transformed/jetified-activity-1.8.1/AndroidManifest.xml
+Merging manifest with lower [androidx.activity:activity:1.8.1] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.activity:activity:1.8.1] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/7e78032489b765334547e61e6ea7aed3/transformed/loader-1.0.0/AndroidManifest.xml
+Merging manifest with lower [androidx.loader:loader:1.0.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.loader:loader:1.0.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/cc7fe6a7e987b9713215c3be18f59936/transformed/viewpager-1.0.0/AndroidManifest.xml
+Merging manifest with lower [androidx.viewpager:viewpager:1.0.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.viewpager:viewpager:1.0.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d24b8272075e098c083ed9c95fc52958/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ae506c879913254faf8ad4a868cb5691/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-livedata:2.7.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata:2.7.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/444bb99b45d5f3093a14f2f3c82161dc/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-viewmodel:2.7.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-viewmodel:2.7.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d6de01df90fa1cbbf544d2f267f1650c/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-livedata-core:2.7.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata-core:2.7.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/47080e52f42fb85d5acc0d8bd39630dc/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/364b6d67c783a7ef23e5e4907033002f/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml
+Merging manifest with lower [androidx.core:core-ktx:1.13.1] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.core:core-ktx:1.13.1] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/657debf020188ac0cc762afb07718e33/transformed/customview-1.0.0/AndroidManifest.xml
+Merging manifest with lower [androidx.customview:customview:1.0.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.customview:customview:1.0.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml
+Merging manifest with lower [androidx.core:core:1.13.1] AndroidManifest.xml:17:1-30:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.core:core:1.13.1] AndroidManifest.xml:20:5-44
+Adopted [permission: null]
+Adopted [uses-permission: null]
+application defined in both files...
+Merging application with lower [androidx.core:core:1.13.1] AndroidManifest.xml:28:5-89
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/c225580ff9ba548683b0b22a7305e036/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-runtime:2.7.0] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-runtime:2.7.0] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml
+Merging manifest with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:17:1-35:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:21:5-44
+application defined in both files...
+Merging application with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:23:5-33:19
+Adopted [provider: null]
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ed1f2a84141e93c19d75fdc67842bc1f/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml
+Merging manifest with lower [androidx.savedstate:savedstate:1.2.1] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.savedstate:savedstate:1.2.1] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/38e3f381553bfb1e561f2f5b45f177d5/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml
+Merging manifest with lower [androidx.annotation:annotation-experimental:1.4.0] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.annotation:annotation-experimental:1.4.0] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml
+Merging manifest with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:17:1-55:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:21:5-44
+application defined in both files...
+Merging application with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:23:5-53:19
+provider#androidx.startup.InitializationProvider defined in both files...
+Merging provider#androidx.startup.InitializationProvider with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:24:9-32:20
+Adopted [meta-data: null]
+Adopted [receiver: null]
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/42d478d6013065b32538b12d3ef7b157/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml
+Merging manifest with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:17:1-33:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:21:5-23:41
+application defined in both files...
+Merging application with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:25:5-31:19
+provider#androidx.startup.InitializationProvider defined in both files...
+Merging provider#androidx.startup.InitializationProvider with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:26:9-30:34
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/f51db27e9bc46f3ecc6c36bd261e5748/transformed/jetified-tracing-1.2.0/AndroidManifest.xml
+Merging manifest with lower [androidx.tracing:tracing:1.2.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.tracing:tracing:1.2.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/2f86bb2847f8c1eeeb6a949d522eada3/transformed/core-runtime-2.2.0/AndroidManifest.xml
+Merging manifest with lower [androidx.arch.core:core-runtime:2.2.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.arch.core:core-runtime:2.2.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/ad54c48eb38304d58afae8e4a7584e91/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
+Merging manifest with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:17:1-27:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:20:5-22:41
+application defined in both files...
+Merging application with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:24:5-25:19
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/e10bd6e0b3c29c24c447df1b19c41e12/transformed/interpolator-1.0.0/AndroidManifest.xml
+Merging manifest with lower [androidx.interpolator:interpolator:1.0.0] AndroidManifest.xml:17:1-22:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.interpolator:interpolator:1.0.0] AndroidManifest.xml:20:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/d51c9be43c7540b3db5b1d2f2e0cebbc/transformed/jetified-core-1.0.0/AndroidManifest.xml
+Merging manifest with lower [androidx.window.extensions.core:core:1.0.0] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [androidx.window.extensions.core:core:1.0.0] AndroidManifest.xml:5:5-44
+Merging library manifest /Users/nuriagarcia/.gradle/caches/8.12/transforms/f19d59ee3776eb9cd1a214b3d04fe751/transformed/jetified-relinker-1.4.5/AndroidManifest.xml
+Merging manifest with lower [com.getkeepsafe.relinker:relinker:1.4.5] AndroidManifest.xml:2:1-7:12
+uses-sdk defined in both files...
+Merging uses-sdk with lower [com.getkeepsafe.relinker:relinker:1.4.5] AndroidManifest.xml:5:5-43
+Merging result: SUCCESS
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.zoomubik"
+4    android:versionCode="1"
+5    android:versionName="0.0.1" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="36" />
+10    <!--
+11         Required to query activities that can process text, see:
+12         https://developer.android.com/training/package-visibility and
+13         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+14
+15         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin.
+16    -->
+17    <queries>
+17-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:39:5-44:15
+18        <intent>
+18-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:40:9-43:18
+19            <action android:name="android.intent.action.PROCESS_TEXT" />
+19-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:41:13-72
+19-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:41:21-70
+20
+21            <data android:mimeType="text/plain" />
+21-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:42:13-50
+21-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:42:19-48
+22        </intent>
+23    </queries>
+24
+25    <permission
+25-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+26        android:name="com.example.zoomubik.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+26-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+27        android:protectionLevel="signature" />
+27-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+28
+29    <uses-permission android:name="com.example.zoomubik.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+29-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+29-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+30
+31    <application
+32        android:name="android.app.Application"
+32-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:4:9-42
+33        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+33-->[androidx.core:core:1.13.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/b1eb6682c3f06d5937f76fce498ba76c/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+34        android:extractNativeLibs="false"
+35        android:icon="@mipmap/ic_launcher"
+35-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:5:9-43
+36        android:label="zoomubik" >
+36-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:3:9-33
+37        <activity
+37-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:6:9-27:20
+38            android:name="com.example.zoomubik.MainActivity"
+38-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:7:13-41
+39            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+39-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:12:13-163
+40            android:exported="true"
+40-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:8:13-36
+41            android:hardwareAccelerated="true"
+41-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:13:13-47
+42            android:launchMode="singleTop"
+42-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:9:13-43
+43            android:taskAffinity=""
+43-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:10:13-36
+44            android:theme="@style/LaunchTheme"
+44-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:11:13-47
+45            android:windowSoftInputMode="adjustResize" >
+45-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:14:13-55
+46
+47            <!--
+48                 Specifies an Android theme to apply to this Activity as soon as
+49                 the Android process has started. This theme is visible to the user
+50                 while the Flutter UI initializes. After that, this theme continues
+51                 to determine the Window background behind the Flutter UI.
+52            -->
+53            <meta-data
+53-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:19:13-22:17
+54                android:name="io.flutter.embedding.android.NormalTheme"
+54-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:20:15-70
+55                android:resource="@style/NormalTheme" />
+55-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:21:15-52
+56
+57            <intent-filter>
+57-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:23:13-26:29
+58                <action android:name="android.intent.action.MAIN" />
+58-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:24:17-68
+58-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:24:25-66
+59
+60                <category android:name="android.intent.category.LAUNCHER" />
+60-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:25:17-76
+60-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:25:27-74
+61            </intent-filter>
+62        </activity>
+63        <!--
+64             Don't delete the meta-data below.
+65             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
+66        -->
+67        <meta-data
+67-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:30:9-32:33
+68            android:name="flutterEmbedding"
+68-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:31:13-44
+69            android:value="2" />
+69-->/Users/nuriagarcia/zoomubik/android/app/src/main/AndroidManifest.xml:32:13-30
+70
+71        <uses-library
+71-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:23:9-25:40
+72            android:name="androidx.window.extensions"
+72-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:24:13-54
+73            android:required="false" />
+73-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:25:13-37
+74        <uses-library
+74-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:26:9-28:40
+75            android:name="androidx.window.sidecar"
+75-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:27:13-51
+76            android:required="false" />
+76-->[androidx.window:window:1.2.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/6ca1db17970615e3e029777992983e6b/transformed/jetified-window-1.2.0/AndroidManifest.xml:28:13-37
+77
+78        <provider
+78-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
+79            android:name="androidx.startup.InitializationProvider"
+79-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
+80            android:authorities="com.example.zoomubik.androidx-startup"
+80-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
+81            android:exported="false" >
+81-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37
+82            <meta-data
+82-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+83                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+83-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+84                android:value="androidx.startup" />
+84-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/nuriagarcia/.gradle/caches/8.12/transforms/2c40b3605ce1f863a0ab38c5cd772a02/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+85            <meta-data
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+86                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+87                android:value="androidx.startup" />
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+88        </provider>
+89
+90        <receiver
+90-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+91            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+91-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+92            android:directBootAware="false"
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+93            android:enabled="true"
+93-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+94            android:exported="true"
+94-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+95            android:permission="android.permission.DUMP" >
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+96            <intent-filter>
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+97                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+98            </intent-filter>
+99            <intent-filter>
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+100                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+101            </intent-filter>
+102            <intent-filter>
+102-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+103                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+103-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+103-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+104            </intent-filter>
+105            <intent-filter>
+105-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+106                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+106-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+106-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/nuriagarcia/.gradle/caches/8.12/transforms/3922f47838070e6db304cf9a038146fd/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+107            </intent-filter>
+108        </receiver>
+109    </application>
+110
+111</manifest>
+
+Merged manifest saved to /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+Resolve mutations for :app:processReleaseManifest (Thread[Execution worker Thread 3,5,main]) started.
+:app:processReleaseManifest (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:processReleaseManifest
+Caching disabled for task ':app:processReleaseManifest' because:
+  Build cache is disabled
+Task ':app:processReleaseManifest' is not up-to-date because:
+  Output property 'multiApkManifestOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_manifests/release/processReleaseManifest has been removed.
+  Output property 'multiApkManifestOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml has been removed.
+  Output property 'multiApkManifestOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_manifests/release/processReleaseManifest/output-metadata.json has been removed.
+Resolve mutations for :app:processReleaseManifestForPackage (Thread[Execution worker Thread 3,5,main]) started.
+:app:processReleaseManifestForPackage (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:javaPreCompileRelease (Thread[included builds,5,main]) started.
+:app:javaPreCompileRelease (Thread[included builds,5,main]) started.
+
+> Task :app:processReleaseManifestForPackage
+Custom actions are attached to task ':app:processReleaseManifestForPackage'.
+Caching disabled for task ':app:processReleaseManifestForPackage' because:
+  Build cache is disabled
+Task ':app:processReleaseManifestForPackage' is not up-to-date because:
+  Output property 'packageManifests' file /Users/nuriagarcia/zoomubik/build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage has been removed.
+  Output property 'packageManifests' file /Users/nuriagarcia/zoomubik/build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage/AndroidManifest.xml has been removed.
+  Output property 'packageManifests' file /Users/nuriagarcia/zoomubik/build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage/output-metadata.json has been removed.
+Resolve mutations for :app:processReleaseResources (Thread[Execution worker Thread 3,5,main]) started.
+:app:processReleaseResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:javaPreCompileRelease
+Caching disabled for task ':app:javaPreCompileRelease' because:
+  Build cache is disabled
+Task ':app:javaPreCompileRelease' is not up-to-date because:
+  Output property 'annotationProcessorListFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json has been removed.
+Resolve mutations for :app:mergeReleaseArtProfile (Thread[Execution worker,5,main]) started.
+:app:mergeReleaseArtProfile (Thread[Execution worker,5,main]) started.
+Resolve mutations for :app:extractProguardFiles (Thread[included builds,5,main]) started.
+:app:extractProguardFiles (Thread[included builds,5,main]) started.
+
+> Task :app:mergeReleaseArtProfile
+Caching disabled for task ':app:mergeReleaseArtProfile' because:
+  Build cache is disabled
+  Simple merging task
+Task ':app:mergeReleaseArtProfile' is not up-to-date because:
+  Output property 'outputFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_art_profile/release/mergeReleaseArtProfile/baseline-prof.txt has been removed.
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/main/baselineProfiles', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/baselineProfiles', not found
+
+> Task :app:extractProguardFiles
+Caching disabled for task ':app:extractProguardFiles' because:
+  Build cache is disabled
+  Fast task
+Task ':app:extractProguardFiles' is not up-to-date because:
+  Output property 'proguardFilesDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global has been removed.
+  Output property 'proguardFilesDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1 has been removed.
+  Output property 'proguardFilesDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android.txt-8.9.1 has been removed.
+  and more...
+Resolve mutations for :app:mergeReleaseStartupProfile (Thread[included builds,5,main]) started.
+:app:mergeReleaseStartupProfile (Thread[included builds,5,main]) started.
+
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+Caching disabled for task ':app:mergeReleaseStartupProfile' because:
+  Build cache is disabled
+  Simple merging task
+Skipping task ':app:mergeReleaseStartupProfile' as it is up-to-date.
+Resolve mutations for :app:configureCMakeRelease[arm64-v8a] (Thread[included builds,5,main]) started.
+:app:configureCMakeRelease[arm64-v8a] (Thread[included builds,5,main]) started.
+
+> Task :app:processReleaseResources
+Caching disabled for task ':app:processReleaseResources' because:
+  Build cache is disabled
+Task ':app:processReleaseResources' is not up-to-date because:
+  Output property 'RClassOutputJar' file /Users/nuriagarcia/zoomubik/build/app/intermediates/compile_and_runtime_not_namespaced_r_class_jar/release/processReleaseResources/R.jar has been removed.
+  Output property 'linkedResourcesOutputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/linked_resources_proto_format/release/processReleaseResources has been removed.
+  Output property 'linkedResourcesOutputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/linked_resources_proto_format/release/processReleaseResources/linked-resources-proto-format-release.ap_ has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:processReleaseResources'.
+Aapt output file /Users/nuriagarcia/zoomubik/build/app/intermediates/linked_resources_proto_format/release/processReleaseResources/linked-resources-proto-format-release.ap_
+
+> Task :app:configureCMakeRelease[arm64-v8a]
+Caching disabled for task ':app:configureCMakeRelease[arm64-v8a]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:configureCMakeRelease[arm64-v8a]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/build-tools/34.0.0/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/build-tools/35.0.0/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/build-tools/35.0.1/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/build-tools/36.0.0/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/build-tools/36.1.0/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/cmdline-tools/latest/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/emulator/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/platform-tools/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/platforms/android-33/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/platforms/android-34/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/platforms/android-35/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/platforms/android-36/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/sources/android-35/package.xml
+C/C++: Parsing /Users/nuriagarcia/Library/Android/sdk/system-images/android-36/google_apis_playstore/x86_64/package.xml
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : Start JSON generation. Platform version: 24 min SDK version: arm64-v8a
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : rebuilding JSON /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a/android_gradle_build.json due to:
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : - no fingerprint file, will remove stale configuration folder
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : removing stale contents from '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : created folder '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : executing cmake /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=arm64-v8a \
+  -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=arm64-v8a \
+  -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=arm64-v8a -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/arm64-v8a -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=release
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : Received process result: 0
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a/compile_commands.json.bin existed but not /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/arm64-v8a/compile_commands.json
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : done executing cmake
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : JSON generation completed without problems
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|arm64-v8a : Writing build model to /Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/logs/arm64-v8a/build_model.json
+Resolve mutations for :app:compileReleaseKotlin (Thread[included builds,5,main]) started.
+:app:compileReleaseKotlin (Thread[included builds,5,main]) started.
+Resolve mutations for :app:buildCMakeRelease[arm64-v8a] (Thread[Execution worker Thread 3,5,main]) started.
+:app:buildCMakeRelease[arm64-v8a] (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:buildCMakeRelease[arm64-v8a]
+Caching disabled for task ':app:buildCMakeRelease[arm64-v8a]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:buildCMakeRelease[arm64-v8a]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: starting build
+C/C++: reading expected JSONs
+C/C++: done reading expected JSONs
+C/C++: executing build commands for targets that produce .so files or executables
+C/C++: evaluate miniconfig
+C/C++: no libraries
+Resolve mutations for :app:configureCMakeRelease[armeabi-v7a] (Thread[Execution worker Thread 3,5,main]) started.
+:app:configureCMakeRelease[armeabi-v7a] (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:configureCMakeRelease[armeabi-v7a]
+Caching disabled for task ':app:configureCMakeRelease[armeabi-v7a]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:configureCMakeRelease[armeabi-v7a]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : Start JSON generation. Platform version: 24 min SDK version: armeabi-v7a
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : rebuilding JSON /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a/android_gradle_build.json due to:
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : - no fingerprint file, will remove stale configuration folder
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : removing stale contents from '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : created folder '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : executing cmake /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=armeabi-v7a \
+  -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=armeabi-v7a \
+  -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/armeabi-v7a -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=release
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : Received process result: 0
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a/compile_commands.json.bin existed but not /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/armeabi-v7a/compile_commands.json
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : done executing cmake
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : JSON generation completed without problems
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|armeabi-v7a : Writing build model to /Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/logs/armeabi-v7a/build_model.json
+Resolve mutations for :app:buildCMakeRelease[armeabi-v7a] (Thread[Execution worker Thread 3,5,main]) started.
+:app:buildCMakeRelease[armeabi-v7a] (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:buildCMakeRelease[armeabi-v7a]
+Caching disabled for task ':app:buildCMakeRelease[armeabi-v7a]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:buildCMakeRelease[armeabi-v7a]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: starting build
+C/C++: reading expected JSONs
+C/C++: done reading expected JSONs
+C/C++: executing build commands for targets that produce .so files or executables
+C/C++: evaluate miniconfig
+C/C++: no libraries
+Resolve mutations for :app:configureCMakeRelease[x86_64] (Thread[Execution worker Thread 2,5,main]) started.
+:app:configureCMakeRelease[x86_64] (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:compileReleaseKotlin
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugAndroidTestKotlin
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /Users/nuriagarcia/.gradle/caches/8.12/transforms/edaf3533cb1cefc1ce899bd926866720/transformed/jetified-libs.jar because:
+  Build cache is disabled
+Caching disabled for task ':app:compileReleaseKotlin' because:
+  Build cache is disabled
+Task ':app:compileReleaseKotlin' is not up-to-date because:
+  Value of input property 'kotlinJavaToolchainProvider.javaVersion' has changed for task ':app:compileReleaseKotlin'
+The input changes require a full rebuild for incremental task ':app:compileReleaseKotlin'.
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/kotlin', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+Kotlin source files: /Users/nuriagarcia/zoomubik/android/app/src/main/kotlin/com/example/zoomubik/MainActivity.kt
+Java source files: /Users/nuriagarcia/zoomubik/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+i: starting the daemon as: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java -cp /Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.1.0/988bf980588bbbcfa1ba19c1ffd7aa869b335a31/kotlin-compiler-embeddable-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.1.0/85f8b81009cda5890e54ba67d64b5e599c645020/kotlin-stdlib-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.1.0/5909da8c57b75a117714ab0e348c86101b7a3284/kotlin-script-runtime-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.1.0/420bae1908e4a353f5b56c3c850d24d86367b25d/kotlin-daemon-embeddable-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar -Djava.awt.headless=true -Djava.rmi.server.hostname=127.0.0.1 -Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -Dkotlin.environment.keepalive -ea -XX:+UseCodeCacheFlushing -XX:+UseParallelGC -Dkotlin.daemon.initiator.marker.file=/var/folders/td/n6vwwvnx4cg0xc9sqcnvnb080000gn/T/kotlin-compiler-in-android-2976585622416394761.alive --add-exports java.base/sun.nio.ch=ALL-UNNAMED org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-runFilesPath /Users/nuriagarcia/Library/Application Support/kotlin/daemon --daemon-autoshutdownIdleSeconds=7200 --daemon-compilerClasspath /Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.1.0/988bf980588bbbcfa1ba19c1ffd7aa869b335a31/kotlin-compiler-embeddable-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.1.0/85f8b81009cda5890e54ba67d64b5e599c645020/kotlin-stdlib-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.1.0/5909da8c57b75a117714ab0e348c86101b7a3284/kotlin-script-runtime-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.1.0/420bae1908e4a353f5b56c3c850d24d86367b25d/kotlin-daemon-embeddable-2.1.0.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/Users/nuriagarcia/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar
+i: #1 retrying connecting to the daemon 
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=false, modifiedFiles=null, deletedFiles=null, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/Users/nuriagarcia/zoomubik/build/app/kotlin/compileReleaseKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/Users/nuriagarcia/zoomubik/build/app/kotlin/compileReleaseKotlin/local-state/build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false), outputFiles=[/Users/nuriagarcia/zoomubik/build/app/tmp/kotlin-classes/release, /Users/nuriagarcia/zoomubik/build/app/kotlin/compileReleaseKotlin/cacheable, /Users/nuriagarcia/zoomubik/build/app/kotlin/compileReleaseKotlin/local-state])
+
+> Task :app:configureCMakeRelease[x86_64]
+Caching disabled for task ':app:configureCMakeRelease[x86_64]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:configureCMakeRelease[x86_64]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : Start JSON generation. Platform version: 24 min SDK version: x86_64
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : rebuilding JSON /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64/android_gradle_build.json due to:
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : - no fingerprint file, will remove stale configuration folder
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : removing stale contents from '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : created folder '/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64'
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : executing cmake /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=x86_64 \
+  -DCMAKE_ANDROID_ARCH_ABI=x86_64 \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64 \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake \
+  -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts \
+  -DCMAKE_SYSTEM_NAME=Android \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_SYSTEM_VERSION=24 \
+  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_ABI=x86_64 \
+  -DCMAKE_ANDROID_ARCH_ABI=x86_64 \
+  -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 \
+  -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake \
+  -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 \
+  -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64 \
+  -GNinja \
+  -Wno-dev \
+  --no-warn-unused-cli \
+  -DCMAKE_BUILD_TYPE=release
+
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake -H/Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=x86_64 -DCMAKE_ANDROID_ARCH_ABI=x86_64 -DANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_ANDROID_NDK=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/ninja -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/obj/x86_64 -B/Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64 -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=release
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/cmake/3.22.1/bin/cmake''
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : Received process result: 0
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64/compile_commands.json.bin existed but not /Users/nuriagarcia/zoomubik/build/.cxx/release/4o92q426/x86_64/compile_commands.json
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : done executing cmake
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : JSON generation completed without problems
+C/C++: /Users/nuriagarcia/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt release|x86_64 : Writing build model to /Users/nuriagarcia/zoomubik/build/app/intermediates/cxx/release/4o92q426/logs/x86_64/build_model.json
+Resolve mutations for :app:buildCMakeRelease[x86_64] (Thread[Execution worker Thread 2,5,main]) started.
+:app:buildCMakeRelease[x86_64] (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:buildCMakeRelease[x86_64]
+Caching disabled for task ':app:buildCMakeRelease[x86_64]' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:buildCMakeRelease[x86_64]' is not up-to-date because:
+  Task.upToDateWhen is false.
+C/C++: starting build
+C/C++: reading expected JSONs
+C/C++: done reading expected JSONs
+C/C++: executing build commands for targets that produce .so files or executables
+C/C++: evaluate miniconfig
+C/C++: no libraries
+Resolve mutations for :app:mergeReleaseJniLibFolders (Thread[Execution worker Thread 3,5,main]) started.
+:app:mergeReleaseJniLibFolders (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeReleaseJniLibFolders
+Caching disabled for task ':app:mergeReleaseJniLibFolders' because:
+  Build cache is disabled
+  Simple merging task
+Task ':app:mergeReleaseJniLibFolders' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_jni_libs/release/mergeReleaseJniLibFolders/out has been removed.
+The input changes require a full rebuild for incremental task ':app:mergeReleaseJniLibFolders'.
+Resolve mutations for :app:mergeReleaseNativeLibs (Thread[Execution worker Thread 3,5,main]) started.
+:app:mergeReleaseNativeLibs (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:writeReleaseAppMetadata (Thread[Execution worker,5,main]) started.
+:app:writeReleaseAppMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :app:writeReleaseAppMetadata
+Caching disabled for task ':app:writeReleaseAppMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:writeReleaseAppMetadata' is not up-to-date because:
+  Output property 'outputFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/app_metadata/release/writeReleaseAppMetadata/app-metadata.properties has been removed.
+Resolve mutations for :app:collectReleaseDependencies (Thread[Execution worker,5,main]) started.
+:app:collectReleaseDependencies (Thread[Execution worker,5,main]) started.
+
+> Task :app:mergeReleaseNativeLibs
+Caching disabled for ExtractJniTransform: /Users/nuriagarcia/.gradle/caches/8.12/transforms/edaf3533cb1cefc1ce899bd926866720/transformed/jetified-libs.jar because:
+  Build cache is disabled
+Caching disabled for task ':app:mergeReleaseNativeLibs' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:mergeReleaseNativeLibs' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a has been removed.
+  and more...
+
+> Task :app:collectReleaseDependencies
+Caching disabled for task ':app:collectReleaseDependencies' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:collectReleaseDependencies' is not up-to-date because:
+  Output property 'dependencyReport' file /Users/nuriagarcia/zoomubik/build/app/intermediates/metadata_library_dependencies_report/release/collectReleaseDependencies/dependencies.pb has been removed.
+Resolve mutations for :app:configureReleaseDependencies (Thread[Execution worker,5,main]) started.
+:app:configureReleaseDependencies (Thread[Execution worker,5,main]) started.
+
+> Task :app:configureReleaseDependencies
+Caching disabled for task ':app:configureReleaseDependencies' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:configureReleaseDependencies' is not up-to-date because:
+  Output property 'dependenciesList' file /Users/nuriagarcia/zoomubik/build/app/intermediates/bundle_dependency_report/release/configureReleaseDependencies/dependencies.pb has been removed.
+Resolve mutations for :app:parseReleaseIntegrityConfig (Thread[Execution worker,5,main]) started.
+:app:parseReleaseIntegrityConfig (Thread[Execution worker,5,main]) started.
+
+> Task :app:parseReleaseIntegrityConfig UP-TO-DATE
+Caching disabled for task ':app:parseReleaseIntegrityConfig' because:
+  Build cache is disabled
+Skipping task ':app:parseReleaseIntegrityConfig' as it is up-to-date.
+Resolve mutations for :app:validateSigningRelease (Thread[Execution worker,5,main]) started.
+:app:validateSigningRelease (Thread[Execution worker,5,main]) started.
+
+> Task :app:validateSigningRelease
+Caching disabled for task ':app:validateSigningRelease' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:validateSigningRelease' is not up-to-date because:
+  Output property 'dummyOutputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/validate_signing_config/release/validateSigningRelease has been removed.
+Resolve mutations for :app:stripReleaseDebugSymbols (Thread[Execution worker,5,main]) started.
+:app:stripReleaseDebugSymbols (Thread[Execution worker,5,main]) started.
+
+> Task :app:stripReleaseDebugSymbols
+Caching disabled for task ':app:stripReleaseDebugSymbols' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:stripReleaseDebugSymbols' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/arm64-v8a has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:stripReleaseDebugSymbols'.
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: ndk.dir in local.properties is not set
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/arm64-v8a/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/libflutter.so
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/arm64-v8a/libapp.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/libapp.so
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/armeabi-v7a/libapp.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi-v7a/libapp.so
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/armeabi-v7a/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi-v7a/libflutter.so
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/x86_64/libapp.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/x86_64/libapp.so
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip --strip-unneeded -o /Users/nuriagarcia/zoomubik/build/app/intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib/x86_64/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/x86_64/libflutter.so
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip''
+Resolve mutations for :app:extractReleaseNativeSymbolTables (Thread[Execution worker Thread 3,5,main]) started.
+:app:extractReleaseNativeSymbolTables (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:extractReleaseNativeSymbolTables
+Caching disabled for task ':app:extractReleaseNativeSymbolTables' because:
+  Build cache is disabled
+Task ':app:extractReleaseNativeSymbolTables' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out/arm64-v8a has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out/arm64-v8a/libflutter.so.sym has been removed.
+  and more...
+C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/nuriagarcia/Library/Android/sdk
+Unable to extract native debug metadata from /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi-v7a/libapp.so because the native debug metadata has already been stripped.
+Unable to extract native debug metadata from /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/libapp.so because the native debug metadata has already been stripped.
+Unable to extract native debug metadata from /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/x86_64/libapp.so because the native debug metadata has already been stripped.
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy --strip-debug /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/x86_64/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out/x86_64/libflutter.so.sym
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy --strip-debug /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out/arm64-v8a/libflutter.so.sym
+Starting process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy --strip-debug /Users/nuriagarcia/zoomubik/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/armeabi-v7a/libflutter.so /Users/nuriagarcia/zoomubik/build/app/intermediates/native_symbol_tables/release/extractReleaseNativeSymbolTables/out/armeabi-v7a/libflutter.so.sym
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''
+Successfully started process 'command '/Users/nuriagarcia/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy''
+
+> Task :app:compileReleaseKotlin
+Finished executing kotlin compiler using DAEMON strategy
+Resolve mutations for :app:compileReleaseJavaWithJavac (Thread[included builds,5,main]) started.
+:app:compileReleaseJavaWithJavac (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileReleaseJavaWithJavac
+Caching disabled for JdkImageTransform: /Users/nuriagarcia/Library/Android/sdk/platforms/android-36/core-for-system-modules.jar because:
+  Build cache is disabled
+Starting process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink --version
+Successfully started process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink''
+Starting process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/javac''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/javac --system=none --patch-module=java.base=/Users/nuriagarcia/Library/Android/sdk/platforms/android-36/core-for-system-modules.jar -d /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/temp /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/temp/module-info.java
+Successfully started process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/javac''
+Starting process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jmod''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jmod create --module-version 17 --target-platform LINUX-OTHER --class-path /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/temp/module.jar /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/temp/jmod/java.base.jmod
+Successfully started process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jmod''
+Starting process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink''. Working directory: /Users/nuriagarcia/zoomubik/android Command: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink --module-path /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/temp/jmod --add-modules java.base --output /Users/nuriagarcia/.gradle/caches/8.12/transforms/7830f09aa99270b53fa6d6e2639be9a9-2bbfcd91-ec5d-450f-942d-42ed2111658b/transformed/output/jdkImage --disable-plugin system-modules
+Successfully started process 'command '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/jlink''
+Custom actions are attached to task ':app:compileReleaseJavaWithJavac'.
+Caching disabled for task ':app:compileReleaseJavaWithJavac' because:
+  Build cache is disabled
+Task ':app:compileReleaseJavaWithJavac' is not up-to-date because:
+  Value of input property 'javaCompiler.metadata.languageVersion' has changed for task ':app:compileReleaseJavaWithJavac'
+  Value of input property 'javaCompiler.metadata.taskInputs.languageVersion' has changed for task ':app:compileReleaseJavaWithJavac'
+  Value of input property 'javaVersion' has changed for task ':app:compileReleaseJavaWithJavac'
+The input changes require a full rebuild for incremental task ':app:compileReleaseJavaWithJavac'.
+Compilation mode: in-process compilation
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain '/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home'.
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/java', not found
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.025 secs.
+Created classpath snapshot for incremental compilation in 0.158 secs.
+Resolve mutations for :app:expandReleaseArtProfileWildcards (Thread[Execution worker Thread 3,5,main]) started.
+:app:expandReleaseArtProfileWildcards (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:mergeReleaseGeneratedProguardFiles (Thread[Execution worker,5,main]) started.
+:app:mergeReleaseGeneratedProguardFiles (Thread[Execution worker,5,main]) started.
+
+> Task :app:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+Caching disabled for task ':app:mergeReleaseGeneratedProguardFiles' because:
+  Build cache is disabled
+  Simple merging task
+Skipping task ':app:mergeReleaseGeneratedProguardFiles' as it is up-to-date.
+Resolve mutations for :app:processReleaseJavaRes (Thread[Execution worker Thread 2,5,main]) started.
+:app:processReleaseJavaRes (Thread[Execution worker,5,main]) started.
+
+> Task :app:processReleaseJavaRes
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/main/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/main/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/resources', not found
+Caching disabled for task ':app:processReleaseJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:processReleaseJavaRes' is not up-to-date because:
+  Output property 'outDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/java_res/release/processReleaseJavaRes/out has been removed.
+  Output property 'outDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/java_res/release/processReleaseJavaRes/out/com has been removed.
+  Output property 'outDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/java_res/release/processReleaseJavaRes/out/com/example has been removed.
+  and more...
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/main/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/main/resources', not found
+file or directory '/Users/nuriagarcia/zoomubik/android/app/src/release/resources', not found
+Resolve mutations for :app:mergeReleaseJavaResource (Thread[Execution worker,5,main]) started.
+:app:mergeReleaseJavaResource (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:generateReleaseLintVitalReportModel (Thread[Execution worker,5,main]) started.
+:app:generateReleaseLintVitalReportModel (Thread[Execution worker,5,main]) started.
+
+> Task :app:expandReleaseArtProfileWildcards
+Caching disabled for task ':app:expandReleaseArtProfileWildcards' because:
+  Build cache is disabled
+Task ':app:expandReleaseArtProfileWildcards' is not up-to-date because:
+  Output property 'expandedArtProfile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/r8_art_profile/release/expandReleaseArtProfileWildcards/baseline-prof.txt has been removed.
+
+> Task :app:generateReleaseLintVitalReportModel
+Caching disabled for task ':app:generateReleaseLintVitalReportModel' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:generateReleaseLintVitalReportModel' is not up-to-date because:
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/lint_vital_report_lint_model/release/generateReleaseLintVitalReportModel has been removed.
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/lint_vital_report_lint_model/release/generateReleaseLintVitalReportModel/module.xml has been removed.
+  Output property 'outputDirectory' file /Users/nuriagarcia/zoomubik/build/app/intermediates/lint_vital_report_lint_model/release/generateReleaseLintVitalReportModel/release-artifact-dependencies.xml has been removed.
+  and more...
+Resolve mutations for :app:lintVitalAnalyzeRelease (Thread[Execution worker Thread 3,5,main]) started.
+:app:lintVitalAnalyzeRelease (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeReleaseJavaResource
+Caching disabled for task ':app:mergeReleaseJavaResource' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:mergeReleaseJavaResource' is not up-to-date because:
+  Output property 'cacheDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release-mergeJavaRes/zip-cache has been removed.
+  Output property 'cacheDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release-mergeJavaRes/zip-cache/1LKug4kovofs0liO+7RMGiKR8Go= has been removed.
+  Output property 'cacheDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/incremental/release-mergeJavaRes/zip-cache/2hCC0AkUp5kKiMcDAtWRdksAQjI= has been removed.
+  and more...
+The input changes require a full rebuild for incremental task ':app:mergeReleaseJavaResource'.
+Resolve mutations for :app:minifyReleaseWithR8 (Thread[Execution worker Thread 2,5,main]) started.
+:app:minifyReleaseWithR8 (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:lintVitalAnalyzeRelease
+Caching disabled for task ':app:lintVitalAnalyzeRelease' because:
+  Build cache is disabled
+Task ':app:lintVitalAnalyzeRelease' is not up-to-date because:
+  Value of input property 'systemPropertyInputs.javaVersion' has changed for task ':app:lintVitalAnalyzeRelease'
+Android Lint: Creating lint class loader 31.9.1_true
+
+> Task :app:minifyReleaseWithR8
+Caching disabled for ExtractProGuardRulesTransform: /Users/nuriagarcia/.gradle/caches/8.12/transforms/edaf3533cb1cefc1ce899bd926866720/transformed/jetified-libs.jar because:
+  Build cache is disabled
+Caching disabled for task ':app:minifyReleaseWithR8' because:
+  Build cache is disabled
+Task ':app:minifyReleaseWithR8' is not up-to-date because:
+  Output property 'mappingFile' file /Users/nuriagarcia/zoomubik/build/app/outputs/mapping/release/mapping.txt has been removed.
+  Output property 'outputArtProfile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/r8_art_profile/release/minifyReleaseWithR8/baseline-prof.txt has been removed.
+  Output property 'outputDex' file /Users/nuriagarcia/zoomubik/build/app/intermediates/dex/release/minifyReleaseWithR8 has been removed.
+  and more...
+R8 is a new Android code shrinker. If you experience any issues, please file a bug at
+https://issuetracker.google.com, using 'Shrinker (R8)' as component name.
+Current version is: 8.9.32.
+
+file or directory '/Users/nuriagarcia/zoomubik/build/app/intermediates/generated_proguard_file/release/mergeReleaseGeneratedProguardFiles/proguard.txt', not found
+Supplied proguard configuration does not exist: /Users/nuriagarcia/zoomubik/android/app/proguard-rules.pro
+
+Resolve mutations for :app:lintVitalReportRelease (Thread[Execution worker Thread 3,5,main]) started.
+:app:lintVitalReportRelease (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:lintVitalReportRelease
+Caching disabled for task ':app:lintVitalReportRelease' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:lintVitalReportRelease' is not up-to-date because:
+  Value of input property 'systemPropertyInputs.javaVersion' has changed for task ':app:lintVitalReportRelease'
+Android Lint: Reusing lint classloader 31.9.1_true
+Resolve mutations for :app:lintVitalRelease (Thread[Execution worker,5,main]) started.
+:app:lintVitalRelease (Thread[Execution worker,5,main]) started.
+
+> Task :app:lintVitalRelease
+Caching disabled for task ':app:lintVitalRelease' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:lintVitalRelease' is not up-to-date because:
+  Task.upToDateWhen is false.
+
+> Task :app:minifyReleaseWithR8
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/aapt_proguard_file/release/processReleaseResources/aapt_rules.txt:1:1-50: R8: Proguard configuration rule does not match anything: `-keep class android.app.Application {
+  <init>();
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:21:1-22:1: R8: Proguard configuration rule does not match anything: `-keep public class com.google.vending.licensing.ILicensingService {
+  <init>();
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:22:1-23:1: R8: Proguard configuration rule does not match anything: `-keep public class com.android.vending.licensing.ILicensingService {
+  <init>();
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:23:1-24:1: R8: Proguard configuration rule does not match anything: `-keep public class com.google.android.vending.licensing.ILicensingService {
+  <init>();
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:55:1-57:2: R8: Proguard configuration rule does not match anything: `-keepclassmembers class * {
+  @android.webkit.JavascriptInterface <methods>;
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:68:1-70:1: R8: Proguard configuration rule does not match anything: `-keep class android.support.annotation.Keep {
+  <init>();
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:70:1-52: R8: Proguard configuration rule does not match anything: `-keep @android.support.annotation.Keep class * {
+  *;
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:72:1-74:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @android.support.annotation.Keep <methods>;
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:76:1-78:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @android.support.annotation.Keep <fields>;
+}`
+INFO: /Users/nuriagarcia/zoomubik/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.9.1:80:1-82:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @android.support.annotation.Keep <init>(...);
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/proguard.txt:16:1-19:2: R8: Proguard configuration rule does not match anything: `-if public class ** extends androidx.fragment.app.Fragment
+-keepclasseswithmembers,allowrepackaging,allowobfuscation public class <1> {
+  public <init>();
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/7d4d4ce414a44a3730885ae01f2fb152/transformed/fragment-1.7.1/proguard.txt:24:1-29:2: R8: Proguard configuration rule does not match anything: `-if class androidx.fragment.app.FragmentTransition {
+  private static androidx.fragment.app.FragmentTransitionImpl resolveSupportImpl();
+}
+-keep class androidx.transition.FragmentTransitionSupport {
+  public <init>();
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/444bb99b45d5f3093a14f2f3c82161dc/transformed/lifecycle-viewmodel-2.7.0/proguard.txt:5:1-7:2: R8: Proguard configuration rule does not match anything: `-keepclassmembers,allowrepackaging,allowobfuscation class * extends androidx.lifecycle.AndroidViewModel {
+  <init>(android.app.Application);
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/47080e52f42fb85d5acc0d8bd39630dc/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/proguard.txt:1:1-3:2: R8: Proguard configuration rule does not match anything: `-keepclassmembers,allowrepackaging,allowobfuscation class * extends androidx.lifecycle.ViewModel {
+  <init>(androidx.lifecycle.SavedStateHandle);
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/47080e52f42fb85d5acc0d8bd39630dc/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/proguard.txt:5:1-7:2: R8: Proguard configuration rule does not match anything: `-keepclassmembers,allowrepackaging,allowobfuscation class * extends androidx.lifecycle.AndroidViewModel {
+  <init>(android.app.Application,androidx.lifecycle.SavedStateHandle);
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/c225580ff9ba548683b0b22a7305e036/transformed/lifecycle-runtime-2.7.0/proguard.txt:10:1-12:2: R8: Proguard configuration rule does not match anything: `-keep class * implements androidx.lifecycle.GeneratedAdapter {
+  <init>(...);
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/c225580ff9ba548683b0b22a7305e036/transformed/lifecycle-runtime-2.7.0/proguard.txt:14:1-16:2: R8: Proguard configuration rule does not match anything: `-keepclassmembers class ** {
+  @androidx.lifecycle.OnLifecycleEvent *;
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/fd17c9e03a6590d30e6e700a4e3a77b8/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro:4:1-6:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @androidx.annotation.Keep <methods>;
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/fd17c9e03a6590d30e6e700a4e3a77b8/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro:8:1-10:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @androidx.annotation.Keep <fields>;
+}`
+INFO: /Users/nuriagarcia/.gradle/caches/8.12/transforms/fd17c9e03a6590d30e6e700a4e3a77b8/transformed/rules/lib/META-INF/proguard/androidx-annotations.pro:12:1-14:2: R8: Proguard configuration rule does not match anything: `-keepclasseswithmembers class * {
+  @androidx.annotation.Keep <init>(...);
+}`
+Resolve mutations for :app:buildReleasePreBundle (Thread[Execution worker,5,main]) started.
+:app:buildReleasePreBundle (Thread[Execution worker,5,main]) started.
+
+> Task :app:buildReleasePreBundle
+Caching disabled for task ':app:buildReleasePreBundle' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:buildReleasePreBundle' is not up-to-date because:
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/module_bundle/release/buildReleasePreBundle has been removed.
+  Output property 'outputDir' file /Users/nuriagarcia/zoomubik/build/app/intermediates/module_bundle/release/buildReleasePreBundle/base.zip has been removed.
+Resolve mutations for :app:compileReleaseArtProfile (Thread[Execution worker Thread 2,5,main]) started.
+:app:compileReleaseArtProfile (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:compileReleaseArtProfile
+Caching disabled for task ':app:compileReleaseArtProfile' because:
+  Build cache is disabled
+Task ':app:compileReleaseArtProfile' is not up-to-date because:
+  Output property 'binaryArtProfile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/binary_art_profile/release/compileReleaseArtProfile/baseline.prof has been removed.
+  Output property 'binaryArtProfileMetadata' file /Users/nuriagarcia/zoomubik/build/app/intermediates/binary_art_profile_metadata/release/compileReleaseArtProfile/baseline.profm has been removed.
+  Output property 'combinedArtProfile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/combined_art_profile/release/compileReleaseArtProfile/baseline-prof.txt has been removed.
+  and more...
+Resolve mutations for :app:packageReleaseBundle (Thread[Execution worker Thread 2,5,main]) started.
+:app:packageReleaseBundle (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:packageReleaseBundle
+Caching disabled for task ':app:packageReleaseBundle' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:packageReleaseBundle' is not up-to-date because:
+  Output property 'bundleFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/intermediary_bundle/release/packageReleaseBundle/intermediary-bundle.aab has been removed.
+Resolve mutations for :app:signReleaseBundle (Thread[Execution worker Thread 2,5,main]) started.
+:app:signReleaseBundle (Thread[included builds,5,main]) started.
+
+> Task :app:signReleaseBundle
+Caching disabled for task ':app:signReleaseBundle' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:signReleaseBundle' is not up-to-date because:
+  Output property 'finalBundleFile' file /Users/nuriagarcia/zoomubik/build/app/outputs/bundle/release/app-release.aab has been removed.
+Resolve mutations for :app:produceReleaseBundleIdeListingFile (Thread[included builds,5,main]) started.
+:app:produceReleaseBundleIdeListingFile (Thread[included builds,5,main]) started.
+
+> Task :app:produceReleaseBundleIdeListingFile
+Caching disabled for task ':app:produceReleaseBundleIdeListingFile' because:
+  Build cache is disabled
+  Fast task
+Task ':app:produceReleaseBundleIdeListingFile' is not up-to-date because:
+  Output property 'bundleIdeModel' file /Users/nuriagarcia/zoomubik/build/app/intermediates/bundle_ide_model/release/produceReleaseBundleIdeListingFile/output-metadata.json has been removed.
+Resolve mutations for :app:createReleaseBundleListingFileRedirect (Thread[included builds,5,main]) started.
+:app:createReleaseBundleListingFileRedirect (Thread[included builds,5,main]) started.
+
+> Task :app:createReleaseBundleListingFileRedirect
+Caching disabled for task ':app:createReleaseBundleListingFileRedirect' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:createReleaseBundleListingFileRedirect' is not up-to-date because:
+  Output property 'redirectFile' file /Users/nuriagarcia/zoomubik/build/app/intermediates/bundle_ide_redirect_file/release/createReleaseBundleListingFileRedirect/redirect.txt has been removed.
+Resolve mutations for :app:bundleRelease (Thread[Execution worker Thread 2,5,main]) started.
+:app:bundleRelease (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:bundleRelease
+Skipping task ':app:bundleRelease' as it has no actions.
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #0: shutdown
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #1: shutdown
+AAPT2 aapt2-8.9.1-12782657-osx Daemon #2: shutdown
+Android Lint: Disposing Uast application environment in lint classloader [31.9.1_true]
+
+[Incubating] Problems report is available at: file:///Users/nuriagarcia/zoomubik/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3m 14s
+67 actionable tasks: 59 executed, 8 up-to-date
