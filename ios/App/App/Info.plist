@@ -30,6 +30,8 @@
 	<string>Esta aplicación necesita acceso al micrófono para grabar audio.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Esta aplicación necesita acceso a tu biblioteca de fotos para seleccionar imágenes.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Esta aplicación quiere enviarte notificaciones.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
