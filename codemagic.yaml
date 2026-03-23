@@ -7,10 +7,14 @@ workflows:
     environment:
       xcode: latest
       cocoapods: default
+
       groups:
         - app-store-credentials3
+
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+        APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
+
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.zoomubik.app
@@ -33,10 +37,10 @@ workflows:
           pod install
           cd ..
 
-      # ✅ SIN keychain ni fetch manual (esto arregla tu error)
-      - name: Set up code signing
+      # ✅ IMPORTANTE: dejamos signing 100% automático
+      - name: Code Signing
         script: |
-          echo "Using automatic code signing by Codemagic"
+          echo "Using Codemagic automatic code signing"
 
       - name: Build iOS Archive (Flutter)
         script: |
@@ -51,7 +55,6 @@ workflows:
             archive
           cd ..
 
-      # ✅ Export simple (Codemagic ya tiene profiles automáticos)
       - name: Export IPA
         script: |
           cd ios
