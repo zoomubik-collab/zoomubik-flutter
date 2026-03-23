@@ -1,4 +1,4 @@
-workflows:
+ workflows:
   ios-workflow:
     name: iOS Build & Upload to App Store (Flutter)
     instance_type: mac_mini_m1
@@ -14,6 +14,10 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.zoomubik.app
     scripts:
+      - name: Restore GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+
       - name: Install Flutter and dependencies
         script: |
           git clone https://github.com/flutter/flutter.git -b stable --depth 1
@@ -82,29 +86,5 @@ workflows:
             <key>provisioningProfiles</key>
             <dict>
               <key>com.zoomubik.app</key>
-              <string>$PROFILE_UUID</string>
-            </dict>
-            <key>uploadBitcode</key>
-            <false/>
-            <key>uploadSymbols</key>
-            <true/>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist build/ExportOptions.plist \
-            -exportPath build/ipa
-
-    artifacts:
-      - ios/build/Runner.xcarchive
-      - ios/build/ipa/*.ipa
-
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
+              <string](#)
+
