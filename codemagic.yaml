@@ -3,6 +3,7 @@ workflows:
     name: iOS Build & Upload to App Store (Flutter)
     instance_type: mac_mini_m1
     max_build_duration: 120
+
     environment:
       xcode: latest
       cocoapods: default
@@ -10,6 +11,7 @@ workflows:
         - app-store-credentials3
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+
     scripts:
       - name: Restore GoogleService-Info.plist
         script: |
@@ -28,11 +30,10 @@ workflows:
           pod install
           cd ..
 
-      # ✅ Código signing automático
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files com.zoomubik.app --type IOS_APP_STORE --create --reference-name apple_zoomubik
+          app-store-connect fetch-signing-files com.zoomubik.app --type IOS_APP_STORE --create
           keychain add-certificates
           xcode-project use-profiles
 
@@ -98,5 +99,7 @@ workflows:
 
     publishing:
       app_store_connect:
-        integration: apple_zoomubik
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
