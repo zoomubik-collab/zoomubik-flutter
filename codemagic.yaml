@@ -3,18 +3,15 @@ workflows:
     name: iOS Build & Upload to App Store (Flutter)
     instance_type: mac_mini_m1
     max_build_duration: 120
-
     environment:
+      flutter: stable
       xcode: latest
       cocoapods: default
-
       groups:
         - app-store-credentials3
-
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
         APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
-
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.zoomubik.app
@@ -24,63 +21,21 @@ workflows:
         script: |
           echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
 
-      - name: Install Flutter and dependencies
+      - name: Install dependencies
         script: |
-          git clone https://github.com/flutter/flutter.git -b stable --depth 1
-          export PATH="$PATH:`pwd`/flutter/bin"
-          flutter --version
           flutter pub get
 
       - name: Pod Install
         script: |
-          cd ios
-          pod install
-          cd ..
+          cd ios && pod install
 
-      # ✅ IMPORTANTE: dejamos signing 100% automático
-      - name: Code Signing
+      - name: Build IPA
         script: |
-          echo "Using Codemagic automatic code signing"
-
-      - name: Build iOS Archive (Flutter)
-        script: |
-          flutter build ios --release --no-codesign
-
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath build/Runner.xcarchive \
-            archive
-          cd ..
-
-      - name: Export IPA
-        script: |
-          cd ios
-
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>teamID</key>
-            <string>$CM_APPLE_DEV_TEAM_ID</string>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/ipa
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
-      - ios/build/Runner.xcarchive
-      - ios/build/ipa/*.ipa
+      - build/ios/ipa/*.ipa
 
     publishing:
       app_store_connect:
