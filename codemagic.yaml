@@ -47,7 +47,7 @@ workflows:
             archive
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist $CM_EXPORT_OPTIONS_PATH \
+            -exportOptionsPlist ../ios_export_options.plist \
             -exportPath build/ipa
     artifacts:
       - ios/build/ipa/*.ipa
