@@ -10,8 +10,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    print('Error inicializando Firebase: $e');
+  }
   runApp(ZoomubikApp());
 }
 
@@ -47,21 +51,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initFirebaseMessaging() async {
-    // Solicitar permisos
-    await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    // Obtener el token FCM (para debug)
-    String? token = await FirebaseMessaging.instance.getToken();
-    print('FCM Token: $token');
-
-    // Notificación recibida con la app en primer plano
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Mensaje recibido: ${message.notification?.title}');
-    });
+    try {
+      await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      String? token = await FirebaseMessaging.instance.getToken();
+      print('FCM Token: $token');
+    } catch (e) {
+      print('Error en Firebase Messaging: $e');
+    }
   }
 
   @override
