@@ -39,4 +39,25 @@ workflows:
       - name: Build IPA
         script: |
           cd ios
-          xcodebuild -
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/Runner.xcarchive \
+            -destination generic/platform=iOS \
+            DEVELOPMENT_TEAM="6573BLNWHL" \
+            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="zoomubik-app-store" \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportOptionsPlist ../ios_export_options.plist \
+            -exportPath build/ipa
+    artifacts:
+      - ios/build/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
