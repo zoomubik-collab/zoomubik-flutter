@@ -32,7 +32,7 @@ workflows:
       - name: Bump build number
         script: |
           LATEST=$(app-store-connect get-latest-testflight-build-number 6760907092)
-          agvtool new-version -all $(($LATEST + 1))
+          cd ios && agvtool new-version -all $(($LATEST + 1))
       - name: Build Flutter
         script: |
           flutter build ios --release --no-codesign
