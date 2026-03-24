@@ -25,13 +25,25 @@ workflows:
           flutter pub get
       - name: Pod Install
         script: |
-          find . -name "Podfile" -maxdepth 3
           cd ios && pod install --repo-update
+      - name: Build Flutter
+        script: |
+          flutter build ios --release --no-codesign
       - name: Build IPA
         script: |
-          flutter build ipa --release
+          xcode-project use-profiles
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/Runner.xcarchive \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportOptionsPlist $CM_EXPORT_OPTIONS_PATH \
+            -exportPath build/ipa
     artifacts:
-      - build/ios/ipa/*.ipa
+      - ios/build/ipa/*.ipa
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
