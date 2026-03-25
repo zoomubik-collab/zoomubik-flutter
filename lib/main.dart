@@ -54,12 +54,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeApp() async {
-    // Cargar credenciales guardadas
-    final savedEmail = await _secureStorage.read(key: 'wp_email');
-    final savedPassword = await _secureStorage.read(key: 'wp_password');
-    
-    print('📱 Email guardado: ${savedEmail != null ? 'Sí' : 'No'}');
-    print('📱 Password guardado: ${savedPassword != null ? 'Sí' : 'No'}');
+    // Cargar user_id guardado
+    _currentUserId = await _secureStorage.read(key: 'wp_user_id');
+    print('📱 User ID cargado: $_currentUserId');
 
     // Inicializar WebView primero
     _initWebView();
@@ -67,58 +64,11 @@ class _HomePageState extends State<HomePage> {
     // Inicializar Firebase Messaging
     await _initFirebaseMessaging();
 
-    // Si hay credenciales guardadas, hacer login automático
-    if (savedEmail != null && savedPassword != null) {
-      await Future.delayed(Duration(seconds: 2));
-      await _autoLogin(savedEmail, savedPassword);
-    }
-
     // Marcar como inicializado
     if (mounted) {
       setState(() {
         _isInitialized = true;
       });
-    }
-  }
-
-  Future<void> _autoLogin(String email, String password) async {
-    try {
-      print('🔄 Intentando login automático...');
-      
-      final response = await http.post(
-        Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
-        body: {
-          'action': 'zm_flutter_login',
-          'email': email,
-          'password': password,
-        },
-      ).timeout(Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        if (data['success'] == true) {
-          final userId = data['data']['user_id'].toString();
-          
-          print('✅ Login automático exitoso: $userId');
-          
-          // Guardar user_id
-          _currentUserId = userId;
-          await _secureStorage.write(key: 'wp_user_id', value: userId);
-          
-          // Recargar página
-          await _controller.reload();
-          
-          // Obtener token FCM
-          await _saveFcmToken(userId);
-        } else {
-          print('❌ Login falló: ${data['data']}');
-        }
-      } else {
-        print('❌ Error HTTP: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('❌ Error en login automático: $e');
     }
   }
 
@@ -153,24 +103,6 @@ class _HomePageState extends State<HomePage> {
     // Guardar en almacenamiento seguro
     await _secureStorage.write(key: 'wp_user_id', value: userId);
     print('✅ User ID guardado: $userId');
-    
-    // Intentar obtener email y password del formulario de login
-    try {
-      final email = await _controller.runJavaScriptReturningResult(
-        'document.querySelector("input[type=email]")?.value || document.querySelector("input[name=user_login]")?.value || ""'
-      );
-      final password = await _controller.runJavaScriptReturningResult(
-        'document.querySelector("input[type=password]")?.value || ""'
-      );
-      
-      if (email != null && email.toString().isNotEmpty && password != null && password.toString().isNotEmpty) {
-        await _secureStorage.write(key: 'wp_email', value: email.toString());
-        await _secureStorage.write(key: 'wp_password', value: password.toString());
-        print('✅ Credenciales guardadas');
-      }
-    } catch (e) {
-      print('⚠️ No se pudieron guardar credenciales: $e');
-    }
     
     // Guardar token FCM con el nuevo user_id
     await _saveFcmToken(userId);

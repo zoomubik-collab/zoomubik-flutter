@@ -25,7 +25,16 @@ workflows:
           flutter pub get
       - name: Pod Install
         script: |
-          cd ios && pod install --repo-update
+          cd ios
+          # Usar mirror de CocoaPods para evitar límites de GitHub
+          pod repo update --sources=https://cdn.cocoapods.org/
+          pod install --repo-update --verbose
+          # Si falla, reintentar con caché
+          if [ $? -ne 0 ]; then
+            echo "Reintentando pod install..."
+            rm -rf Pods Podfile.lock
+            pod install --repo-update --verbose
+          fi
       - name: Set up code signing
         script: |
           xcode-project use-profiles
