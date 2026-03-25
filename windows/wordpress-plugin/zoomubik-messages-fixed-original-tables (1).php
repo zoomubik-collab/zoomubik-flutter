@@ -1065,3 +1065,50 @@ add_action('wp_ajax_nopriv_zm_flutter_login', function() {
 add_action('wp_ajax_zm_flutter_login', function() {
     do_action('wp_ajax_nopriv_zm_flutter_login');
 });
+
+
+// === TOKEN DE SESIÓN PERSISTENTE ===
+add_action('wp_ajax_nopriv_zm_get_session_token', function() {
+    $user_id = intval($_POST['user_id'] ?? 0);
+    if (!$user_id) {
+        wp_send_json_error('User ID requerido');
+        return;
+    }
+    
+    $token = bin2hex(random_bytes(32));
+    update_user_meta($user_id, 'zm_session_token', $token);
+    
+    error_log('✅ Token de sesión generado para usuario ' . $user_id);
+    wp_send_json_success(array('token' => $token));
+});
+
+add_action('wp_ajax_zm_get_session_token', function() {
+    do_action('wp_ajax_nopriv_zm_get_session_token');
+});
+
+// Verificar token y restaurar sesión
+add_action('wp_ajax_nopriv_zm_restore_session', function() {
+    $user_id = intval($_POST['user_id'] ?? 0);
+    $token = sanitize_text_field($_POST['token'] ?? '');
+    
+    if (!$user_id || !$token) {
+        wp_send_json_error('Datos incompletos');
+        return;
+    }
+    
+    $stored_token = get_user_meta($user_id, 'zm_session_token', true);
+    
+    if ($stored_token === $token) {
+        wp_set_current_user($user_id);
+        wp_set_auth_cookie($user_id, true);
+        error_log('✅ Sesión restaurada para usuario ' . $user_id);
+        wp_send_json_success(array('user_id' => $user_id));
+    } else {
+        error_log('❌ Token inválido para usuario ' . $user_id);
+        wp_send_json_error('Token inválido');
+    }
+});
+
+add_action('wp_ajax_zm_restore_session', function() {
+    do_action('wp_ajax_nopriv_zm_restore_session');
+});

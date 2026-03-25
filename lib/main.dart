@@ -54,9 +54,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeApp() async {
-    // Cargar user_id guardado
+    // Cargar user_id y token guardados
     _currentUserId = await _secureStorage.read(key: 'wp_user_id');
+    final sessionToken = await _secureStorage.read(key: 'zm_session_token');
+    
     print('📱 User ID cargado: $_currentUserId');
+    print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
 
     // Inicializar WebView primero
     _initWebView();
@@ -64,11 +67,45 @@ class _HomePageState extends State<HomePage> {
     // Inicializar Firebase Messaging
     await _initFirebaseMessaging();
 
+    // Si hay token guardado, restaurar sesión
+    if (_currentUserId != null && sessionToken != null) {
+      await Future.delayed(Duration(seconds: 2));
+      await _restoreSession(_currentUserId!, sessionToken);
+    }
+
     // Marcar como inicializado
     if (mounted) {
       setState(() {
         _isInitialized = true;
       });
+    }
+  }
+
+  Future<void> _restoreSession(String userId, String token) async {
+    try {
+      print('🔄 Restaurando sesión...');
+      
+      final response = await http.post(
+        Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
+        body: {
+          'action': 'zm_restore_session',
+          'user_id': userId,
+          'token': token,
+        },
+      ).timeout(Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          print('✅ Sesión restaurada correctamente');
+          // Recargar página para que se aplique la sesión
+          await _controller.reload();
+        } else {
+          print('❌ Error restaurando sesión: ${data['data']}');
+        }
+      }
+    } catch (e) {
+      print('❌ Error en restauración de sesión: $e');
     }
   }
 
@@ -103,6 +140,28 @@ class _HomePageState extends State<HomePage> {
     // Guardar en almacenamiento seguro
     await _secureStorage.write(key: 'wp_user_id', value: userId);
     print('✅ User ID guardado: $userId');
+    
+    // Obtener token de sesión del servidor
+    try {
+      final response = await http.post(
+        Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
+        body: {
+          'action': 'zm_get_session_token',
+          'user_id': userId,
+        },
+      ).timeout(Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final token = data['data']['token'];
+          await _secureStorage.write(key: 'zm_session_token', value: token);
+          print('🔐 Token de sesión guardado');
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error obteniendo token de sesión: $e');
+    }
     
     // Guardar token FCM con el nuevo user_id
     await _saveFcmToken(userId);
