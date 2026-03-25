@@ -75,6 +75,7 @@ class _HomePageState extends State<HomePage> {
   void _initWebView() {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15')
       ..addJavaScriptChannel(
         'FlutterChannel',
         onMessageReceived: (JavaScriptMessage message) {
@@ -90,6 +91,21 @@ class _HomePageState extends State<HomePage> {
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (url) async {
           print('✅ Página cargada: $url');
+          
+          // Inyectar script para mantener sesión
+          await _controller.runJavaScript('''
+            // Guardar cookies en localStorage
+            if (document.cookie) {
+              localStorage.setItem('wp_cookies', document.cookie);
+            }
+            
+            // Restaurar cookies si existen
+            var savedCookies = localStorage.getItem('wp_cookies');
+            if (savedCookies && !document.cookie.includes('wordpress_logged_in')) {
+              document.cookie = savedCookies;
+            }
+          ''');
+          
           await Future.delayed(Duration(seconds: 1));
           _injectUserId();
         },
