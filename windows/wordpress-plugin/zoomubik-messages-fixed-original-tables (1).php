@@ -49,6 +49,7 @@ class ZoomubikMessagesFixedOriginal {
         add_action('wp_ajax_zmoriginal_get_conversations', array($this, 'get_conversations'));
         add_action('wp_ajax_zmoriginal_get_messages', array($this, 'get_messages'));
         add_action('wp_ajax_zmoriginal_mark_read', array($this, 'mark_messages_read'));
+        add_action('wp_ajax_zmoriginal_get_unread_count', array($this, 'get_unread_count'));
         add_action('wp_ajax_zmoriginal_search_users', array($this, 'search_users'));
         add_action('wp_ajax_zmoriginal_create_conversation', array($this, 'create_conversation'));
         add_action('wp_ajax_zmoriginal_upload_file', array($this, 'upload_file'));
@@ -308,8 +309,27 @@ class ZoomubikMessagesFixedOriginal {
         $user_id = get_current_user_id();
         global $wpdb;
         $last_message = $wpdb->get_var($wpdb->prepare("SELECT MAX(id) FROM $this->table_messages WHERE conversation_id = %d", $conversation_id));
-        if ($last_message) { $wpdb->update($this->table_participants, array('last_read_message_id' => $last_message), array('conversation_id' => $conversation_id, 'user_id' => $user_id), array('%d'), array('%d', '%d')); }
+        if ($last_message) { 
+            $wpdb->update($this->table_participants, array('last_read_message_id' => $last_message), array('conversation_id' => $conversation_id, 'user_id' => $user_id), array('%d'), array('%d', '%d')); 
+        }
         wp_send_json_success();
+    }
+    
+    public function get_unread_count() {
+        check_ajax_referer('zmoriginal_nonce', 'nonce');
+        if (!is_user_logged_in()) wp_die('No autorizado');
+        
+        $user_id = get_current_user_id();
+        global $wpdb;
+        
+        $unread_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(DISTINCT m.id) FROM $this->table_messages m 
+             JOIN $this->table_participants p ON m.conversation_id = p.conversation_id 
+             WHERE p.user_id = %d AND m.id > p.last_read_message_id AND m.sender_id != %d",
+            $user_id, $user_id
+        ));
+        
+        wp_send_json_success(array('unread_count' => intval($unread_count)));
     }
     
     public function search_users() {
@@ -1012,4 +1032,36 @@ function zoomubik_push_register(WP_REST_Request $request) {
 register_deactivation_hook(__FILE__, function() {
     $timestamp = wp_next_scheduled('zm_daily_unread_summary');
     if ($timestamp) wp_unschedule_event($timestamp, 'zm_daily_unread_summary');
+});
+
+
+// === LOGIN AUTOMÁTICO PARA FLUTTER ===
+add_action('wp_ajax_nopriv_zm_flutter_login', function() {
+    $email = sanitize_email($_POST['email'] ?? '');
+    $password = sanitize_text_field($_POST['password'] ?? '');
+    
+    if (empty($email) || empty($password)) {
+        wp_send_json_error('Email o contraseña vacíos');
+        return;
+    }
+    
+    $user = wp_authenticate($email, $password);
+    
+    if (is_wp_error($user)) {
+        wp_send_json_error('Credenciales inválidas');
+        return;
+    }
+    
+    wp_set_current_user($user->ID);
+    wp_set_auth_cookie($user->ID, true);
+    
+    wp_send_json_success(array(
+        'user_id' => $user->ID,
+        'display_name' => $user->display_name,
+        'email' => $user->user_email
+    ));
+});
+
+add_action('wp_ajax_zm_flutter_login', function() {
+    do_action('wp_ajax_nopriv_zm_flutter_login');
 });

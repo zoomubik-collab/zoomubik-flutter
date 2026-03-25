@@ -86,34 +86,36 @@ class _HomePageState extends State<HomePage> {
       print('🔄 Intentando login automático...');
       
       final response = await http.post(
-        Uri.parse('https://www.zoomubik.com/wp-json/jwt-auth/v1/token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': email,
+        Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
+        body: {
+          'action': 'zm_flutter_login',
+          'email': email,
           'password': password,
-        }),
+        },
       ).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['token'];
         
-        print('✅ Login automático exitoso');
-        
-        // Guardar token
-        await _secureStorage.write(key: 'wp_token', value: token);
-        
-        // Inyectar token en la WebView
-        await _controller.runJavaScript('''
-          localStorage.setItem('wp_token', '$token');
-          localStorage.setItem('wp_email', '$email');
-          console.log('Token inyectado en localStorage');
-        ''');
-        
-        // Recargar página para que se aplique el token
-        await _controller.reload();
+        if (data['success'] == true) {
+          final userId = data['data']['user_id'].toString();
+          
+          print('✅ Login automático exitoso: $userId');
+          
+          // Guardar user_id
+          _currentUserId = userId;
+          await _secureStorage.write(key: 'wp_user_id', value: userId);
+          
+          // Recargar página
+          await _controller.reload();
+          
+          // Obtener token FCM
+          await _saveFcmToken(userId);
+        } else {
+          print('❌ Login falló: ${data['data']}');
+        }
       } else {
-        print('❌ Login automático falló: ${response.statusCode}');
+        print('❌ Error HTTP: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ Error en login automático: $e');
