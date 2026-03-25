@@ -47,6 +47,15 @@ class _HomePageState extends State<HomePage> {
     _initFirebaseMessaging();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setGeolocationPermissionsPromptCallbacks(
+        onShowPrompt: (request) async {
+          return GeolocationPermissionsResponse(
+            allow: true,
+            retain: true,
+          );
+        },
+        onHidePrompt: () {},
+      )
       ..addJavaScriptChannel(
         'FlutterChannel',
         onMessageReceived: (JavaScriptMessage message) {
@@ -71,7 +80,6 @@ class _HomePageState extends State<HomePage> {
     await Future.delayed(Duration(seconds: 3));
 
     try {
-      // Obtener user_id directamente desde WordPress via AJAX
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
         body: {'action': 'zm_get_user_id'},
