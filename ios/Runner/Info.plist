@@ -50,5 +50,9 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Zoomubik necesita tu ubicación para mostrar anuncios cercanos a ti.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Zoomubik necesita tu ubicación para mostrar anuncios cercanos a ti.</string>
 </dict>
 </plist>
