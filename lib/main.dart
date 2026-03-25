@@ -55,15 +55,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _injectUserId() async {
-    // Obtener el user_id de WordPress via JavaScript
-    final result = await _controller.runJavaScriptReturningResult(
-      'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"'
-    );
-    final userId = result.toString().replaceAll('"', '');
-    print('WordPress user_id: $userId');
+    await Future.delayed(Duration(seconds: 3));
 
-    if (userId != '0' && userId.isNotEmpty) {
-      await _saveFcmToken(userId);
+    try {
+      final result = await _controller.runJavaScriptReturningResult(
+        'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"'
+      );
+      final userId = result.toString().replaceAll('"', '');
+      print('WordPress user_id: $userId');
+
+      if (userId != '0' && userId.isNotEmpty) {
+        await _saveFcmToken(userId);
+      } else {
+        print('Usuario no logueado o variable no disponible');
+      }
+    } catch (e) {
+      print('Error inyectando user_id: $e');
     }
   }
 
@@ -78,16 +85,18 @@ class _HomePageState extends State<HomePage> {
       String? token = await FirebaseMessaging.instance.getToken();
       print('FCM Token: $token');
 
-      // Escuchar renovaciones del token
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         print('FCM Token renovado: $newToken');
-        final result = await _controller.runJavaScriptReturningResult(
-          'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"'
-        );
-        final userId = result.toString().replaceAll('"', '');
-        if (userId != '0') await _saveFcmToken(userId);
+        try {
+          final result = await _controller.runJavaScriptReturningResult(
+            'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"'
+          );
+          final userId = result.toString().replaceAll('"', '');
+          if (userId != '0') await _saveFcmToken(userId);
+        } catch (e) {
+          print('Error en onTokenRefresh: $e');
+        }
       });
-
     } catch (e) {
       print('Error en Firebase Messaging: $e');
     }
@@ -108,6 +117,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       print('Token guardado en WordPress: ${response.statusCode}');
+      print('Respuesta: ${response.body}');
     } catch (e) {
       print('Error guardando token: $e');
     }
