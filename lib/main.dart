@@ -54,12 +54,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeApp() async {
-    // Cargar user_id y token de sesión guardados
-    _currentUserId = await _secureStorage.read(key: 'wp_user_id');
-    final sessionToken = await _secureStorage.read(key: 'wp_session_token');
+    // Cargar credenciales guardadas
+    final savedEmail = await _secureStorage.read(key: 'wp_email');
+    final savedPassword = await _secureStorage.read(key: 'wp_password');
     
-    print('📱 User ID cargado: $_currentUserId');
-    print('🔐 Session token cargado: ${sessionToken != null ? 'Sí' : 'No'}');
+    print('📱 Email guardado: ${savedEmail != null ? 'Sí' : 'No'}');
+    print('📱 Password guardado: ${savedPassword != null ? 'Sí' : 'No'}');
 
     // Inicializar WebView primero
     _initWebView();
@@ -67,10 +67,10 @@ class _HomePageState extends State<HomePage> {
     // Inicializar Firebase Messaging
     await _initFirebaseMessaging();
 
-    // Si hay sesión guardada, inyectarla
-    if (sessionToken != null && _currentUserId != null) {
+    // Si hay credenciales guardadas, hacer login automático
+    if (savedEmail != null && savedPassword != null) {
       await Future.delayed(Duration(seconds: 2));
-      await _restoreSession(sessionToken);
+      await _autoLogin(savedEmail, savedPassword);
     }
 
     // Marcar como inicializado
@@ -78,6 +78,45 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isInitialized = true;
       });
+    }
+  }
+
+  Future<void> _autoLogin(String email, String password) async {
+    try {
+      print('🔄 Intentando login automático...');
+      
+      final response = await http.post(
+        Uri.parse('https://www.zoomubik.com/wp-json/jwt-auth/v1/token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': email,
+          'password': password,
+        }),
+      ).timeout(Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['token'];
+        
+        print('✅ Login automático exitoso');
+        
+        // Guardar token
+        await _secureStorage.write(key: 'wp_token', value: token);
+        
+        // Inyectar token en la WebView
+        await _controller.runJavaScript('''
+          localStorage.setItem('wp_token', '$token');
+          localStorage.setItem('wp_email', '$email');
+          console.log('Token inyectado en localStorage');
+        ''');
+        
+        // Recargar página para que se aplique el token
+        await _controller.reload();
+      } else {
+        print('❌ Login automático falló: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error en login automático: $e');
     }
   }
 
@@ -100,28 +139,6 @@ class _HomePageState extends State<HomePage> {
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (url) async {
           print('✅ Página cargada: $url');
-          
-          // Inyectar script para mantener sesión
-          await _controller.runJavaScript('''
-            // Guardar todas las cookies en localStorage
-            if (document.cookie) {
-              localStorage.setItem('wp_all_cookies', document.cookie);
-              console.log("Cookies guardadas: " + document.cookie);
-            }
-            
-            // Restaurar cookies si existen
-            var savedCookies = localStorage.getItem('wp_all_cookies');
-            if (savedCookies) {
-              var cookies = savedCookies.split("; ");
-              cookies.forEach(function(cookie) {
-                if (cookie && !document.cookie.includes(cookie.split("=")[0])) {
-                  document.cookie = cookie + "; path=/; secure; samesite=lax";
-                }
-              });
-              console.log("Cookies restauradas");
-            }
-          ''');
-          
           await Future.delayed(Duration(seconds: 1));
           _injectUserId();
         },
@@ -135,38 +152,26 @@ class _HomePageState extends State<HomePage> {
     await _secureStorage.write(key: 'wp_user_id', value: userId);
     print('✅ User ID guardado: $userId');
     
-    // Guardar token de sesión
+    // Intentar obtener email y password del formulario de login
     try {
-      final sessionToken = await _controller.runJavaScriptReturningResult(
-        'document.cookie.split("; ").find(row => row.startsWith("wordpress_logged_in"))?.split("=")[1] || ""'
+      final email = await _controller.runJavaScriptReturningResult(
+        'document.querySelector("input[type=email]")?.value || document.querySelector("input[name=user_login]")?.value || ""'
       );
-      if (sessionToken != null && sessionToken.toString().isNotEmpty) {
-        await _secureStorage.write(key: 'wp_session_token', value: sessionToken.toString());
-        print('🔐 Token de sesión guardado');
+      final password = await _controller.runJavaScriptReturningResult(
+        'document.querySelector("input[type=password]")?.value || ""'
+      );
+      
+      if (email != null && email.toString().isNotEmpty && password != null && password.toString().isNotEmpty) {
+        await _secureStorage.write(key: 'wp_email', value: email.toString());
+        await _secureStorage.write(key: 'wp_password', value: password.toString());
+        print('✅ Credenciales guardadas');
       }
     } catch (e) {
-      print('⚠️ Error guardando token de sesión: $e');
+      print('⚠️ No se pudieron guardar credenciales: $e');
     }
     
     // Guardar token FCM con el nuevo user_id
     await _saveFcmToken(userId);
-  }
-
-  Future<void> _restoreSession(String sessionToken) async {
-    try {
-      print('🔄 Restaurando sesión...');
-      await _controller.runJavaScript('''
-        // Restaurar cookie de sesión
-        document.cookie = "wordpress_logged_in=$sessionToken; path=/; secure; samesite=lax";
-        console.log("Sesión restaurada");
-      ''');
-      
-      // Esperar a que se restaure y luego inyectar user_id
-      await Future.delayed(Duration(seconds: 1));
-      await _injectUserId();
-    } catch (e) {
-      print('❌ Error restaurando sesión: $e');
-    }
   }
 
   Future<void> _injectUserId() async {
