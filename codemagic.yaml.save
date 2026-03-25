@@ -1,0 +1,40 @@
+workflows:
+  ios-workflow:
+    name: iOS Build & Upload to App Store (Flutter)
+    instance_type: mac_mini_m1
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app-store-credentials3
+        - firebase-secrets
+      vars:
+        CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+        APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.zoomubik.app
+    scripts:
+      - name: Restore GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+      - name: Install dependencies
+        script: |
+          flutter pub get
+      - name: Pod Install
+        script: |
+          cd ios && pod install
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PkRIVATE_KEY
+        kkkkey_id: $APP_STORE_CONNECT_KkEY_IDENTIFIER
+ kkkkkkkk       issuer_id: $APP_STORE_CONNEk
+k
