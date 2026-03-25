@@ -54,19 +54,25 @@ class _HomePageState extends State<HomePage> {
     _initializeApp();
   }
 
-  // 🚀 Nuevo: Guarda la cookie de sesión después de login
-  Future<void> _guardarCookies() async {
-    final cookies = await _cookieManager.getCookies('https://www.zoomubik.com');
-    for (var cookie in cookies) {
-      if (cookie.name == 'PHPSESSID') {
-        await _secureStorage.write(key: 'zoomubik_phpsessid', value: cookie.value);
-        print('🍪 Sesión guardada: ${cookie.value}');
+  // Guarda PHPSESSID vía JavaScript (document.cookie)
+  Future<void> _guardarCookiesViaJS() async {
+    try {
+      final result = await _controller.runJavaScriptReturningResult('document.cookie');
+      final cookies = result.toString();
+      final matches = RegExp(r'PHPSESSID=([^;]+)').firstMatch(cookies);
+      if (matches != null) {
+        final phpsessid = matches.group(1);
+        await _secureStorage.write(key: 'zoomubik_phpsessid', value: phpsessid);
+        print('🍪 Sesión guardada vía JS: $phpsessid');
+      } else {
+        print('Cookies detectadas, pero no se encontró PHPSESSID. Cookies: $cookies');
       }
-      // Guarda más cookies aquí si tu web las necesita (por ejemplo de plugins)
+    } catch (e) {
+      print('Error obteniendo cookie vía JS: $e');
     }
   }
 
-  // 🚀 Nuevo: Restaura la cookie antes de usar WebView al iniciar la app
+  // Restaura cookie PHPSESSID antes de abrir WebView
   Future<void> _restaurarCookies() async {
     final phpsessid = await _secureStorage.read(key: 'zoomubik_phpsessid');
     if (phpsessid != null) {
@@ -78,32 +84,24 @@ class _HomePageState extends State<HomePage> {
       ));
       print('🔄 Sesión restaurada: $phpsessid');
     }
-    // Restaura más cookies aquí si guardaste otras
   }
 
   Future<void> _initializeApp() async {
-    // Cargar user_id y token guardados
     _currentUserId = await _secureStorage.read(key: 'wp_user_id');
     final sessionToken = await _secureStorage.read(key: 'zm_session_token');
 
     print('📱 User ID cargado: $_currentUserId');
     print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
 
-    // ⚡️ Restaura cookies antes de crear la webview
-    await _restaurarCookies();
-    // Inicializar WebView primero
+    await _restaurarCookies(); // <-- antes de crear la WebView
     _initWebView();
-
-    // Inicializar Firebase Messaging
     await _initFirebaseMessaging();
 
-    // Si hay token guardado, restaurar sesión
     if (_currentUserId != null && sessionToken != null) {
-      await Future.delayed(Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
       await _restoreSession(_currentUserId!, sessionToken);
     }
 
-    // Marcar como inicializado
     if (mounted) {
       setState(() {
         _isInitialized = true;
@@ -121,13 +119,12 @@ class _HomePageState extends State<HomePage> {
           'user_id': userId,
           'token': token,
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
           print('✅ Sesión restaurada correctamente');
-          // Recargar página para que se aplique la sesión
           await _controller.reload();
         } else {
           print('❌ Error restaurando sesión: ${data['data']}');
@@ -157,7 +154,7 @@ class _HomePageState extends State<HomePage> {
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (url) async {
           print('✅ Página cargada: $url');
-          await Future.delayed(Duration(seconds: 1));
+          await Future.delayed(const Duration(seconds: 1));
           _injectUserId();
         },
       ))
@@ -166,11 +163,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleUserLogin(String userId) async {
     _currentUserId = userId;
-    // Guardar en almacenamiento seguro
     await _secureStorage.write(key: 'wp_user_id', value: userId);
     print('✅ User ID guardado: $userId');
 
-    // Obtener token de sesión del servidor
     try {
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
@@ -178,7 +173,7 @@ class _HomePageState extends State<HomePage> {
           'action': 'zm_get_session_token',
           'user_id': userId,
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -192,10 +187,8 @@ class _HomePageState extends State<HomePage> {
       print('⚠️ Error obteniendo token de sesión: $e');
     }
 
-    // 🚀 Guarda cookie(s) de sesión tras el login
-    await _guardarCookies();
+    await _guardarCookiesViaJS(); // NUEVO: guarda cookie PHPSESSID tras login
 
-    // Guardar token FCM con el nuevo user_id
     await _saveFcmToken(userId);
   }
 
@@ -217,21 +210,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _initFirebaseMessaging() async {
     try {
-      // Solicitar permisos
       await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
 
-      // Obtener token inicial
       String? token = await FirebaseMessaging.instance.getToken();
       print('🔑 FCM Token: $token');
       if (token != null && _currentUserId != null) {
         await _saveFcmToken(_currentUserId!);
       }
 
-      // Escuchar renovación de token
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         print('🔄 FCM Token renovado: $newToken');
         if (_currentUserId != null) {
@@ -239,13 +229,11 @@ class _HomePageState extends State<HomePage> {
         }
       });
 
-      // Notificaciones cuando la app está en foreground
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('📬 Notificación en foreground: ${message.notification?.title}');
         _showNotificationDialog(message);
       });
 
-      // Cuando el usuario toca la notificación
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         print('👆 Notificación tocada: ${message.notification?.title}');
         _handleNotificationTap(message);
@@ -302,7 +290,7 @@ class _HomePageState extends State<HomePage> {
           'user_id': userId,
           'token': token,
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       print('✅ Token guardado en WordPress: ${response.statusCode}');
       print('📝 Respuesta: ${response.body}');
