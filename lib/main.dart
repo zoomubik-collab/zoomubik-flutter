@@ -44,6 +44,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   final _secureStorage = FlutterSecureStorage();
+  final _cookieManager = WebViewCookieManager();
   String? _currentUserId;
   bool _isInitialized = false;
 
@@ -53,14 +54,43 @@ class _HomePageState extends State<HomePage> {
     _initializeApp();
   }
 
+  // 🚀 Nuevo: Guarda la cookie de sesión después de login
+  Future<void> _guardarCookies() async {
+    final cookies = await _cookieManager.getCookies('https://www.zoomubik.com');
+    for (var cookie in cookies) {
+      if (cookie.name == 'PHPSESSID') {
+        await _secureStorage.write(key: 'zoomubik_phpsessid', value: cookie.value);
+        print('🍪 Sesión guardada: ${cookie.value}');
+      }
+      // Guarda más cookies aquí si tu web las necesita (por ejemplo de plugins)
+    }
+  }
+
+  // 🚀 Nuevo: Restaura la cookie antes de usar WebView al iniciar la app
+  Future<void> _restaurarCookies() async {
+    final phpsessid = await _secureStorage.read(key: 'zoomubik_phpsessid');
+    if (phpsessid != null) {
+      await _cookieManager.setCookie(WebViewCookie(
+        name: 'PHPSESSID',
+        value: phpsessid,
+        domain: 'www.zoomubik.com',
+        path: '/',
+      ));
+      print('🔄 Sesión restaurada: $phpsessid');
+    }
+    // Restaura más cookies aquí si guardaste otras
+  }
+
   Future<void> _initializeApp() async {
     // Cargar user_id y token guardados
     _currentUserId = await _secureStorage.read(key: 'wp_user_id');
     final sessionToken = await _secureStorage.read(key: 'zm_session_token');
-    
+
     print('📱 User ID cargado: $_currentUserId');
     print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
 
+    // ⚡️ Restaura cookies antes de crear la webview
+    await _restaurarCookies();
     // Inicializar WebView primero
     _initWebView();
 
@@ -84,7 +114,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _restoreSession(String userId, String token) async {
     try {
       print('🔄 Restaurando sesión...');
-      
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
         body: {
@@ -140,7 +169,7 @@ class _HomePageState extends State<HomePage> {
     // Guardar en almacenamiento seguro
     await _secureStorage.write(key: 'wp_user_id', value: userId);
     print('✅ User ID guardado: $userId');
-    
+
     // Obtener token de sesión del servidor
     try {
       final response = await http.post(
@@ -162,7 +191,10 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('⚠️ Error obteniendo token de sesión: $e');
     }
-    
+
+    // 🚀 Guarda cookie(s) de sesión tras el login
+    await _guardarCookies();
+
     // Guardar token FCM con el nuevo user_id
     await _saveFcmToken(userId);
   }
@@ -248,7 +280,6 @@ class _HomePageState extends State<HomePage> {
 
   void _handleNotificationTap(RemoteMessage message) {
     print('🎯 Manejando notificación: ${message.data}');
-    // Aquí puedes navegar a la sección de mensajes si es necesario
     if (message.data['type'] == 'message') {
       _controller.runJavaScript(
         'window.location.hash = "#mensajes-privados";'
@@ -277,7 +308,6 @@ class _HomePageState extends State<HomePage> {
       print('📝 Respuesta: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Guardar token localmente como backup
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('fcm_token_$userId', token);
       }
