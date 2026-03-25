@@ -13,16 +13,15 @@ import WebKit
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
     
-    // Configurar cookies y sesión para WebView
+    // Configurar cookies para persistencia
     let cookieStorage = HTTPCookieStorage.shared
     cookieStorage.cookieAcceptPolicy = .always
     
-    // Configurar WKWebsiteDataStore para persistencia
+    // Configurar WKWebsiteDataStore para persistencia de cookies
     if #available(iOS 11.0, *) {
       let dataStore = WKWebsiteDataStore.default()
-      dataStore.httpShouldSetCookies = true
-      dataStore.httpCookieAcceptPolicy = .always
-      dataStore.httpShouldUseCookies = true
+      // Las cookies se guardan automáticamente en el dataStore por defecto
+      // No necesitamos configurar propiedades adicionales
     }
     
     locationManager = CLLocationManager()
