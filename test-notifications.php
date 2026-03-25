@@ -6,11 +6,25 @@
  */
 
 // Cargar WordPress
-require_once('wp-load.php');
+if (file_exists('wp-load.php')) {
+    require_once('wp-load.php');
+} elseif (file_exists('../wp-load.php')) {
+    require_once('../wp-load.php');
+} else {
+    die('❌ No se pudo cargar WordPress. Asegúrate de que el archivo está en la raíz de WordPress.');
+}
+
+if (!is_user_logged_in()) {
+    die('❌ Debes iniciar sesión.');
+}
 
 if (!current_user_can('manage_options')) {
-    die('❌ Acceso denegado. Debes ser administrador.');
+    die('❌ Acceso denegado. Solo administradores pueden usar esta herramienta.');
 }
+
+// Habilitar display de errores para debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 $user_id = intval($_GET['user_id'] ?? 0);
 $token = sanitize_text_field($_GET['token'] ?? '');
