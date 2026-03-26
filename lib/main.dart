@@ -3,7 +3,6 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
@@ -15,12 +14,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print('❌ Error inicializando Firebase: $e');
   }
+
   runApp(ZoomubikApp());
 }
 
@@ -44,9 +45,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   final _secureStorage = FlutterSecureStorage();
-  final _cookieManager = WebViewCookieManager();
+
   String? _currentUserId;
   bool _isInitialized = false;
+  bool _loginProcesado = false;
 
   @override
   void initState() {
@@ -54,64 +56,31 @@ class _HomePageState extends State<HomePage> {
     _initializeApp();
   }
 
-  // Guarda PHPSESSID vía JavaScript (document.cookie)
-  Future<void> _guardarCookiesViaJS() async {
-    try {
-      final result = await _controller.runJavaScriptReturningResult('document.cookie');
-      final cookies = result.toString();
-      final matches = RegExp(r'PHPSESSID=([^;]+)').firstMatch(cookies);
-      if (matches != null) {
-        final phpsessid = matches.group(1);
-        await _secureStorage.write(key: 'zoomubik_phpsessid', value: phpsessid);
-        print('🍪 Sesión guardada vía JS: $phpsessid');
-      } else {
-        print('Cookies detectadas, pero no se encontró PHPSESSID. Cookies: $cookies');
-      }
-    } catch (e) {
-      print('Error obteniendo cookie vía JS: $e');
-    }
-  }
-
-  // Restaura cookie PHPSESSID antes de abrir WebView
-  Future<void> _restaurarCookies() async {
-    final phpsessid = await _secureStorage.read(key: 'zoomubik_phpsessid');
-    if (phpsessid != null) {
-      await _cookieManager.setCookie(WebViewCookie(
-        name: 'PHPSESSID',
-        value: phpsessid,
-        domain: 'www.zoomubik.com',
-        path: '/',
-      ));
-      print('🔄 Sesión restaurada: $phpsessid');
-    }
-  }
-
+  // 🔹 INIT GENERAL
   Future<void> _initializeApp() async {
     _currentUserId = await _secureStorage.read(key: 'wp_user_id');
     final sessionToken = await _secureStorage.read(key: 'zm_session_token');
 
-    print('📱 User ID cargado: $_currentUserId');
-    print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
+    print('📱 User ID: $_currentUserId');
+    print('🔐 Token: ${sessionToken != null ? 'Sí' : 'No'}');
 
-    await _restaurarCookies(); // <-- antes de crear la WebView
-    _initWebView();
     await _initFirebaseMessaging();
+    _initWebView();
 
+    // 🔥 Restaurar sesión si existe
     if (_currentUserId != null && sessionToken != null) {
       await Future.delayed(const Duration(seconds: 2));
       await _restoreSession(_currentUserId!, sessionToken);
     }
 
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
+    setState(() => _isInitialized = true);
   }
 
+  // 🔹 RESTORE SESSION
   Future<void> _restoreSession(String userId, String token) async {
     try {
       print('🔄 Restaurando sesión...');
+
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
         body: {
@@ -119,53 +88,66 @@ class _HomePageState extends State<HomePage> {
           'user_id': userId,
           'token': token,
         },
-      ).timeout(const Duration(seconds: 10));
+      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          print('✅ Sesión restaurada correctamente');
-          await _controller.reload();
-        } else {
-          print('❌ Error restaurando sesión: ${data['data']}');
-        }
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true) {
+        print('✅ Sesión restaurada');
+
+        _controller.loadRequest(
+          Uri.parse('https://www.zoomubik.com'),
+        );
+      } else {
+        print('❌ Token inválido');
       }
     } catch (e) {
-      print('❌ Error en restauración de sesión: $e');
+      print('❌ Error restaurando sesión: $e');
     }
   }
 
+  // 🔹 WEBVIEW
   void _initWebView() {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15')
       ..addJavaScriptChannel(
         'FlutterChannel',
         onMessageReceived: (JavaScriptMessage message) {
-          print('💬 Mensaje desde web: ${message.message}');
+          print('💬 ${message.message}');
+
           if (message.message.startsWith('user_id:')) {
             final userId = message.message.replaceFirst('user_id:', '');
+
             if (userId != '0' && userId.isNotEmpty) {
               _handleUserLogin(userId);
             }
           }
         },
       )
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageFinished: (url) async {
-          print('✅ Página cargada: $url');
-          await Future.delayed(const Duration(seconds: 1));
-          _injectUserId();
-        },
-      ))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (url) async {
+            print('🌐 $url');
+
+            await Future.delayed(const Duration(seconds: 1));
+            _injectUserId();
+          },
+        ),
+      )
       ..loadRequest(Uri.parse('https://www.zoomubik.com'));
   }
 
+  // 🔹 LOGIN DETECTADO
   Future<void> _handleUserLogin(String userId) async {
-    _currentUserId = userId;
-    await _secureStorage.write(key: 'wp_user_id', value: userId);
-    print('✅ User ID guardado: $userId');
+    if (_loginProcesado) return;
+    _loginProcesado = true;
 
+    _currentUserId = userId;
+
+    await _secureStorage.write(key: 'wp_user_id', value: userId);
+    print('✅ Usuario guardado: $userId');
+
+    // 🔐 Obtener token sesión
     try {
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
@@ -173,151 +155,95 @@ class _HomePageState extends State<HomePage> {
           'action': 'zm_get_session_token',
           'user_id': userId,
         },
-      ).timeout(const Duration(seconds: 10));
+      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          final token = data['data']['token'];
-          await _secureStorage.write(key: 'zm_session_token', value: token);
-          print('🔐 Token de sesión guardado');
-        }
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true) {
+        await _secureStorage.write(
+          key: 'zm_session_token',
+          value: data['data']['token'],
+        );
+
+        print('🔐 Token guardado');
       }
     } catch (e) {
-      print('⚠️ Error obteniendo token de sesión: $e');
+      print('⚠️ Error token: $e');
     }
-
-    await _guardarCookiesViaJS(); // NUEVO: guarda cookie PHPSESSID tras login
 
     await _saveFcmToken(userId);
   }
 
+  // 🔹 OBTENER USER ID DESDE WEB
   Future<void> _injectUserId() async {
     try {
       final result = await _controller.runJavaScriptReturningResult(
-        'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"'
+        'typeof zoomubik_user_id !== "undefined" ? zoomubik_user_id.toString() : "0"',
       );
+
       final userId = result.toString().replaceAll('"', '');
-      print('🔍 User ID desde JS: $userId');
 
       if (userId != '0' && userId.isNotEmpty) {
         await _handleUserLogin(userId);
       }
     } catch (e) {
-      print('⚠️ Error obteniendo user_id: $e');
+      print('⚠️ Error user_id: $e');
     }
   }
 
+  // 🔹 FIREBASE
   Future<void> _initFirebaseMessaging() async {
     try {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      await FirebaseMessaging.instance.requestPermission();
 
       String? token = await FirebaseMessaging.instance.getToken();
-      print('🔑 FCM Token: $token');
-      if (token != null && _currentUserId != null) {
-        await _saveFcmToken(_currentUserId!);
-      }
+      print('🔑 FCM: $token');
 
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        print('🔄 FCM Token renovado: $newToken');
         if (_currentUserId != null) {
           await _saveFcmToken(_currentUserId!);
         }
       });
 
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('📬 Notificación en foreground: ${message.notification?.title}');
-        _showNotificationDialog(message);
+      FirebaseMessaging.onMessage.listen((message) {
+        print('📬 ${message.notification?.title}');
       });
 
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        print('👆 Notificación tocada: ${message.notification?.title}');
-        _handleNotificationTap(message);
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        _controller.runJavaScript(
+          'window.location.hash = "#mensajes-privados";',
+        );
       });
     } catch (e) {
-      print('❌ Error en Firebase Messaging: $e');
+      print('❌ Firebase error: $e');
     }
   }
 
-  void _showNotificationDialog(RemoteMessage message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(message.notification?.title ?? 'Notificación'),
-        content: Text(message.notification?.body ?? ''),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cerrar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _handleNotificationTap(message);
-            },
-            child: Text('Ver'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleNotificationTap(RemoteMessage message) {
-    print('🎯 Manejando notificación: ${message.data}');
-    if (message.data['type'] == 'message') {
-      _controller.runJavaScript(
-        'window.location.hash = "#mensajes-privados";'
-      );
-    }
-  }
-
+  // 🔹 GUARDAR FCM EN WORDPRESS
   Future<void> _saveFcmToken(String userId) async {
     try {
       String? token = await FirebaseMessaging.instance.getToken();
-      if (token == null) {
-        print('⚠️ Token es null');
-        return;
-      }
+      if (token == null) return;
 
-      final response = await http.post(
+      await http.post(
         Uri.parse('https://www.zoomubik.com/wp-admin/admin-ajax.php'),
         body: {
-          'action': 'zmoriginal_save_fcm_token',
-          'user_id': userId,
-          'token': token,
+          'action': 'zm_save_fcm',
+          'fcm': token,
         },
-      ).timeout(const Duration(seconds: 10));
+      );
 
-      print('✅ Token guardado en WordPress: ${response.statusCode}');
-      print('📝 Respuesta: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('fcm_token_$userId', token);
-      }
+      print('✅ FCM guardado');
     } catch (e) {
-      print('❌ Error guardando token: $e');
+      print('❌ Error FCM: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-              Text('Cargando Zoomubik...'),
-            ],
-          ),
-        ),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
