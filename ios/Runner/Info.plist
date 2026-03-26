@@ -54,5 +54,12 @@
 	<string>Zoomubik necesita tu ubicación para mostrar anuncios cercanos a ti.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Zoomubik necesita tu ubicación para mostrar anuncios cercanos a ti.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+		<string>_https._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Zoomubik necesita acceso a la red local.</string>
 </dict>
 </plist>

@@ -15,12 +15,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  print('🚀 Iniciando Zoomubik...');
+  
   try {
     await Firebase.initializeApp();
+    print('✅ Firebase inicializado');
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print('❌ Error inicializando Firebase: $e');
   }
+  
   runApp(ZoomubikApp());
 }
 
@@ -54,26 +58,40 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeApp() async {
-    // Cargar user_id y token guardados
-    _currentUserId = await _secureStorage.read(key: 'wp_user_id');
-    final sessionToken = await _secureStorage.read(key: 'zm_session_token');
-    
-    print('📱 User ID cargado: $_currentUserId');
-    print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
+    try {
+      // Cargar user_id y token guardados
+      _currentUserId = await _secureStorage.read(key: 'wp_user_id');
+      final sessionToken = await _secureStorage.read(key: 'zm_session_token');
+      
+      print('📱 User ID cargado: $_currentUserId');
+      print('🔐 Token de sesión cargado: ${sessionToken != null ? 'Sí' : 'No'}');
 
-    // Inicializar Firebase Messaging
-    await _initFirebaseMessaging();
+      // Inicializar Firebase Messaging con timeout
+      try {
+        await _initFirebaseMessaging().timeout(Duration(seconds: 5));
+      } catch (e) {
+        print('⚠️ Firebase Messaging timeout o error: $e');
+      }
 
-    // Si hay token guardado, restaurar sesión
-    if (_currentUserId != null && sessionToken != null) {
-      await _restoreSession(_currentUserId!, sessionToken);
-    }
+      // Si hay token guardado, restaurar sesión
+      if (_currentUserId != null && sessionToken != null) {
+        await _restoreSession(_currentUserId!, sessionToken);
+      }
 
-    // Marcar como inicializado
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
+      // Marcar como inicializado
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      print('❌ Error en inicialización: $e');
+      // Marcar como inicializado de todas formas para mostrar la app
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
     }
   }
 
@@ -289,6 +307,7 @@ class _HomePageState extends State<HomePage> {
           ),
           onWebViewCreated: (controller) {
             _webViewController = controller;
+            print('🌐 WebView creado');
             
             // Agregar JavaScript channel para comunicación
             _webViewController.addJavaScriptHandler(
@@ -307,10 +326,16 @@ class _HomePageState extends State<HomePage> {
               },
             );
           },
+          onLoadStart: (controller, url) {
+            print('⏳ Cargando: $url');
+          },
           onLoadStop: (controller, url) async {
             print('✅ Página cargada: $url');
             await Future.delayed(Duration(seconds: 1));
             await _injectUserId();
+          },
+          onLoadError: (controller, url, code, message) {
+            print('❌ Error cargando $url: $code - $message');
           },
         ),
       ),
