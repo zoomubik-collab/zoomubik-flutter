@@ -307,13 +307,10 @@ class _HomePageState extends State<HomePage> {
               },
             );
           },
-          onPageFinished: (controller, url) async {
+          onLoadStop: (controller, url) async {
             print('✅ Página cargada: $url');
             await Future.delayed(Duration(seconds: 1));
             await _injectUserId();
-          },
-          onLoadStop: (controller, url) async {
-            print('✅ Página completamente cargada: $url');
           },
         ),
       ),
