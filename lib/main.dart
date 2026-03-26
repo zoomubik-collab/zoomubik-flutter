@@ -12,7 +12,7 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    debugPrint('Error Firebase: \');
+    debugPrint('Error Firebase');
   }
 
   if (!kDebugMode) {
@@ -55,8 +55,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     mediaPlaybackRequiresUserGesture: false,
     useHybridComposition: true,
     allowsInlineMediaPlayback: true,
-    userAgent:
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
   );
 
   @override
@@ -102,14 +101,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             debugPrint('WebView creado');
           },
           onLoadStart: (controller, url) {
-            debugPrint('Cargando: \');
+            debugPrint('Cargando');
           },
           onLoadStop: (controller, url) async {
-            debugPrint('Pagina cargada: \');
+            debugPrint('Pagina cargada');
             await _checkSessionAlive();
           },
           onReceivedError: (controller, request, error) {
-            debugPrint('Error: \');
+            debugPrint('Error webview');
           },
           shouldOverrideUrlLoading: (controller, navigationAction) async {
             final url = navigationAction.request.url?.toString() ?? '';
