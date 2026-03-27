@@ -42,14 +42,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   final InAppWebViewSettings _settings = InAppWebViewSettings(
     javaScriptEnabled: true,
-    sharedCookiesEnabled: true,
-    incognito: false,
-    thirdPartyCookiesEnabled: true,
-    databaseEnabled: true,
     domStorageEnabled: true,
+    databaseEnabled: true,
+    sharedCookiesEnabled: true,
+    thirdPartyCookiesEnabled: true,
+    incognito: false,
     cacheEnabled: true,
     cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
     useShouldOverrideUrlLoading: true,
+    useOnLoadResource: true,
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
@@ -105,6 +106,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
           onReceivedError: (controller, request, error) {
             debugPrint('Error webview: ${error.description} - URL: ${request.url}');
+          },
+          onLoadError: (controller, url, code, message) {
+            debugPrint('onLoadError: $message - código: $code - URL: $url');
           },
           onConsoleMessage: (controller, consoleMessage) {
             debugPrint('CONSOLA: ${consoleMessage.message}');
