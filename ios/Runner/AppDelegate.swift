@@ -26,17 +26,6 @@ import WebKit
       // Habilitar almacenamiento
       config.preferences.javaScriptEnabled = true
       config.preferences.javaScriptCanOpenWindowsAutomatically = true
-      
-      // Cookies
-      config.httpShouldUseCookies = true
-      config.httpCookieAcceptPolicy = .always
-      config.httpMaximumConnectionsPerHost = 10
-      
-      // Sincronizar cookies del sistema con WebView
-      if let cookies = HTTPCookieStorage.shared.cookies {
-        let headers = HTTPCookie.requestHeaderFields(with: cookies)
-        config.httpShouldUseCookies = true
-      }
     }
 
     // ✅ 2. Cookies persistentes a nivel de sistema
