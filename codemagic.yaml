@@ -8,7 +8,6 @@ workflows:
       java: default
       groups:
         - google-play-credentials
-        - firebase-secrets
       vars:
         PACKAGE_NAME: "com.zoomubik.app"
     scripts:
@@ -44,7 +43,6 @@ workflows:
       cocoapods: default
       groups:
         - app-store-credentials3
-        - firebase-secrets
       vars:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
         APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
@@ -52,9 +50,11 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.zoomubik.app
     scripts:
-      - name: Restore GoogleService-Info.plist
+      - name: Clean build cache
         script: |
-          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          rm -rf .dart_tool
+          rm -rf build
       - name: Install Flutter dependencies
         script: |
           flutter clean
