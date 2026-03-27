@@ -30,6 +30,6 @@ workflows:
           pod install --repo-update
       - name: Build Flutter
         script: |
-          flutter build ios --release --no-codesign --simulator
+          flutter build ios --debug --simulator
     artifacts:
       - build/ios/iphoneos/*.app
