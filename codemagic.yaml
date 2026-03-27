@@ -11,18 +11,20 @@ workflows:
         CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
         APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
     scripts:
-      - name: Clean all caches
+      - name: Clean all caches aggressively
         script: |
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
-          rm -rf ~/.pub-cache
-          rm -rf .dart_tool
-          rm -rf build
-          rm -rf ios/Pods
-          rm -rf ios/Podfile.lock
+          rm -rf ~/.pub-cache/*
+          rm -rf $CM_BUILD_DIR/.dart_tool
+          rm -rf $CM_BUILD_DIR/build
+          rm -rf $CM_BUILD_DIR/ios/Pods
+          rm -rf $CM_BUILD_DIR/ios/Podfile.lock
+          rm -rf $CM_BUILD_DIR/ios/Flutter/Flutter.podspec
       - name: Install Flutter dependencies
         script: |
           flutter clean
           flutter pub get
+          flutter pub cache repair
       - name: Pod Install
         script: |
           cd $CM_BUILD_DIR/ios
