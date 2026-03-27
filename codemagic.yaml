@@ -1,4 +1,39 @@
 workflows:
+  android-workflow:
+    name: Android Build & Upload to Google Play (Flutter)
+    instance_type: linux_x2
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      java: default
+      groups:
+        - google-play-credentials
+        - firebase-secrets
+      vars:
+        PACKAGE_NAME: "com.zoomubik.app"
+    scripts:
+      - name: Restore google-services.json
+        script: |
+          echo $GOOGLE_SERVICES_JSON | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
+      - name: Install Flutter dependencies
+        script: |
+          flutter clean
+          flutter pub get
+      - name: Build AAB
+        script: |
+          flutter build appbundle --release
+      - name: Upload to Google Play
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true
+
   ios-workflow:
     name: iOS Build & Upload to App Store (Flutter)
     instance_type: mac_mini_m1
