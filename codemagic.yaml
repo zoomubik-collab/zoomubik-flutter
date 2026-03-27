@@ -28,9 +28,12 @@ workflows:
           flutter pub get
       - name: Pod Install
         script: |
+          echo "Contenido de zoomubik-flutter:"
+          ls $CM_BUILD_DIR/zoomubik-flutter/
+          echo "Contenido de ios:"
+          ls $CM_BUILD_DIR/zoomubik-flutter/ios/
           cd $CM_BUILD_DIR/zoomubik-flutter/ios
           rm -rf Pods Podfile.lock
-          pod repo update
           pod install --repo-update --verbose
       - name: Set up code signing
         script: |
