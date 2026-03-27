@@ -12,25 +12,31 @@ import WebKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
-    // ✅ 1. Cookies persistentes a nivel de sistema
-    HTTPCookieStorage.shared.cookieAcceptPolicy = .always
-
-    // ✅ 2. WKWebsiteDataStore persistente (NO ephemeral)
+    // ✅ 1. Configurar WKWebView globalmente
     if #available(iOS 11.0, *) {
-      let dataStore = WKWebsiteDataStore.default() // ← .default() es persistente
       let config = WKWebViewConfiguration()
-      config.websiteDataStore = dataStore
+      
+      // Usar dataStore persistente (no ephemeral)
+      config.websiteDataStore = WKWebsiteDataStore.default()
+      
+      // Permitir multimedia
       config.allowsInlineMediaPlayback = true
       config.mediaTypesRequiringUserActionForPlayback = []
-
-      // ✅ 3. Fuerza que las cookies del sistema se sincronicen con WKWebView
-      let cookies = HTTPCookieStorage.shared.cookies ?? []
-      for cookie in cookies {
-        dataStore.httpCookieStore.setCookie(cookie, completionHandler: nil)
-      }
+      
+      // Habilitar almacenamiento
+      config.preferences.javaScriptEnabled = true
+      config.preferences.javaScriptCanOpenWindowsAutomatically = true
+      
+      // Cookies
+      config.httpShouldUseCookies = true
+      config.httpCookieAcceptPolicy = .always
+      config.httpMaximumConnectionsPerHost = 10
     }
 
-    // ✅ 4. Localización
+    // ✅ 2. Cookies persistentes a nivel de sistema
+    HTTPCookieStorage.shared.cookieAcceptPolicy = .always
+
+    // ✅ 3. Localización
     locationManager = CLLocationManager()
     locationManager?.delegate = self
     locationManager?.requestWhenInUseAuthorization()
