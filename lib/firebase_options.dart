@@ -5,16 +5,25 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return android;
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return ios;
+        return macos;
+      case TargetPlatform.windows:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.linux:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for linux - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -22,12 +31,43 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDummyKeyForWeb',
+    appId: '1:123456789:web:abcdef123456',
+    messagingSenderId: '123456789',
+    projectId: 'zoomubik-project',
+    authDomain: 'zoomubik-project.firebaseapp.com',
+    databaseURL: 'https://zoomubik-project.firebaseio.com',
+    storageBucket: 'zoomubik-project.appspot.com',
+    measurementId: 'G-XXXXXXXXXX',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDummyKeyForAndroid',
+    appId: '1:123456789:android:abcdef123456',
+    messagingSenderId: '123456789',
+    projectId: 'zoomubik-project',
+    databaseURL: 'https://zoomubik-project.firebaseio.com',
+    storageBucket: 'zoomubik-project.appspot.com',
+  );
+
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAJ_fqr5QJi8QOGAhnRaIEK0SoE15TjHts',
-    appId: '1:733963653129:ios:7895ec5098bb6c7eb068d8',
-    messagingSenderId: '733963653129',
-    projectId: 'ios-app-42b04',
-    storageBucket: 'ios-app-42b04.firebasestorage.app',
+    apiKey: 'AIzaSyDummyKeyForIOS',
+    appId: '1:123456789:ios:abcdef123456',
+    messagingSenderId: '123456789',
+    projectId: 'zoomubik-project',
+    databaseURL: 'https://zoomubik-project.firebaseio.com',
+    storageBucket: 'zoomubik-project.appspot.com',
+    iosBundleId: 'com.zoomubik.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDummyKeyForMacOS',
+    appId: '1:123456789:macos:abcdef123456',
+    messagingSenderId: '123456789',
+    projectId: 'zoomubik-project',
+    databaseURL: 'https://zoomubik-project.firebaseio.com',
+    storageBucket: 'zoomubik-project.appspot.com',
     iosBundleId: 'com.zoomubik.app',
   );
 }
