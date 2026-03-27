@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -38,9 +38,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late InAppWebViewController _webViewController;
-  final String _homeUrl = 'https://www.zoomubik.com';
+  final String _homeUrl = 'https://zoomubik.com';
 
   final InAppWebViewSettings _settings = InAppWebViewSettings(
+    javaScriptEnabled: true,
     sharedCookiesEnabled: true,
     incognito: false,
     thirdPartyCookiesEnabled: true,
@@ -50,7 +51,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
     useShouldOverrideUrlLoading: true,
     mediaPlaybackRequiresUserGesture: false,
-    useHybridComposition: true,
     allowsInlineMediaPlayback: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
   );
@@ -96,18 +96,28 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onWebViewCreated: (controller) {
             _webViewController = controller;
           },
+          onLoadStart: (controller, url) {
+            debugPrint('Cargando: $url');
+          },
           onLoadStop: (controller, url) async {
+            debugPrint('Cargado: $url');
             await _checkSessionAlive();
           },
           onReceivedError: (controller, request, error) {
-            debugPrint('Error webview');
+            debugPrint('Error webview: ${error.description} - URL: ${request.url}');
+          },
+          onConsoleMessage: (controller, consoleMessage) {
+            debugPrint('CONSOLA: ${consoleMessage.message}');
           },
           shouldOverrideUrlLoading: (controller, navigationAction) async {
             final url = navigationAction.request.url?.toString() ?? '';
-            if (!url.startsWith('https://www.zoomubik.com')) {
-              return NavigationActionPolicy.CANCEL;
+            if (url.startsWith('https://zoomubik.com') ||
+                url.startsWith('https://www.zoomubik.com') ||
+                url.startsWith('about:') ||
+                url.startsWith('blob:')) {
+              return NavigationActionPolicy.ALLOW;
             }
-            return NavigationActionPolicy.ALLOW;
+            return NavigationActionPolicy.CANCEL;
           },
         ),
       ),
