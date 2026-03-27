@@ -23,35 +23,30 @@ workflows:
           echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/zoomubik-flutter/ios/Runner/GoogleService-Info.plist
       - name: Install Flutter dependencies
         script: |
-          cd zoomubik-flutter
+          cd $CM_BUILD_DIR/zoomubik-flutter
           flutter clean
           flutter pub get
       - name: Pod Install
         script: |
-          cd zoomubik-flutter/ios
+          cd $CM_BUILD_DIR/zoomubik-flutter/ios
           rm -rf Pods Podfile.lock
-          pod repo update --sources=https://cdn.cocoapods.org/
+          pod repo update
           pod install --repo-update --verbose
-          if [ $? -ne 0 ]; then
-            echo "Reintentando pod install..."
-            rm -rf Pods Podfile.lock
-            pod install --repo-update --verbose
-          fi
       - name: Set up code signing
         script: |
-          cd zoomubik-flutter
+          cd $CM_BUILD_DIR/zoomubik-flutter
           xcode-project use-profiles
       - name: Bump build number
         script: |
           LATEST=$(app-store-connect get-latest-testflight-build-number 6760907092)
-          cd zoomubik-flutter/ios && agvtool new-version -all $(($LATEST + 1))
+          cd $CM_BUILD_DIR/zoomubik-flutter/ios && agvtool new-version -all $(($LATEST + 1))
       - name: Build Flutter
         script: |
-          cd zoomubik-flutter
+          cd $CM_BUILD_DIR/zoomubik-flutter
           flutter build ios --release --no-codesign
       - name: Build IPA
         script: |
-          cd zoomubik-flutter/ios
+          cd $CM_BUILD_DIR/zoomubik-flutter/ios
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
@@ -65,7 +60,7 @@ workflows:
             archive
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist ../../ios_export_options.plist \
+            -exportOptionsPlist $CM_BUILD_DIR/ios_export_options.plist \
             -exportPath build/ipa
     artifacts:
       - zoomubik-flutter/ios/build/ipa/*.ipa
