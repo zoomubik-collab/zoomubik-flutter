@@ -1,25 +1,68 @@
-﻿name: zoomubik
-description: A minimal Flutter app for Zoomubik.
-publish_to: 'none'
-version: 1.0.2+107
-
-environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.10.0'
-
-dependencies:
-  flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.2
-  flutter_inappwebview: ^6.1.5
-  firebase_core: ^3.0.0
-  firebase_messaging: ^15.0.0
-  http: ^1.2.0
-  shared_preferences: ^2.2.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-flutter:
-  uses-material-design: true
+workflows:
+  ios-workflow:
+    name: iOS Build & Upload to App Store (Flutter)
+    instance_type: mac_mini_m1
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app-store-credentials3
+        - firebase-secrets
+      vars:
+        CM_APPLE_DEV_TEAM_ID: "6573BLNWHL"
+        APP_STORE_CONNECT_TEAM_ID: "6573BLNWHL"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.zoomubik.app
+    scripts:
+      - name: Restore GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+      - name: Install Flutter dependencies
+        script: |
+          flutter clean
+          flutter pub get
+      - name: Pod Install
+        script: |
+          flutter pub get
+          cd ios
+          rm -rf Pods Podfile.lock
+          pod install --repo-update --verbose
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Bump build number
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number 6760907092)
+          cd ios && agvtool new-version -all $(($LATEST + 1))
+      - name: Build Flutter
+        script: |
+          flutter build ios --release --no-codesign
+      - name: Build IPA
+        script: |
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/Runner.xcarchive \
+            -destination generic/platform=iOS \
+            DEVELOPMENT_TEAM="6573BLNWHL" \
+            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="zoomubik-app-store" \
+            PODS_CODE_SIGN_STYLE=Automatic \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportOptionsPlist ../ios_export_options.plist \
+            -exportPath build/ipa
+    artifacts:
+      - ios/build/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
