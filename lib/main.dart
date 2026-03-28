@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Activar persistencia de cookies
-  await CookieManager.instance().setCookiesFromUrl(
-    url: WebUri('https://zoomubik.com'),
-  );
-  
   runApp(const ZoomubikApp());
 }
 
@@ -30,8 +24,8 @@ class WebPage extends StatelessWidget {
         initialSettings: InAppWebViewSettings(
           javaScriptEnabled: true,
           domStorageEnabled: true,
-          databaseEnabled: true,        // persistencia local
-          cacheEnabled: true,           // caché activada
+          databaseEnabled: true,
+          cacheEnabled: true,
           userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         ),
       ),
