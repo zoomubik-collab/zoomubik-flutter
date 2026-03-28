@@ -20,20 +20,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-flutter:
-  uses-material-design: true
-
-  dev_dependencies:
-  flutter_launcher_icons: ^0.14.1
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon.png"
-  remove_alpha_ios: true
-
-  dev_dependencies:
   flutter_launcher_icons: ^0.14.1
 
 flutter_launcher_icons:
@@ -41,3 +27,6 @@ flutter_launcher_icons:
   ios: true
   image_path: "icon.png"
   remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
