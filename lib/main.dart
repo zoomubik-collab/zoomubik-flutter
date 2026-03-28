@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +26,47 @@ class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
 
   @override
+  void initState() {
+    super.initState();
+    _restoreCookies();
+  }
+
+  Future<void> _restoreCookies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('wp_cookies');
+    if (saved == null) return;
+
+    final List cookies = jsonDecode(saved);
+    for (final c in cookies) {
+      await CookieManager.instance().setCookie(
+        url: WebUri('https://zoomubik.com'),
+        name: c['name'],
+        value: c['value'],
+        domain: c['domain'] ?? '.zoomubik.com',
+        isHttpOnly: c['isHttpOnly'] ?? false,
+        isSecure: c['isSecure'] ?? false,
+      );
+    }
+  }
+
+  Future<void> _saveCookies() async {
+    final cookies = await CookieManager.instance().getCookies(
+      url: WebUri('https://zoomubik.com'),
+    );
+    if (cookies.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final data = cookies.map((c) => {
+      'name': c.name,
+      'value': c.value,
+      'domain': c.domain,
+      'isHttpOnly': c.isHttpOnly,
+      'isSecure': c.isSecure,
+    }).toList();
+    await prefs.setString('wp_cookies', jsonEncode(data));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: InAppWebView(
@@ -33,18 +76,13 @@ class _WebPageState extends State<WebPage> {
           domStorageEnabled: true,
           databaseEnabled: true,
           cacheEnabled: true,
-          cacheMode: CacheMode.LOAD_DEFAULT,
           userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         ),
         onWebViewCreated: (controller) {
           _controller = controller;
         },
         onLoadStop: (controller, url) async {
-          // Guardamos las cookies cada vez que carga una página
-          List<Cookie> cookies = await CookieManager.instance().getCookies(
-            url: WebUri('https://zoomubik.com'),
-          );
-          debugPrint('Cookies activas: ${cookies.length}');
+          await _saveCookies();
         },
       ),
     );
