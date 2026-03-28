@@ -24,6 +24,9 @@ workflows:
         script: |
           flutter clean
           flutter pub get
+      - name: Generate app icon
+        script: |
+          dart run flutter_launcher_icons
       - name: Pod Install
         script: |
           echo "=== Contenido de ios/ ==="
