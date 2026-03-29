@@ -4,19 +4,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
- 
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
- 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const ZoomubikApp());
 }
- 
+
 class ZoomubikApp extends StatelessWidget {
   const ZoomubikApp({super.key});
   @override
@@ -24,85 +24,110 @@ class ZoomubikApp extends StatelessWidget {
     return const MaterialApp(home: WebPage());
   }
 }
- 
+
 class WebPage extends StatefulWidget {
   const WebPage({super.key});
   @override
   State<WebPage> createState() => _WebPageState();
 }
- 
+
 class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
   String? _fcmToken;
- 
+  bool _webViewReady = false;
+
   @override
   void initState() {
     super.initState();
     _restoreCookies();
     _initPushNotifications();
   }
- 
+
   Future<void> _initPushNotifications() async {
     final messaging = FirebaseMessaging.instance;
- 
+
     await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
- 
+
     final token = await messaging.getToken();
     if (token != null) {
       _fcmToken = token;
-      // Borrar token guardado para forzar re-registro en WordPress
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('fcm_token');
       debugPrint('✅ Token FCM obtenido: ${token.substring(0, 20)}...');
+      // Intentar inyectar ahora; si el WebView no está listo,
+      // onLoadStop lo reintentará automáticamente
+      await _injectTokenIntoWebView(token);
     }
- 
+
+    // Escuchar renovaciones de token
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
+      debugPrint('🔄 Token FCM renovado: ${newToken.substring(0, 20)}...');
       _injectTokenIntoWebView(newToken);
     });
- 
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Notificación en primer plano: ${message.notification?.title}');
     });
   }
- 
+
   Future<void> _injectTokenIntoWebView(String token) async {
-    if (_controller == null) return;
+    // Si el WebView aún no está listo, salir — onLoadStop lo reintentará
+    if (_controller == null || !_webViewReady) {
+      debugPrint('⏳ WebView no listo aún, token se inyectará en onLoadStop');
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final lastToken = prefs.getString('fcm_token');
-    if (lastToken == token) return;
- 
+
+    // Evitar registros duplicados si el token no ha cambiado
+    if (lastToken == token) {
+      debugPrint('ℹ️ Token FCM sin cambios, no es necesario re-registrar');
+      return;
+    }
+
+    debugPrint('📤 Inyectando token FCM en WebView...');
+
     await _controller!.evaluateJavascript(source: """
       (function() {
         if (typeof jQuery !== 'undefined') {
+          var userId = (typeof zmoriginal_ajax !== 'undefined' ? zmoriginal_ajax.current_user_id : 0);
+          console.log('FCM: user_id detectado = ' + userId);
+          if (userId == 0) {
+            console.log('FCM: usuario no logado, no se registra token');
+            return;
+          }
           jQuery.post(
             'https://zoomubik.com/wp-admin/admin-ajax.php',
             {
               action: 'zmoriginal_save_fcm_token',
-              user_id: (typeof zmoriginal_ajax !== 'undefined' ? zmoriginal_ajax.current_user_id : 0),
+              user_id: userId,
               token: '$token'
             },
             function(response) {
               console.log('FCM token registrado:', JSON.stringify(response));
             }
-          );
+          ).fail(function(err) {
+            console.log('FCM token ERROR:', JSON.stringify(err));
+          });
+        } else {
+          console.log('FCM: jQuery no disponible todavía');
         }
       })();
     """);
- 
+
     await prefs.setString('fcm_token', token);
-    debugPrint('✅ Token FCM inyectado en WebView');
+    debugPrint('✅ Token FCM inyectado correctamente');
   }
- 
+
   Future<void> _restoreCookies() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('wp_cookies');
     if (saved == null) return;
- 
+
     final List cookies = jsonDecode(saved);
     for (final c in cookies) {
       await CookieManager.instance().setCookie(
@@ -115,13 +140,13 @@ class _WebPageState extends State<WebPage> {
       );
     }
   }
- 
+
   Future<void> _saveCookies() async {
     final cookies = await CookieManager.instance().getCookies(
       url: WebUri('https://zoomubik.com'),
     );
     if (cookies.isEmpty) return;
- 
+
     final prefs = await SharedPreferences.getInstance();
     final data = cookies.map((c) => {
       'name': c.name,
@@ -132,7 +157,7 @@ class _WebPageState extends State<WebPage> {
     }).toList();
     await prefs.setString('wp_cookies', jsonEncode(data));
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,7 +174,9 @@ class _WebPageState extends State<WebPage> {
           _controller = controller;
         },
         onLoadStop: (controller, url) async {
+          _webViewReady = true;
           await _saveCookies();
+          // Inyectar token si ya lo tenemos
           if (_fcmToken != null) {
             await _injectTokenIntoWebView(_fcmToken!);
           }
