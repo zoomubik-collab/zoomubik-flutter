@@ -50,28 +50,30 @@ class _WebPageState extends State<WebPage> {
     );
 
     final token = await messaging.getToken();
+    print('🔥 FCM recibido: $token'); // <-- +++ DEBUG PRINCIPAL
     if (token != null) {
       _fcmToken = token;
-      // Intentar registrar el token ahora por si ya está logueado
       _injectToken();
     }
 
-    // Si cambia el token (por cambio de instalación/dispositivo), vuelve a registrar
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
+      print('🔄 FCM refrescado: $newToken'); // <-- +++ DEBUG REFRESH
       _injectToken();
     });
 
-    // Puedes mostrar mensajes en primer plano con flutter_local_notifications si lo deseas
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Notificación recibida: ${message.notification?.title} - ${message.notification?.body}');
     });
   }
 
   Future<void> _injectToken() async {
-    if (_controller == null || _fcmToken == null) return;
+    if (_controller == null || _fcmToken == null) {
+      print("❌ _injectToken: WebView o FCM token aún no disponibles");
+      return;
+    }
+    print("🚀 injectToken lanzado con $_fcmToken"); // <-- +++ DEBUG FUNDAMENTAL
 
-    // Intentará cada segundo hasta encontrar que el usuario está bien logueado
     await _controller!.evaluateJavascript(source: """
       (function() {
         window.fcm_token = '${_fcmToken}';
@@ -93,6 +95,14 @@ class _WebPageState extends State<WebPage> {
                 },
                 function(response) {
                   console.log('✅ FCM token registrado:', JSON.stringify(response));
+                  // También puedes notificar en la interfaz temporalmente
+                  if(window && window.document) {
+                    var debugDiv = document.createElement('div');
+                    debugDiv.style = "position:fixed;top:10px;left:10px;background:#dff0d8;color:#333;padding:6px;border:1px solid #51a351;z-index:10000;font-size:16px;";
+                    debugDiv.textContent = "✅ Token FCM registrado.";
+                    document.body.appendChild(debugDiv);
+                    setTimeout(()=>{debugDiv.remove();}, 4000);
+                  }
                 }
               );
               return; // Éxito, detener reintentos
@@ -101,6 +111,14 @@ class _WebPageState extends State<WebPage> {
           if (attempts < maxAttempts) {
             setTimeout(tryRegisterFCMToken, 1000); // Reintenta en 1 segundo
           } else {
+            // Notifica error en la web visualmente
+            if(window && window.document) {
+              var errorDiv = document.createElement('div');
+              errorDiv.style = "position:fixed;top:10px;left:10px;background:#ffe0e0;color:#b94a48;padding:6px;border:1px solid #df5c5c;z-index:10000;font-size:16px;";
+              errorDiv.textContent = "❌ Falló el registro del token FCM.";
+              document.body.appendChild(errorDiv);
+              setTimeout(()=>{errorDiv.remove();}, 6000);
+            }
             console.log('❌ FCM: No se pudo registrar el token tras varios intentos.');
           }
         }
@@ -160,6 +178,7 @@ class _WebPageState extends State<WebPage> {
           _controller = controller;
         },
         onLoadStop: (controller, url) async {
+          print("➡️ onLoadStop en $url");
           await _saveCookies();
           await _injectToken();
         },
