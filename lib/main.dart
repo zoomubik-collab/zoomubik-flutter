@@ -118,10 +118,11 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
-
           if (_fcmToken == null) return;
 
-          // Leer user_id desde window.zm_user_id
+          // Esperar 2 segundos para que WordPress procese el HTML completamente
+          await Future.delayed(const Duration(seconds: 2));
+
           final result = await _controller!.evaluateJavascript(
             source: "window.zm_user_id || 0"
           );
