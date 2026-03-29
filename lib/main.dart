@@ -56,12 +56,9 @@ class _WebPageState extends State<WebPage> {
     if (token != null) {
       _fcmToken = token;
       debugPrint('✅ Token FCM obtenido: ${token.substring(0, 20)}...');
-      // Intentar inyectar ahora; si el WebView no está listo,
-      // onLoadStop lo reintentará automáticamente
       await _injectTokenIntoWebView(token);
     }
 
-    // Escuchar renovaciones de token
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
       debugPrint('🔄 Token FCM renovado: ${newToken.substring(0, 20)}...');
@@ -74,7 +71,6 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _injectTokenIntoWebView(String token) async {
-    // Si el WebView aún no está listo, salir — onLoadStop lo reintentará
     if (_controller == null || !_webViewReady) {
       debugPrint('⏳ WebView no listo aún, token se inyectará en onLoadStop');
       return;
@@ -83,7 +79,6 @@ class _WebPageState extends State<WebPage> {
     final prefs = await SharedPreferences.getInstance();
     final lastToken = prefs.getString('fcm_token');
 
-    // Evitar registros duplicados si el token no ha cambiado
     if (lastToken == token) {
       debugPrint('ℹ️ Token FCM sin cambios, no es necesario re-registrar');
       return;
@@ -93,36 +88,37 @@ class _WebPageState extends State<WebPage> {
 
     await _controller!.evaluateJavascript(source: """
       (function() {
-        var maxAttempts = 20;
-        var attempts = 0;
-        var interval = setInterval(function() {
-          attempts++;
-          if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
-            clearInterval(interval);
-            var userId = zmoriginal_ajax.current_user_id;
-            console.log('FCM: user_id detectado = ' + userId);
-            if (!userId || userId == 0) {
-              console.log('FCM: usuario no logado, no se registra token');
-              return;
-            }
-            jQuery.post(
-              'https://zoomubik.com/wp-admin/admin-ajax.php',
-              {
-                action: 'zmoriginal_save_fcm_token',
-                user_id: userId,
-                token: '$token'
-              },
-              function(response) {
-                console.log('FCM token registrado:', JSON.stringify(response));
-              }
-            ).fail(function(err) {
-              console.log('FCM token ERROR:', JSON.stringify(err));
-            });
-          } else if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.log('FCM: timeout esperando zmoriginal_ajax tras ' + attempts + ' intentos');
+        var fcmToken = '$token';
+
+        fetch('https://zoomubik.com/wp-admin/admin-ajax.php', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'action=zm_get_current_user'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          console.log('FCM: zm_get_current_user = ' + JSON.stringify(data));
+          var userId = data && data.success ? data.data.user_id : 0;
+          if (!userId || userId == 0) {
+            console.log('FCM: usuario no logado, no se registra token');
+            return null;
           }
-        }, 500);
+          console.log('FCM: registrando token para user_id = ' + userId);
+          return fetch('https://zoomubik.com/wp-admin/admin-ajax.php', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'action=zmoriginal_save_fcm_token&user_id=' + userId + '&token=' + encodeURIComponent(fcmToken)
+          });
+        })
+        .then(function(r) { return r ? r.json() : null; })
+        .then(function(data) {
+          if (data) console.log('FCM token registrado:', JSON.stringify(data));
+        })
+        .catch(function(err) {
+          console.log('FCM ERROR:', err.toString());
+        });
       })();
     """);
 
@@ -183,7 +179,6 @@ class _WebPageState extends State<WebPage> {
         onLoadStop: (controller, url) async {
           _webViewReady = true;
           await _saveCookies();
-          // Inyectar token si ya lo tenemos
           if (_fcmToken != null) {
             await _injectTokenIntoWebView(_fcmToken!);
           }
