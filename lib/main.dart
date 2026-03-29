@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -47,60 +46,65 @@ class _WebPageState extends State<WebPage> {
     final messaging = FirebaseMessaging.instance;
 
     await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
+      alert: true, badge: true, sound: true,
     );
 
     final token = await messaging.getToken();
     if (token != null) {
       _fcmToken = token;
+      // Intentar registrar el token ahora por si ya está logueado
+      _injectToken();
     }
 
+    // Si cambia el token (por cambio de instalación/dispositivo), vuelve a registrar
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
+      _injectToken();
     });
 
+    // Puedes mostrar mensajes en primer plano con flutter_local_notifications si lo deseas
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('📬 Notificación: ${message.notification?.title}');
+      debugPrint('📬 Notificación recibida: ${message.notification?.title} - ${message.notification?.body}');
     });
   }
 
   Future<void> _injectToken() async {
     if (_controller == null || _fcmToken == null) return;
 
-    // Inyectar el token FCM como variable global en el WebView
-    // y usar zmoriginal_ajax (que ya tiene nonce y user_id) para enviarlo
+    // Intentará cada segundo hasta encontrar que el usuario está bien logueado
     await _controller!.evaluateJavascript(source: """
       (function() {
         window.fcm_token = '${_fcmToken}';
-        
         var maxAttempts = 20;
         var attempts = 0;
-        var interval = setInterval(function() {
+        function tryRegisterFCMToken() {
           attempts++;
           if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
-            clearInterval(interval);
             var userId = zmoriginal_ajax.current_user_id;
             var nonce = zmoriginal_ajax.nonce;
-            if (!userId || userId == 0) return;
-            jQuery.post(
-              zmoriginal_ajax.ajax_url,
-              {
-                action: 'zmoriginal_save_fcm_token',
-                user_id: userId,
-                token: window.fcm_token,
-                nonce: nonce
-              },
-              function(response) {
-                console.log('FCM token registrado:', JSON.stringify(response));
-              }
-            );
-          } else if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.log('FCM: timeout esperando zmoriginal_ajax');
+            if (userId && userId > 0 && nonce) {
+              jQuery.post(
+                zmoriginal_ajax.ajax_url,
+                {
+                  action: 'zmoriginal_save_fcm_token',
+                  user_id: userId,
+                  token: window.fcm_token,
+                  nonce: nonce
+                },
+                function(response) {
+                  console.log('✅ FCM token registrado:', JSON.stringify(response));
+                }
+              );
+              return; // Éxito, detener reintentos
+            }
           }
-        }, 500);
+          if (attempts < maxAttempts) {
+            setTimeout(tryRegisterFCMToken, 1000); // Reintenta en 1 segundo
+          } else {
+            console.log('❌ FCM: No se pudo registrar el token tras varios intentos.');
+          }
+        }
+        tryRegisterFCMToken();
       })();
     """);
   }
