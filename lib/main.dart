@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')
@@ -60,6 +59,10 @@ class _WebPageState extends State<WebPage> {
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
+      // Forzar re-registro limpiando el user_id guardado
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.remove('fcm_registered_user_id');
+      });
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -70,20 +73,27 @@ class _WebPageState extends State<WebPage> {
   Future<void> _registerToken() async {
     if (_controller == null || _fcmToken == null) return;
 
-    // Leer window.zm_user_id directamente desde el WebView
+    // Leer window.zm_user_id directamente desde el HTML
     final result = await _controller!.evaluateJavascript(
       source: "window.zm_user_id || 0"
     );
 
     final userId = int.tryParse(result.toString()) ?? 0;
     if (userId == 0) {
-      debugPrint('⏳ Usuario no logado aún (zm_user_id=0)');
+      debugPrint('⏳ Usuario no logado aún, reintentando en próxima carga');
       return;
     }
 
-    debugPrint('👤 zm_user_id leído: $userId');
+    // Evitar registros duplicados para el mismo usuario
+    final prefs = await SharedPreferences.getInstance();
+    final lastRegisteredUserId = prefs.getInt('fcm_registered_user_id');
+    if (lastRegisteredUserId == userId) {
+      debugPrint('ℹ️ Token ya registrado para user_id: $userId');
+      return;
+    }
 
-    // Registrar token via REST API (no necesita cookies)
+    debugPrint('👤 Registrando token para user_id: $userId');
+
     try {
       final response = await http.post(
         Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
@@ -93,8 +103,14 @@ class _WebPageState extends State<WebPage> {
           'token': _fcmToken,
         }),
       );
-      debugPrint('REST register status: ${response.statusCode}');
-      debugPrint('REST register body: ${response.body}');
+
+      debugPrint('REST status: ${response.statusCode}');
+      debugPrint('REST body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        await prefs.setInt('fcm_registered_user_id', userId);
+        debugPrint('✅ Token registrado para user_id: $userId');
+      }
     } catch (e) {
       debugPrint('❌ Error registrando token: $e');
     }
