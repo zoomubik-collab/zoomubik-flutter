@@ -118,15 +118,27 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
+
+          if (_fcmToken == null) return;
+
+          // Leer user_id desde window.zm_user_id
+          final result = await _controller!.evaluateJavascript(
+            source: "window.zm_user_id || 0"
+          );
+          final userId = int.tryParse(result.toString()) ?? 0;
+          if (userId == 0) return;
+
           try {
-            final response = await http.post(
+            await http.post(
               Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
               headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({'user_id': 170, 'token': 'flutter_prueba_incondicional'}),
+              body: jsonEncode({
+                'user_id': userId,
+                'token': _fcmToken,
+              }),
             );
-            debugPrint('REST status: ${response.statusCode}');
           } catch (e) {
-            debugPrint('❌ Error HTTP: $e');
+            debugPrint('❌ Error: $e');
           }
         },
       ),
