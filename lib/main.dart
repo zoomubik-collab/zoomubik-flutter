@@ -59,7 +59,6 @@ class _WebPageState extends State<WebPage> {
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
-      // Forzar re-registro limpiando el user_id guardado
       SharedPreferences.getInstance().then((prefs) {
         prefs.remove('fcm_registered_user_id');
       });
@@ -71,7 +70,7 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _registerToken() async {
-    if (_controller == null || _fcmToken == null) return;
+    if (_controller == null) return;
 
     // Leer window.zm_user_id directamente desde el HTML
     final result = await _controller!.evaluateJavascript(
@@ -80,39 +79,26 @@ class _WebPageState extends State<WebPage> {
 
     final userId = int.tryParse(result.toString()) ?? 0;
     if (userId == 0) {
-      debugPrint('⏳ Usuario no logado aún, reintentando en próxima carga');
+      debugPrint('⏳ Usuario no logado aún');
       return;
     }
 
-    // Evitar registros duplicados para el mismo usuario
-    final prefs = await SharedPreferences.getInstance();
-    final lastRegisteredUserId = prefs.getInt('fcm_registered_user_id');
-    if (lastRegisteredUserId == userId) {
-      debugPrint('ℹ️ Token ya registrado para user_id: $userId');
-      return;
-    }
+    debugPrint('👤 zm_user_id: $userId, fcmToken: ${_fcmToken != null ? "OK" : "NULL"}');
 
-    debugPrint('👤 Registrando token para user_id: $userId');
-
+    // Llamar al REST aunque no tengamos token FCM todavía
     try {
       final response = await http.post(
         Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'user_id': userId,
-          'token': _fcmToken,
+          'token': _fcmToken ?? 'flutter_test_sin_token',
         }),
       );
-
       debugPrint('REST status: ${response.statusCode}');
       debugPrint('REST body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        await prefs.setInt('fcm_registered_user_id', userId);
-        debugPrint('✅ Token registrado para user_id: $userId');
-      }
     } catch (e) {
-      debugPrint('❌ Error registrando token: $e');
+      debugPrint('❌ Error: $e');
     }
   }
 
