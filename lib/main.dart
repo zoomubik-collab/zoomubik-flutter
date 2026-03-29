@@ -93,29 +93,36 @@ class _WebPageState extends State<WebPage> {
 
     await _controller!.evaluateJavascript(source: """
       (function() {
-        if (typeof jQuery !== 'undefined') {
-          var userId = (typeof zmoriginal_ajax !== 'undefined' ? zmoriginal_ajax.current_user_id : 0);
-          console.log('FCM: user_id detectado = ' + userId);
-          if (userId == 0) {
-            console.log('FCM: usuario no logado, no se registra token');
-            return;
-          }
-          jQuery.post(
-            'https://zoomubik.com/wp-admin/admin-ajax.php',
-            {
-              action: 'zmoriginal_save_fcm_token',
-              user_id: userId,
-              token: '$token'
-            },
-            function(response) {
-              console.log('FCM token registrado:', JSON.stringify(response));
+        var maxAttempts = 20;
+        var attempts = 0;
+        var interval = setInterval(function() {
+          attempts++;
+          if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
+            clearInterval(interval);
+            var userId = zmoriginal_ajax.current_user_id;
+            console.log('FCM: user_id detectado = ' + userId);
+            if (!userId || userId == 0) {
+              console.log('FCM: usuario no logado, no se registra token');
+              return;
             }
-          ).fail(function(err) {
-            console.log('FCM token ERROR:', JSON.stringify(err));
-          });
-        } else {
-          console.log('FCM: jQuery no disponible todavía');
-        }
+            jQuery.post(
+              'https://zoomubik.com/wp-admin/admin-ajax.php',
+              {
+                action: 'zmoriginal_save_fcm_token',
+                user_id: userId,
+                token: '$token'
+              },
+              function(response) {
+                console.log('FCM token registrado:', JSON.stringify(response));
+              }
+            ).fail(function(err) {
+              console.log('FCM token ERROR:', JSON.stringify(err));
+            });
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.log('FCM: timeout esperando zmoriginal_ajax tras ' + attempts + ' intentos');
+          }
+        }, 500);
       })();
     """);
 
