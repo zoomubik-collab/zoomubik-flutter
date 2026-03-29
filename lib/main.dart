@@ -67,49 +67,34 @@ class _WebPageState extends State<WebPage> {
     });
   }
 
-  Future<void> _registerTokenWithWordPress() async {
-    if (_fcmToken == null) return;
+  Future<void> _registerToken() async {
+    if (_controller == null || _fcmToken == null) return;
 
+    // Leer window.zm_user_id directamente desde el WebView
+    final result = await _controller!.evaluateJavascript(
+      source: "window.zm_user_id || 0"
+    );
+
+    final userId = int.tryParse(result.toString()) ?? 0;
+    if (userId == 0) {
+      debugPrint('⏳ Usuario no logado aún (zm_user_id=0)');
+      return;
+    }
+
+    debugPrint('👤 zm_user_id leído: $userId');
+
+    // Registrar token via REST API (no necesita cookies)
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString('wp_cookies');
-      if (saved == null) return;
-
-      final List cookieList = jsonDecode(saved);
-      if (cookieList.isEmpty) return;
-
-      final cookieHeader = cookieList
-          .map((c) => '${c['name']}=${c['value']}')
-          .join('; ');
-
-      // Paso 1: obtener user_id
-      final userResponse = await http.post(
-        Uri.parse('https://zoomubik.com/wp-admin/admin-ajax.php'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cookie': cookieHeader,
-          HttpHeaders.userAgentHeader: 'ZoomubikFlutter/1.0',
-        },
-        body: 'action=zm_get_current_user',
+      final response = await http.post(
+        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'token': _fcmToken,
+        }),
       );
-
-      final userData = jsonDecode(userResponse.body);
-      if (userData['success'] != true) return;
-
-      final userId = userData['data']['user_id'];
-      if (userId == null || userId == 0) return;
-
-      // Paso 2: registrar token
-      await http.post(
-        Uri.parse('https://zoomubik.com/wp-admin/admin-ajax.php'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cookie': cookieHeader,
-          HttpHeaders.userAgentHeader: 'ZoomubikFlutter/1.0',
-        },
-        body: 'action=zmoriginal_save_fcm_token&user_id=$userId&token=${Uri.encodeComponent(_fcmToken!)}',
-      );
-
+      debugPrint('REST register status: ${response.statusCode}');
+      debugPrint('REST register body: ${response.body}');
     } catch (e) {
       debugPrint('❌ Error registrando token: $e');
     }
@@ -167,7 +152,7 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
-          await _registerTokenWithWordPress();
+          await _registerToken();
         },
       ),
     );
