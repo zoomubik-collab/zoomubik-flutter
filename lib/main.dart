@@ -66,47 +66,43 @@ class _WebPageState extends State<WebPage> {
     });
   }
 
-  Future<void> _registerToken() async {
-    if (_fcmToken == null) return;
+  Future<void> _injectToken() async {
+    if (_controller == null || _fcmToken == null) return;
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString('wp_cookies');
-      if (saved == null) return;
-
-      final List cookieList = jsonDecode(saved);
-      if (cookieList.isEmpty) return;
-
-      final cookieHeader = cookieList
-          .map((c) => '${c['name']}=${c['value']}')
-          .join('; ');
-
-      // Paso 1: obtener user_id via REST con cookies de sesión
-      final userResponse = await http.get(
-        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/current-user'),
-        headers: {'Cookie': cookieHeader},
-      );
-
-      if (userResponse.statusCode != 200) return;
-
-      final userData = jsonDecode(userResponse.body);
-      final userId = userData['user_id'] ?? 0;
-      if (userId == 0) return;
-
-      debugPrint('👤 user_id: $userId');
-
-      // Paso 2: registrar token FCM
-      await http.post(
-        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': userId,
-          'token': _fcmToken,
-        }),
-      );
-    } catch (e) {
-      debugPrint('❌ Error: $e');
-    }
+    // Inyectar el token FCM como variable global en el WebView
+    // y usar zmoriginal_ajax (que ya tiene nonce y user_id) para enviarlo
+    await _controller!.evaluateJavascript(source: """
+      (function() {
+        window.fcm_token = '${_fcmToken}';
+        
+        var maxAttempts = 20;
+        var attempts = 0;
+        var interval = setInterval(function() {
+          attempts++;
+          if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
+            clearInterval(interval);
+            var userId = zmoriginal_ajax.current_user_id;
+            var nonce = zmoriginal_ajax.nonce;
+            if (!userId || userId == 0) return;
+            jQuery.post(
+              zmoriginal_ajax.ajax_url,
+              {
+                action: 'zmoriginal_save_fcm_token',
+                user_id: userId,
+                token: window.fcm_token,
+                nonce: nonce
+              },
+              function(response) {
+                console.log('FCM token registrado:', JSON.stringify(response));
+              }
+            );
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.log('FCM: timeout esperando zmoriginal_ajax');
+          }
+        }, 500);
+      })();
+    """);
   }
 
   Future<void> _restoreCookies() async {
@@ -161,7 +157,7 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
-          await _registerToken();
+          await _injectToken();
         },
       ),
     );
