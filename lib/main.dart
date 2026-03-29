@@ -66,6 +66,50 @@ class _WebPageState extends State<WebPage> {
     });
   }
 
+  Future<void> _registerToken() async {
+    if (_fcmToken == null) return;
+
+    try {
+      // Paso 1: obtener cookies guardadas
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('wp_cookies');
+      if (saved == null) return;
+
+      final List cookieList = jsonDecode(saved);
+      if (cookieList.isEmpty) return;
+
+      final cookieHeader = cookieList
+          .map((c) => '${c['name']}=${c['value']}')
+          .join('; ');
+
+      // Paso 2: obtener user_id via REST con cookies de sesión
+      final userResponse = await http.get(
+        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/current-user'),
+        headers: {'Cookie': cookieHeader},
+      );
+
+      if (userResponse.statusCode != 200) return;
+
+      final userData = jsonDecode(userResponse.body);
+      final userId = userData['user_id'] ?? 0;
+      if (userId == 0) return;
+
+      debugPrint('👤 user_id obtenido via REST: $userId');
+
+      // Paso 3: registrar token FCM
+      await http.post(
+        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'token': _fcmToken,
+        }),
+      );
+    } catch (e) {
+      debugPrint('❌ Error: $e');
+    }
+  }
+
   Future<void> _restoreCookies() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('wp_cookies');
@@ -118,30 +162,7 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
-          if (_fcmToken == null) return;
-
-          // Esperar 2 segundos para que WordPress cargue completamente
-          await Future.delayed(const Duration(seconds: 2));
-
-          // Leer user_id desde zmoriginal_ajax
-          final result = await _controller!.evaluateJavascript(
-            source: "typeof zmoriginal_ajax !== 'undefined' ? zmoriginal_ajax.current_user_id : 0"
-          );
-          final userId = int.tryParse(result.toString()) ?? 0;
-          if (userId == 0) return;
-
-          try {
-            await http.post(
-              Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'user_id': userId,
-                'token': _fcmToken,
-              }),
-            );
-          } catch (e) {
-            debugPrint('❌ Error: $e');
-          }
+          await _registerToken();
         },
       ),
     );
