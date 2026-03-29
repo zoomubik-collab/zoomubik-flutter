@@ -59,47 +59,11 @@ class _WebPageState extends State<WebPage> {
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
-      SharedPreferences.getInstance().then((prefs) {
-        prefs.remove('fcm_registered_user_id');
-      });
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Notificación: ${message.notification?.title}');
     });
-  }
-
-  Future<void> _registerToken() async {
-    if (_controller == null) return;
-
-    // Leer window.zm_user_id directamente desde el HTML
-    final result = await _controller!.evaluateJavascript(
-      source: "window.zm_user_id || 0"
-    );
-
-    final userId = int.tryParse(result.toString()) ?? 0;
-    if (userId == 0) {
-      debugPrint('⏳ Usuario no logado aún');
-      return;
-    }
-
-    debugPrint('👤 zm_user_id: $userId, fcmToken: ${_fcmToken != null ? "OK" : "NULL"}');
-
-    // Llamar al REST aunque no tengamos token FCM todavía
-    try {
-      final response = await http.post(
-        Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': userId,
-          'token': _fcmToken ?? 'flutter_test_sin_token',
-        }),
-      );
-      debugPrint('REST status: ${response.statusCode}');
-      debugPrint('REST body: ${response.body}');
-    } catch (e) {
-      debugPrint('❌ Error: $e');
-    }
   }
 
   Future<void> _restoreCookies() async {
@@ -154,7 +118,16 @@ class _WebPageState extends State<WebPage> {
         },
         onLoadStop: (controller, url) async {
           await _saveCookies();
-          await _registerToken();
+          try {
+            final response = await http.post(
+              Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'user_id': 170, 'token': 'flutter_prueba_incondicional'}),
+            );
+            debugPrint('REST status: ${response.statusCode}');
+          } catch (e) {
+            debugPrint('❌ Error HTTP: $e');
+          }
         },
       ),
     );
