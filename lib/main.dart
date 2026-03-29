@@ -120,11 +120,12 @@ class _WebPageState extends State<WebPage> {
           await _saveCookies();
           if (_fcmToken == null) return;
 
-          // Esperar 2 segundos para que WordPress procese el HTML completamente
+          // Esperar 2 segundos para que WordPress cargue completamente
           await Future.delayed(const Duration(seconds: 2));
 
+          // Leer user_id desde zmoriginal_ajax
           final result = await _controller!.evaluateJavascript(
-            source: "window.zm_user_id || 0"
+            source: "typeof zmoriginal_ajax !== 'undefined' ? zmoriginal_ajax.current_user_id : 0"
           );
           final userId = int.tryParse(result.toString()) ?? 0;
           if (userId == 0) return;
