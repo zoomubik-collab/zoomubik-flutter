@@ -36,7 +36,6 @@ class WebPage extends StatefulWidget {
 class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
   String? _fcmToken;
-  bool _webViewReady = false;
 
   @override
   void initState() {
@@ -57,50 +56,33 @@ class _WebPageState extends State<WebPage> {
     final token = await messaging.getToken();
     if (token != null) {
       _fcmToken = token;
-      debugPrint('✅ Token FCM obtenido: ${token.substring(0, 20)}...');
-      await _registerTokenWithWordPress(token);
     }
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
-      debugPrint('🔄 Token FCM renovado: ${newToken.substring(0, 20)}...');
-      _registerTokenWithWordPress(newToken);
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('📬 Notificación en primer plano: ${message.notification?.title}');
+      debugPrint('📬 Notificación: ${message.notification?.title}');
     });
   }
 
-  Future<void> _registerTokenWithWordPress(String token) async {
+  Future<void> _registerTokenWithWordPress() async {
+    if (_fcmToken == null) return;
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      final lastToken = prefs.getString('fcm_token');
-
-      if (lastToken == token) {
-        debugPrint('ℹ️ Token FCM sin cambios, no es necesario re-registrar');
-        return;
-      }
-
       final saved = prefs.getString('wp_cookies');
-      if (saved == null) {
-        debugPrint('⏳ Sin cookies de sesión aún, se reintentará más tarde');
-        return;
-      }
+      if (saved == null) return;
 
       final List cookieList = jsonDecode(saved);
-      if (cookieList.isEmpty) {
-        debugPrint('⏳ Cookies vacías, se reintentará más tarde');
-        return;
-      }
+      if (cookieList.isEmpty) return;
 
       final cookieHeader = cookieList
           .map((c) => '${c['name']}=${c['value']}')
           .join('; ');
 
-      debugPrint('📤 Registrando token FCM desde Dart...');
-
-      // Paso 1: obtener user_id actual
+      // Paso 1: obtener user_id
       final userResponse = await http.post(
         Uri.parse('https://zoomubik.com/wp-admin/admin-ajax.php'),
         headers: {
@@ -111,46 +93,25 @@ class _WebPageState extends State<WebPage> {
         body: 'action=zm_get_current_user',
       );
 
-      debugPrint('zm_get_current_user status: ${userResponse.statusCode}');
-      debugPrint('zm_get_current_user body: ${userResponse.body}');
-
       final userData = jsonDecode(userResponse.body);
-      if (userData['success'] != true) {
-        debugPrint('❌ No se pudo obtener user_id');
-        return;
-      }
+      if (userData['success'] != true) return;
 
       final userId = userData['data']['user_id'];
-      if (userId == null || userId == 0) {
-        debugPrint('⏳ Usuario no logado aún (user_id=0), se reintentará');
-        return;
-      }
+      if (userId == null || userId == 0) return;
 
-      debugPrint('👤 user_id obtenido: $userId');
-
-      // Paso 2: registrar el token FCM
-      final tokenResponse = await http.post(
+      // Paso 2: registrar token
+      await http.post(
         Uri.parse('https://zoomubik.com/wp-admin/admin-ajax.php'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Cookie': cookieHeader,
           HttpHeaders.userAgentHeader: 'ZoomubikFlutter/1.0',
         },
-        body: 'action=zmoriginal_save_fcm_token&user_id=$userId&token=${Uri.encodeComponent(token)}',
+        body: 'action=zmoriginal_save_fcm_token&user_id=$userId&token=${Uri.encodeComponent(_fcmToken!)}',
       );
 
-      debugPrint('save_fcm_token status: ${tokenResponse.statusCode}');
-      debugPrint('save_fcm_token body: ${tokenResponse.body}');
-
-      final tokenData = jsonDecode(tokenResponse.body);
-      if (tokenData['success'] == true) {
-        await prefs.setString('fcm_token', token);
-        debugPrint('✅ Token FCM registrado correctamente para user_id: $userId');
-      } else {
-        debugPrint('❌ Error registrando token: ${tokenResponse.body}');
-      }
     } catch (e) {
-      debugPrint('❌ Excepción en _registerTokenWithWordPress: $e');
+      debugPrint('❌ Error registrando token: $e');
     }
   }
 
@@ -187,11 +148,6 @@ class _WebPageState extends State<WebPage> {
       'isSecure': c.isSecure,
     }).toList();
     await prefs.setString('wp_cookies', jsonEncode(data));
-
-    // Intentar registrar el token ahora que tenemos cookies
-    if (_fcmToken != null) {
-      await _registerTokenWithWordPress(_fcmToken!);
-    }
   }
 
   @override
@@ -210,8 +166,8 @@ class _WebPageState extends State<WebPage> {
           _controller = controller;
         },
         onLoadStop: (controller, url) async {
-          _webViewReady = true;
           await _saveCookies();
+          await _registerTokenWithWordPress();
         },
       ),
     );
