@@ -70,7 +70,6 @@ class _WebPageState extends State<WebPage> {
     if (_fcmToken == null) return;
 
     try {
-      // Paso 1: obtener cookies guardadas
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString('wp_cookies');
       if (saved == null) return;
@@ -82,7 +81,7 @@ class _WebPageState extends State<WebPage> {
           .map((c) => '${c['name']}=${c['value']}')
           .join('; ');
 
-      // Paso 2: obtener user_id via REST con cookies de sesión
+      // Paso 1: obtener user_id via REST con cookies de sesión
       final userResponse = await http.get(
         Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/current-user'),
         headers: {'Cookie': cookieHeader},
@@ -94,9 +93,9 @@ class _WebPageState extends State<WebPage> {
       final userId = userData['user_id'] ?? 0;
       if (userId == 0) return;
 
-      debugPrint('👤 user_id obtenido via REST: $userId');
+      debugPrint('👤 user_id: $userId');
 
-      // Paso 3: registrar token FCM
+      // Paso 2: registrar token FCM
       await http.post(
         Uri.parse('https://zoomubik.com/wp-json/zoomubik/v1/push/register'),
         headers: {'Content-Type': 'application/json'},
