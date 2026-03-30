@@ -54,25 +54,33 @@ class _WebPageState extends State<WebPage> {
 
     debugPrint('🔔 Permisos FCM: ${settings.authorizationStatus}');
 
-    // Esperar a que iOS procese los permisos antes de pedir el token
-    await Future.delayed(const Duration(seconds: 2));
-
-    final token = await messaging.getToken();
-    if (token != null) {
-      _fcmToken = token;
-      debugPrint('✅ FCM token obtenido: ${token.substring(0, 20)}...');
-    } else {
-      debugPrint('❌ FCM token null - permisos: ${settings.authorizationStatus}');
-    }
-
+    // Escuchar token cuando llegue por refresh
     messaging.onTokenRefresh.listen((newToken) {
+      debugPrint('🔄 Token refrescado: ${newToken.substring(0, 20)}...');
       _fcmToken = newToken;
-      debugPrint('🔄 FCM token refrescado');
+      // Intentar inyectar si el WebView ya está listo
+      _injectToken();
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Notificación: ${message.notification?.title}');
     });
+
+    // Reintentar hasta 10 veces con 3 segundos entre intentos
+    for (int i = 0; i < 10; i++) {
+      await Future.delayed(const Duration(seconds: 3));
+      final token = await messaging.getToken();
+      debugPrint('🔁 Intento ${i + 1}/10: token=${token != null ? "OK" : "null"}');
+      if (token != null) {
+        _fcmToken = token;
+        debugPrint('✅ FCM token obtenido en intento ${i + 1}: ${token.substring(0, 20)}...');
+        break;
+      }
+    }
+
+    if (_fcmToken == null) {
+      debugPrint('❌ FCM token null después de 10 intentos (30 segundos)');
+    }
   }
 
   Future<void> _injectToken() async {
