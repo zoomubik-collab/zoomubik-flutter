@@ -20,8 +20,8 @@ workflows:
       - name: Restore GoogleService-Info.plist
         script: |
           echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
-          echo "=== Verificando GoogleService-Info.plist ==="
-          grep -E "BUNDLE_ID|PROJECT_ID|GCM_SENDER_ID|API_KEY" $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+          echo "=== Contenido completo ==="
+          cat $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
       - name: Install Flutter dependencies
         script: |
           flutter clean
