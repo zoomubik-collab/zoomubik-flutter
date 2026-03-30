@@ -2,125 +2,142 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  runApp(const ZoomubikApp());
 }
 
-class MyApp extends StatelessWidget {
+class ZoomubikApp extends StatelessWidget {
+  const ZoomubikApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: WebViewFCM(),
-    );
+    return const MaterialApp(home: WebPage());
   }
 }
 
-class WebViewFCM extends StatefulWidget {
+class WebPage extends StatefulWidget {
+  const WebPage({super.key});
   @override
-  State<WebViewFCM> createState() => _WebViewFCMState();
+  State<WebPage> createState() => _WebPageState();
 }
 
-class _WebViewFCMState extends State<WebViewFCM> {
+class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
   String? _fcmToken;
 
   @override
   void initState() {
     super.initState();
-    _initFCM();
+    _restoreCookies();
+    _initPushNotifications();
   }
 
-  Future<void> _initFCM() async {
-    print('🔔 Iniciando setup de Firebase Messaging');
+  Future<void> _initPushNotifications() async {
     final messaging = FirebaseMessaging.instance;
 
-    if (Platform.isIOS) {
-      print('🔔 Solicitando permisos iOS...');
-      await messaging.requestPermission(alert: true, badge: true, sound: true);
-    }
+    await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     final token = await messaging.getToken();
     if (token != null) {
-      print('🔥 Token FCM obtenido: $token');
       _fcmToken = token;
-      _injectToken();
-    } else {
-      print('❌ No se pudo obtener token FCM');
     }
 
-    // Vuelve a intentar si cambia token
     messaging.onTokenRefresh.listen((newToken) {
-      print('🔁 Token FCM refrescado: $newToken');
       _fcmToken = newToken;
-      _injectToken();
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📬 Notificación recibida en primer plano: ${message.notification?.title}');
+      debugPrint('📬 Notificación: ${message.notification?.title}');
     });
   }
 
   Future<void> _injectToken() async {
-    print('🚀 Inyectando token: $_fcmToken');
-    if (_controller == null || _fcmToken == null) {
-      print('❗ WebView no lista o token FCM nulo');
-      return;
-    }
+    if (_controller == null || _fcmToken == null) return;
 
+    // Inyectar el token FCM como variable global en el WebView
+    // y usar zmoriginal_ajax (que ya tiene nonce y user_id) para enviarlo
     await _controller!.evaluateJavascript(source: """
       (function() {
         window.fcm_token = '${_fcmToken}';
+        
         var maxAttempts = 20;
         var attempts = 0;
-        function tryRegisterFCMToken() {
+        var interval = setInterval(function() {
           attempts++;
           if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
+            clearInterval(interval);
             var userId = zmoriginal_ajax.current_user_id;
             var nonce = zmoriginal_ajax.nonce;
-            if (userId && userId > 0 && nonce) {
-              jQuery.post(
-                zmoriginal_ajax.ajax_url,
-                {
-                  action: 'zmoriginal_save_fcm_token',
-                  user_id: userId,
-                  token: window.fcm_token,
-                  nonce: nonce
-                },
-                function(response) {
-                  console.log('✅ FCM token registrado:', response);
-                  if(window && window.document) {
-                    var debugDiv = document.createElement('div');
-                    debugDiv.style = "position:fixed;top:0;left:0;background:#dff0d8;color:#333;padding:8px;border:2px solid #51a351;z-index:10000;font-size:16px;";
-                    debugDiv.textContent = "✅ Token FCM registrado.";
-                    document.body.appendChild(debugDiv);
-                    setTimeout(()=>{debugDiv.remove();},3000);
-                  }
-                }
-              );
-              return;
-            }
+            if (!userId || userId == 0) return;
+            jQuery.post(
+              zmoriginal_ajax.ajax_url,
+              {
+                action: 'zmoriginal_save_fcm_token',
+                user_id: userId,
+                token: window.fcm_token,
+                nonce: nonce
+              },
+              function(response) {
+                console.log('FCM token registrado:', JSON.stringify(response));
+              }
+            );
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.log('FCM: timeout esperando zmoriginal_ajax');
           }
-          if (attempts < maxAttempts) {
-            setTimeout(tryRegisterFCMToken, 1000);
-          } else {
-            if(window && window.document) {
-              var errorDiv = document.createElement('div');
-              errorDiv.style = "position:fixed;top:0;left:0;background:#ffd8d8;color:#b94a48;padding:8px;border:2px solid #d9534f;z-index:10000;font-size:16px;";
-              errorDiv.textContent = "❌ Fallo al registrar el token FCM.";
-              document.body.appendChild(errorDiv);
-              setTimeout(()=>{errorDiv.remove();},4000);
-            }
-            console.log('❌ FCM: No se pudo registrar el token tras varios intentos.');
-          }
-        }
-        tryRegisterFCMToken();
+        }, 500);
       })();
     """);
+  }
+
+  Future<void> _restoreCookies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('wp_cookies');
+    if (saved == null) return;
+
+    final List cookies = jsonDecode(saved);
+    for (final c in cookies) {
+      await CookieManager.instance().setCookie(
+        url: WebUri('https://zoomubik.com'),
+        name: c['name'],
+        value: c['value'],
+        domain: c['domain'] ?? '.zoomubik.com',
+        isHttpOnly: c['isHttpOnly'] ?? false,
+        isSecure: c['isSecure'] ?? false,
+      );
+    }
+  }
+
+  Future<void> _saveCookies() async {
+    final cookies = await CookieManager.instance().getCookies(
+      url: WebUri('https://zoomubik.com'),
+    );
+    if (cookies.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final data = cookies.map((c) => {
+      'name': c.name,
+      'value': c.value,
+      'domain': c.domain,
+      'isHttpOnly': c.isHttpOnly,
+      'isSecure': c.isSecure,
+    }).toList();
+    await prefs.setString('wp_cookies', jsonEncode(data));
   }
 
   @override
@@ -131,15 +148,16 @@ class _WebViewFCMState extends State<WebViewFCM> {
         initialSettings: InAppWebViewSettings(
           javaScriptEnabled: true,
           domStorageEnabled: true,
-          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) ...',
+          databaseEnabled: true,
+          cacheEnabled: true,
+          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         ),
         onWebViewCreated: (controller) {
           _controller = controller;
-          if (_fcmToken != null) _injectToken();
         },
-        onLoadStop: (controller, url) {
-          print('🌍 onLoadStop $url');
-          if (_fcmToken != null) _injectToken();
+        onLoadStop: (controller, url) async {
+          await _saveCookies();
+          await _injectToken();
         },
       ),
     );
