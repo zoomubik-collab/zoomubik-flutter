@@ -46,18 +46,23 @@ class _WebPageState extends State<WebPage> {
   Future<void> _initPushNotifications() async {
     final messaging = FirebaseMessaging.instance;
 
-    await messaging.requestPermission(
+    final settings = await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
+
+    debugPrint('🔔 Permisos FCM: ${settings.authorizationStatus}');
+
+    // Esperar a que iOS procese los permisos antes de pedir el token
+    await Future.delayed(const Duration(seconds: 2));
 
     final token = await messaging.getToken();
     if (token != null) {
       _fcmToken = token;
       debugPrint('✅ FCM token obtenido: ${token.substring(0, 20)}...');
     } else {
-      debugPrint('❌ FCM token es null');
+      debugPrint('❌ FCM token null - permisos: ${settings.authorizationStatus}');
     }
 
     messaging.onTokenRefresh.listen((newToken) {
@@ -87,10 +92,9 @@ class _WebPageState extends State<WebPage> {
       (function() {
         window.fcm_token = '${_fcmToken}';
 
-        // DIAGNÓSTICO: comprobar estado inicial
         var hasAjax = typeof zmoriginal_ajax !== 'undefined';
         var hasJQuery = typeof jQuery !== 'undefined';
-        alert('FCM diagnóstico:\\nzmoriginal_ajax: ' + hasAjax + '\\njQuery: ' + hasJQuery + '\\nURL: ' + window.location.href);
+        alert('FCM diagnostico:\\nzmoriginal_ajax: ' + hasAjax + '\\njQuery: ' + hasJQuery + '\\nURL: ' + window.location.href);
 
         var maxAttempts = 20;
         var attempts = 0;
@@ -122,7 +126,7 @@ class _WebPageState extends State<WebPage> {
             );
           } else if (attempts >= maxAttempts) {
             clearInterval(interval);
-            alert('FCM TIMEOUT: zmoriginal_ajax no encontrado tras 20 intentos (10 segundos)\\njQuery disponible: ' + (typeof jQuery !== 'undefined'));
+            alert('FCM TIMEOUT\\njQuery: ' + (typeof jQuery !== 'undefined') + '\\nzmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined'));
           }
         }, 500);
       })();
