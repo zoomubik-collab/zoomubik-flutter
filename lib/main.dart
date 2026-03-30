@@ -55,10 +55,14 @@ class _WebPageState extends State<WebPage> {
     final token = await messaging.getToken();
     if (token != null) {
       _fcmToken = token;
+      debugPrint('✅ FCM token obtenido: ${token.substring(0, 20)}...');
+    } else {
+      debugPrint('❌ FCM token es null');
     }
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
+      debugPrint('🔄 FCM token refrescado');
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -67,14 +71,22 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _injectToken() async {
-    if (_controller == null || _fcmToken == null) return;
+    if (_controller == null || _fcmToken == null) {
+      debugPrint('⚠️ _injectToken: controller=${_controller != null}, token=${_fcmToken != null}');
+      return;
+    }
 
-    // Inyectar el token FCM como variable global en el WebView
-    // y usar zmoriginal_ajax (que ya tiene nonce y user_id) para enviarlo
+    debugPrint('💉 Inyectando token FCM en WebView...');
+
     await _controller!.evaluateJavascript(source: """
       (function() {
         window.fcm_token = '${_fcmToken}';
-        
+
+        // DIAGNÓSTICO: comprobar estado inicial
+        var hasAjax = typeof zmoriginal_ajax !== 'undefined';
+        var hasJQuery = typeof jQuery !== 'undefined';
+        alert('FCM diagnóstico:\\nzmoriginal_ajax: ' + hasAjax + '\\njQuery: ' + hasJQuery + '\\nURL: ' + window.location.href);
+
         var maxAttempts = 20;
         var attempts = 0;
         var interval = setInterval(function() {
@@ -83,7 +95,14 @@ class _WebPageState extends State<WebPage> {
             clearInterval(interval);
             var userId = zmoriginal_ajax.current_user_id;
             var nonce = zmoriginal_ajax.nonce;
-            if (!userId || userId == 0) return;
+
+            alert('FCM: zmoriginal_ajax encontrado\\nuserId: ' + userId + '\\nnonce: ' + (nonce ? nonce.substring(0,8) + '...' : 'null'));
+
+            if (!userId || userId == 0) {
+              alert('FCM: userId=0, no se registra el token');
+              return;
+            }
+
             jQuery.post(
               zmoriginal_ajax.ajax_url,
               {
@@ -93,12 +112,12 @@ class _WebPageState extends State<WebPage> {
                 nonce: nonce
               },
               function(response) {
-                console.log('FCM token registrado:', JSON.stringify(response));
+                alert('FCM respuesta servidor: ' + JSON.stringify(response));
               }
             );
           } else if (attempts >= maxAttempts) {
             clearInterval(interval);
-            console.log('FCM: timeout esperando zmoriginal_ajax');
+            alert('FCM TIMEOUT: zmoriginal_ajax no encontrado tras 20 intentos (10 segundos)\\njQuery disponible: ' + (typeof jQuery !== 'undefined'));
           }
         }, 500);
       })();
@@ -143,22 +162,25 @@ class _WebPageState extends State<WebPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: InAppWebView(
-        initialUrlRequest: URLRequest(url: WebUri('https://zoomubik.com')),
-        initialSettings: InAppWebViewSettings(
-          javaScriptEnabled: true,
-          domStorageEnabled: true,
-          databaseEnabled: true,
-          cacheEnabled: true,
-          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      body: SafeArea(
+        child: InAppWebView(
+          initialUrlRequest: URLRequest(url: WebUri('https://zoomubik.com')),
+          initialSettings: InAppWebViewSettings(
+            javaScriptEnabled: true,
+            domStorageEnabled: true,
+            databaseEnabled: true,
+            cacheEnabled: true,
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+          ),
+          onWebViewCreated: (controller) {
+            _controller = controller;
+          },
+          onLoadStop: (controller, url) async {
+            debugPrint('🌐 Página cargada: $url');
+            await _saveCookies();
+            await _injectToken();
+          },
         ),
-        onWebViewCreated: (controller) {
-          _controller = controller;
-        },
-        onLoadStop: (controller, url) async {
-          await _saveCookies();
-          await _injectToken();
-        },
       ),
     );
   }
