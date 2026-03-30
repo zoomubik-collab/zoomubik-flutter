@@ -5,15 +5,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'firebase_options.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const ZoomubikApp());
 }
@@ -58,7 +59,6 @@ class _WebPageState extends State<WebPage> {
     messaging.onTokenRefresh.listen((newToken) {
       debugPrint('🔄 Token refrescado: ${newToken.substring(0, 20)}...');
       _fcmToken = newToken;
-      // Intentar inyectar si el WebView ya está listo
       _injectToken();
     });
 
