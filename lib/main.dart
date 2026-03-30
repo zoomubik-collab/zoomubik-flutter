@@ -71,6 +71,11 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _injectToken() async {
+    // DIAGNÓSTICO FORZADO — borrar después
+    await _controller?.evaluateJavascript(
+      source: "alert('_injectToken ejecutado\\ntoken: ${_fcmToken != null ? 'OK' : 'NULL'}');",
+    );
+
     if (_controller == null || _fcmToken == null) {
       debugPrint('⚠️ _injectToken: controller=${_controller != null}, token=${_fcmToken != null}');
       return;
