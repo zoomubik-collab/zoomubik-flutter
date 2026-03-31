@@ -84,11 +84,6 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _injectToken() async {
-    // DIAGNÓSTICO FORZADO — borrar después
-    await _controller?.evaluateJavascript(
-      source: "alert('_injectToken ejecutado\\ntoken: ${_fcmToken != null ? 'OK' : 'NULL'}');",
-    );
-
     if (_controller == null || _fcmToken == null) {
       debugPrint('⚠️ _injectToken: controller=${_controller != null}, token=${_fcmToken != null}');
       return;
@@ -99,12 +94,10 @@ class _WebPageState extends State<WebPage> {
     await _controller!.evaluateJavascript(source: """
       (function() {
         window.fcm_token = '${_fcmToken}';
+        window.fcm_token_ready = true;
+        console.log('✅ FCM Token inyectado: ' + window.fcm_token.substring(0, 20) + '...');
 
-        var hasAjax = typeof zmoriginal_ajax !== 'undefined';
-        var hasJQuery = typeof jQuery !== 'undefined';
-        alert('FCM diagnostico:\\nzmoriginal_ajax: ' + hasAjax + '\\njQuery: ' + hasJQuery + '\\nURL: ' + window.location.href);
-
-        var maxAttempts = 20;
+        var maxAttempts = 40;
         var attempts = 0;
         var interval = setInterval(function() {
           attempts++;
@@ -113,10 +106,10 @@ class _WebPageState extends State<WebPage> {
             var userId = zmoriginal_ajax.current_user_id;
             var nonce = zmoriginal_ajax.nonce;
 
-            alert('FCM: zmoriginal_ajax encontrado\\nuserId: ' + userId + '\\nnonce: ' + (nonce ? nonce.substring(0,8) + '...' : 'null'));
+            console.log('✅ FCM: zmoriginal_ajax encontrado, userId=' + userId);
 
             if (!userId || userId == 0) {
-              alert('FCM: userId=0, no se registra el token');
+              console.log('⚠️ FCM: userId=0, no se registra el token');
               return;
             }
 
@@ -129,12 +122,14 @@ class _WebPageState extends State<WebPage> {
                 nonce: nonce
               },
               function(response) {
-                alert('FCM respuesta servidor: ' + JSON.stringify(response));
+                console.log('✅ FCM Token registrado en servidor');
               }
-            );
+            ).fail(function(error) {
+              console.error('❌ Error registrando FCM Token:', error);
+            });
           } else if (attempts >= maxAttempts) {
             clearInterval(interval);
-            alert('FCM TIMEOUT\\njQuery: ' + (typeof jQuery !== 'undefined') + '\\nzmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined'));
+            console.error('❌ FCM TIMEOUT: zmoriginal_ajax no encontrado después de 20 segundos');
           }
         }, 500);
       })();
@@ -191,14 +186,59 @@ class _WebPageState extends State<WebPage> {
           ),
           onWebViewCreated: (controller) {
             _controller = controller;
+            _setupJavaScriptChannels(controller);
           },
           onLoadStop: (controller, url) async {
             debugPrint('🌐 Página cargada: $url');
             await _saveCookies();
             await _injectToken();
+            // Monitorear cambios de sesión
+            _monitorUserLogin();
           },
         ),
       ),
     );
+  }
+
+  void _setupJavaScriptChannels(InAppWebViewController controller) {
+    controller.addJavaScriptHandler(
+      handlerName: 'fcmTokenReady',
+      callback: (args) {
+        debugPrint('✅ JavaScript confirmó: FCM Token inyectado');
+      },
+    );
+  }
+
+  void _monitorUserLogin() {
+    // Verificar cada 2 segundos si el usuario inició sesión
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      _controller?.evaluateJavascript(source: """
+        (function() {
+          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
+            if (!window.fcm_user_synced || window.fcm_user_synced != zmoriginal_ajax.current_user_id) {
+              window.fcm_user_synced = zmoriginal_ajax.current_user_id;
+              console.log('🔄 Usuario detectado: ' + zmoriginal_ajax.current_user_id + ', sincronizando token...');
+              
+              if (window.fcm_token_ready && window.fcm_token) {
+                jQuery.post(
+                  zmoriginal_ajax.ajax_url,
+                  {
+                    action: 'zmoriginal_save_fcm_token',
+                    user_id: zmoriginal_ajax.current_user_id,
+                    token: window.fcm_token,
+                    nonce: zmoriginal_ajax.nonce
+                  },
+                  function(response) {
+                    console.log('✅ Token sincronizado para usuario ' + zmoriginal_ajax.current_user_id);
+                  }
+                );
+              }
+            }
+          }
+        })();
+      """);
+      _monitorUserLogin(); // Continuar monitoreando
+    });
   }
 }
