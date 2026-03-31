@@ -74,24 +74,29 @@ class _WebPageState extends State<WebPage> {
   Future<void> _sendTokenWhenUserLogged() async {
     if (_fcmToken == null) return;
     
-    // Obtener el user_id actual del servidor vía JavaScript
-    try {
-      final result = await _controller?.evaluateJavascript(source: """
-        (function() {
-          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
-            return zmoriginal_ajax.current_user_id.toString();
-          }
-          return '0';
-        })();
-      """);
-      
-      final userId = int.tryParse(result?.toString() ?? '0') ?? 0;
-      if (userId > 0) {
-        await _sendTokenViaHttp(userId, _fcmToken!);
+    // Esperar a que la página cargue y zmoriginal_ajax esté disponible
+    for (int i = 0; i < 10; i++) {
+      try {
+        final result = await _controller?.evaluateJavascript(source: """
+          (function() {
+            if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
+              return zmoriginal_ajax.current_user_id.toString();
+            }
+            return '0';
+          })();
+        """);
+        
+        final userId = int.tryParse(result?.toString() ?? '0') ?? 0;
+        if (userId > 0) {
+          await _sendTokenViaHttp(userId, _fcmToken!);
+          return;
+        }
+      } catch (e) {
+        // Continuar intentando
       }
-    } catch (e) {
-      // Si falla JavaScript, intentar después
-      Future.delayed(const Duration(seconds: 2), _sendTokenWhenUserLogged);
+      
+      // Esperar 1 segundo antes de reintentar
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 
