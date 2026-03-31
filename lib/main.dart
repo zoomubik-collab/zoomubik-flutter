@@ -36,6 +36,7 @@ class WebPage extends StatefulWidget {
 class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
   String? _fcmToken;
+  int _lastUserId = 0;
 
   @override
   void initState() {
@@ -62,7 +63,7 @@ class _WebPageState extends State<WebPage> {
 
     messaging.onTokenRefresh.listen((newToken) {
       _fcmToken = newToken;
-      _sendTokenWhenUserLogged();
+      _checkAndSendToken();
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -70,26 +71,33 @@ class _WebPageState extends State<WebPage> {
     });
   }
 
-  Future<void> _sendTokenWhenUserLogged() async {
-    if (_fcmToken == null) return;
+  Future<void> _checkAndSendToken() async {
+    if (_fcmToken == null || _controller == null) return;
     
     try {
-      final response = await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-admin/admin-ajax.php"),
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: {"action": "get_current_user_id"},
-      ).timeout(const Duration(seconds: 5));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final userId = data["data"]?["user_id"] ?? 0;
-        
-        if (userId > 0) {
-          await _sendTokenViaHttp(userId, _fcmToken!);
-        }
+      final userId = await _getUserIdFromPage();
+      if (userId > 0 && userId != _lastUserId) {
+        _lastUserId = userId;
+        await _sendTokenViaHttp(userId, _fcmToken!);
       }
     } catch (e) {
       // Error silencioso
+    }
+  }
+
+  Future<int> _getUserIdFromPage() async {
+    try {
+      final result = await _controller?.evaluateJavascript(source: """
+        (function() {
+          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id) {
+            return zmoriginal_ajax.current_user_id;
+          }
+          return 0;
+        })();
+      """);
+      return int.tryParse(result?.toString() ?? "0") ?? 0;
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -155,33 +163,23 @@ class _WebPageState extends State<WebPage> {
           ),
           onWebViewCreated: (controller) {
             _controller = controller;
-            _setupJavaScriptChannels(controller);
           },
           onLoadStop: (controller, url) async {
-            debugPrint("🌐 Página cargada: \$url");
             await _saveCookies();
-            await _sendTokenWhenUserLogged();
-            _monitorUserLogin();
+            await Future.delayed(const Duration(seconds: 2));
+            await _checkAndSendToken();
+            _monitorUserChanges();
           },
         ),
       ),
     );
   }
 
-  void _setupJavaScriptChannels(InAppWebViewController controller) {
-    controller.addJavaScriptHandler(
-      handlerName: "fcmTokenReady",
-      callback: (args) {
-        _sendTokenWhenUserLogged();
-      },
-    );
-  }
-
-  void _monitorUserLogin() {
-    Future.delayed(const Duration(seconds: 5), () {
+  void _monitorUserChanges() {
+    Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-      _sendTokenWhenUserLogged();
-      _monitorUserLogin();
+      _checkAndSendToken();
+      _monitorUserChanges();
     });
   }
 }
