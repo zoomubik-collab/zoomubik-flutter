@@ -47,91 +47,63 @@ class _WebPageState extends State<WebPage> {
   Future<void> _initPushNotifications() async {
     final messaging = FirebaseMessaging.instance;
 
-    final settings = await messaging.requestPermission(
+    await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    debugPrint('🔔 Permisos FCM: ${settings.authorizationStatus}');
-
-    // 🔍 DEBUG: Verificar APNS y FCM
+    // Obtener tokens
     final apns = await messaging.getAPNSToken();
     final fcm = await messaging.getToken();
-    debugPrint('🍏 APNS Token: $apns');
-    debugPrint('🔥 FCM Token: $fcm');
+    
+    if (apns != null) {
+      _fcmToken = fcm;
+    }
 
-    // Escuchar token cuando llegue por refresh
     messaging.onTokenRefresh.listen((newToken) {
-      debugPrint('🔄 Token refrescado: ${newToken.substring(0, 20)}...');
       _fcmToken = newToken;
-      _injectToken();
+      _sendTokenWhenUserLogged();
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('📬 Notificación: ${message.notification?.title}');
+      // Notificación en foreground
     });
-
-    // Reintentar hasta 10 veces con 3 segundos entre intentos
-    for (int i = 0; i < 10; i++) {
-      await Future.delayed(const Duration(seconds: 3));
-      final token = await messaging.getToken();
-      debugPrint('🔁 Intento ${i + 1}/10: token=${token != null ? "OK" : "null"}');
-      if (token != null) {
-        _fcmToken = token;
-        debugPrint('✅ FCM token obtenido en intento ${i + 1}: ${token.substring(0, 20)}...');
-        break;
-      }
-    }
-
-    if (_fcmToken == null) {
-      debugPrint('❌ FCM token null después de 10 intentos (30 segundos)');
-    }
   }
 
-  Future<void> _injectToken() async {
-    if (_fcmToken == null) {
-      debugPrint('⚠️ _injectToken: token es null');
-      return;
+  Future<void> _sendTokenWhenUserLogged() async {
+    if (_fcmToken == null) return;
+    
+    // Obtener el user_id actual del servidor vía JavaScript
+    try {
+      final result = await _controller?.evaluateJavascript(source: """
+        (function() {
+          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
+            return zmoriginal_ajax.current_user_id.toString();
+          }
+          return '0';
+        })();
+      """);
+      
+      final userId = int.tryParse(result?.toString() ?? '0') ?? 0;
+      if (userId > 0) {
+        await _sendTokenViaHttp(userId, _fcmToken!);
+      }
+    } catch (e) {
+      // Si falla JavaScript, intentar después
+      Future.delayed(const Duration(seconds: 2), _sendTokenWhenUserLogged);
     }
-
-    debugPrint('💉 Iniciando envío de token FCM: ${_fcmToken!.substring(0, 20)}...');
-
-    // Esperar a que la página cargue
-    await Future.delayed(const Duration(seconds: 3));
-
-    // Enviar token directamente sin depender del WebView
-    // Asumimos que el usuario logueado es el usuario 1 (admin)
-    // En producción, deberías obtener el user_id de otra forma
-    await _sendTokenViaHttp(1, _fcmToken!);
   }
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
-      debugPrint('📤 Enviando token vía HTTP REST API...');
-      debugPrint('   URL: https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token');
-      debugPrint('   User ID: $userId');
-      debugPrint('   Token: ${token.substring(0, 20)}...');
-      
-      final response = await http.post(
+      await http.post(
         Uri.parse('https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': userId,
-          'token': token,
-        }),
+        body: jsonEncode({'user_id': userId, 'token': token}),
       ).timeout(const Duration(seconds: 10));
-      
-      debugPrint('📬 Respuesta HTTP: ${response.statusCode}');
-      debugPrint('   Body: ${response.body}');
-      
-      if (response.statusCode == 200) {
-        debugPrint('✅ Token enviado correctamente');
-      } else {
-        debugPrint('❌ Error HTTP: ${response.statusCode}');
-      }
     } catch (e) {
-      debugPrint('❌ Error enviando token: $e');
+      // Error silencioso
     }
   }
 
@@ -190,7 +162,7 @@ class _WebPageState extends State<WebPage> {
           onLoadStop: (controller, url) async {
             debugPrint('🌐 Página cargada: $url');
             await _saveCookies();
-            await _injectToken();
+            await _sendTokenWhenUserLogged();
             // Monitorear cambios de sesión
             _monitorUserLogin();
           },
@@ -203,7 +175,8 @@ class _WebPageState extends State<WebPage> {
     controller.addJavaScriptHandler(
       handlerName: 'fcmTokenReady',
       callback: (args) {
-        debugPrint('✅ JavaScript confirmó: FCM Token inyectado');
+        // Cuando el usuario cambia, enviar el token
+        _sendTokenWhenUserLogged();
       },
     );
   }
@@ -214,59 +187,14 @@ class _WebPageState extends State<WebPage> {
       if (!mounted) return;
       _controller?.evaluateJavascript(source: """
         (function() {
-          var messages = [];
-          messages.push('🔍 Monitoreando sesión...');
-          messages.push('zmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined' ? 'OK' : 'NO'));
-          messages.push('fcm_token: ' + (window.fcm_token ? window.fcm_token.substring(0, 20) + '...' : 'NO'));
-          messages.push('fcm_token_ready: ' + window.fcm_token_ready);
-          
           if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
-            messages.push('✅ Usuario logueado: ' + zmoriginal_ajax.current_user_id);
-            
             if (!window.fcm_user_synced || window.fcm_user_synced != zmoriginal_ajax.current_user_id) {
               window.fcm_user_synced = zmoriginal_ajax.current_user_id;
-              messages.push('🔄 Usuario detectado: ' + zmoriginal_ajax.current_user_id);
-              
-              if (window.fcm_token_ready && window.fcm_token) {
-                messages.push('📤 Enviando token a: ' + zmoriginal_ajax.ajax_url);
-                jQuery.post(
-                  zmoriginal_ajax.ajax_url,
-                  {
-                    action: 'zmoriginal_save_fcm_token',
-                    user_id: zmoriginal_ajax.current_user_id,
-                    token: window.fcm_token,
-                    nonce: zmoriginal_ajax.nonce
-                  },
-                  function(response) {
-                    messages.push('✅ Respuesta servidor: ' + JSON.stringify(response));
-                    sendLogsToServer(messages);
-                  }
-                ).fail(function(error) {
-                  messages.push('❌ Error en AJAX: ' + JSON.stringify(error));
-                  sendLogsToServer(messages);
-                });
-              } else {
-                messages.push('⚠️ Token no listo: fcm_token_ready=' + window.fcm_token_ready);
-                sendLogsToServer(messages);
+              // Notificar a Flutter que el usuario cambió
+              if (typeof fcmTokenReady !== 'undefined') {
+                fcmTokenReady({user_id: zmoriginal_ajax.current_user_id});
               }
-            } else {
-              messages.push('ℹ️ Usuario ya sincronizado: ' + window.fcm_user_synced);
-              sendLogsToServer(messages);
             }
-          } else {
-            messages.push('⚠️ Usuario no logueado');
-            sendLogsToServer(messages);
-          }
-          
-          // Enviar logs al servidor
-          function sendLogsToServer(logs) {
-            fetch('https://www.zoomubik.com/log-fcm.php', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({message: logs.join(' | ')})
-            }).catch(function(e) {
-              console.error('Error enviando logs:', e);
-            });
           }
         })();
       """);
