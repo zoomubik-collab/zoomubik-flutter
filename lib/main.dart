@@ -105,13 +105,14 @@ class _WebPageState extends State<WebPage> {
         })();
       """);
       
-      debugPrint('📝 User ID obtenido: $userId');
+      debugPrint('📝 User ID obtenido: $userId (tipo: ${userId.runtimeType})');
       
-      if (userId != null && userId != 0) {
-        // Enviar token directamente a través de HTTP (sin JavaScript)
-        await _sendTokenViaHttp(int.parse(userId.toString()), _fcmToken!);
+      if (userId != null && userId != 0 && userId != '0') {
+        int parsedUserId = int.parse(userId.toString());
+        debugPrint('✅ User ID válido: $parsedUserId');
+        await _sendTokenViaHttp(parsedUserId, _fcmToken!);
       } else {
-        debugPrint('⚠️ User ID no disponible, esperando...');
+        debugPrint('⚠️ User ID no válido: $userId, esperando...');
         _monitorUserLogin();
       }
     } catch (e) {
@@ -123,6 +124,9 @@ class _WebPageState extends State<WebPage> {
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
       debugPrint('📤 Enviando token vía HTTP REST API...');
+      debugPrint('   URL: https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token');
+      debugPrint('   User ID: $userId');
+      debugPrint('   Token: ${token.substring(0, 20)}...');
       
       final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token'),
@@ -133,15 +137,17 @@ class _WebPageState extends State<WebPage> {
         }),
       ).timeout(const Duration(seconds: 10));
       
-      debugPrint('📬 Respuesta: ${response.statusCode} - ${response.body}');
+      debugPrint('📬 Respuesta HTTP: ${response.statusCode}');
+      debugPrint('   Body: ${response.body}');
       
       if (response.statusCode == 200) {
         debugPrint('✅ Token enviado correctamente');
       } else {
-        debugPrint('❌ Error: ${response.statusCode}');
+        debugPrint('❌ Error HTTP: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('❌ Error enviando token: $e');
+      debugPrint('   Stack trace: ${e.toString()}');
     }
   }
 
