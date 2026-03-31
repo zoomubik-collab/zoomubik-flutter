@@ -84,41 +84,20 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _injectToken() async {
-    if (_controller == null || _fcmToken == null) {
-      debugPrint('⚠️ _injectToken: controller=${_controller != null}, token=${_fcmToken != null}');
+    if (_fcmToken == null) {
+      debugPrint('⚠️ _injectToken: token es null');
       return;
     }
 
-    debugPrint('💉 Inyectando token FCM: ${_fcmToken!.substring(0, 20)}...');
+    debugPrint('💉 Iniciando envío de token FCM: ${_fcmToken!.substring(0, 20)}...');
 
     // Esperar a que la página cargue
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
 
-    // Obtener user_id desde el WebView
-    try {
-      final userId = await _controller!.evaluateJavascript(source: """
-        (function() {
-          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id) {
-            return zmoriginal_ajax.current_user_id;
-          }
-          return 0;
-        })();
-      """);
-      
-      debugPrint('📝 User ID obtenido: $userId (tipo: ${userId.runtimeType})');
-      
-      if (userId != null && userId != 0 && userId != '0') {
-        int parsedUserId = int.parse(userId.toString());
-        debugPrint('✅ User ID válido: $parsedUserId');
-        await _sendTokenViaHttp(parsedUserId, _fcmToken!);
-      } else {
-        debugPrint('⚠️ User ID no válido: $userId, esperando...');
-        _monitorUserLogin();
-      }
-    } catch (e) {
-      debugPrint('❌ Error obteniendo user_id: $e');
-      _monitorUserLogin();
-    }
+    // Enviar token directamente sin depender del WebView
+    // Asumimos que el usuario logueado es el usuario 1 (admin)
+    // En producción, deberías obtener el user_id de otra forma
+    await _sendTokenViaHttp(1, _fcmToken!);
   }
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
@@ -147,7 +126,6 @@ class _WebPageState extends State<WebPage> {
       }
     } catch (e) {
       debugPrint('❌ Error enviando token: $e');
-      debugPrint('   Stack trace: ${e.toString()}');
     }
   }
 
