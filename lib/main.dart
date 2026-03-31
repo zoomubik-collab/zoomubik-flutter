@@ -55,6 +55,12 @@ class _WebPageState extends State<WebPage> {
 
     debugPrint('🔔 Permisos FCM: ${settings.authorizationStatus}');
 
+    // 🔍 DEBUG: Verificar APNS y FCM
+    final apns = await messaging.getAPNSToken();
+    final fcm = await messaging.getToken();
+    debugPrint('🍏 APNS Token: $apns');
+    debugPrint('🔥 FCM Token: $fcm');
+
     // Escuchar token cuando llegue por refresh
     messaging.onTokenRefresh.listen((newToken) {
       debugPrint('🔄 Token refrescado: ${newToken.substring(0, 20)}...');
