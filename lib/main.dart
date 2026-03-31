@@ -89,43 +89,60 @@ class _WebPageState extends State<WebPage> {
       return;
     }
 
-    debugPrint('💉 Inyectando token FCM en WebView: ${_fcmToken!.substring(0, 20)}...');
+    debugPrint('💉 Inyectando token FCM: ${_fcmToken!.substring(0, 20)}...');
 
-    // Inyectar token en variable global
-    await _controller!.evaluateJavascript(source: """
-      window.fcm_token = '${_fcmToken}';
-      console.log('✅ FCM Token inyectado');
-    """);
-
-    // Esperar a que jQuery esté disponible
+    // Esperar a que la página cargue
     await Future.delayed(const Duration(seconds: 2));
 
-    // Enviar token
-    await _controller!.evaluateJavascript(source: """
-      if (typeof jQuery !== 'undefined' && typeof zmoriginal_ajax !== 'undefined') {
-        var userId = zmoriginal_ajax.current_user_id;
-        if (userId && userId > 0 && window.fcm_token) {
-          jQuery.post(
-            zmoriginal_ajax.ajax_url,
-            {
-              action: 'zmoriginal_save_fcm_token',
-              user_id: userId,
-              token: window.fcm_token,
-              nonce: zmoriginal_ajax.nonce
-            },
-            function(response) {
-              console.log('✅ Token enviado correctamente');
-            }
-          ).fail(function() {
-            console.log('❌ Error enviando token');
-          });
-        } else {
-          console.log('⚠️ No se puede enviar: userId=' + userId + ', token=' + (window.fcm_token ? 'OK' : 'NO'));
-        }
+    // Obtener user_id desde el WebView
+    try {
+      final userId = await _controller!.evaluateJavascript(source: """
+        (function() {
+          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id) {
+            return zmoriginal_ajax.current_user_id;
+          }
+          return 0;
+        })();
+      """);
+      
+      debugPrint('📝 User ID obtenido: $userId');
+      
+      if (userId != null && userId != 0) {
+        // Enviar token directamente a través de HTTP (sin JavaScript)
+        await _sendTokenViaHttp(int.parse(userId.toString()), _fcmToken!);
       } else {
-        console.log('⚠️ jQuery o zmoriginal_ajax no disponibles');
+        debugPrint('⚠️ User ID no disponible, esperando...');
+        _monitorUserLogin();
       }
-    """);
+    } catch (e) {
+      debugPrint('❌ Error obteniendo user_id: $e');
+      _monitorUserLogin();
+    }
+  }
+
+  Future<void> _sendTokenViaHttp(int userId, String token) async {
+    try {
+      debugPrint('📤 Enviando token vía HTTP REST API...');
+      
+      final response = await http.post(
+        Uri.parse('https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'token': token,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      debugPrint('📬 Respuesta: ${response.statusCode} - ${response.body}');
+      
+      if (response.statusCode == 200) {
+        debugPrint('✅ Token enviado correctamente');
+      } else {
+        debugPrint('❌ Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error enviando token: $e');
+    }
   }
 
   Future<void> _restoreCookies() async {
