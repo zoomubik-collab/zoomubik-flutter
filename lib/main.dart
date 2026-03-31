@@ -10,6 +10,7 @@ import 'firebase_options.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('📩 Notificación en background: ${message.data}');
 }
 
 void main() async {
@@ -47,26 +48,37 @@ class _WebPageState extends State<WebPage> {
   Future<void> _initPushNotifications() async {
     final messaging = FirebaseMessaging.instance;
 
-    // Solicitar permisos
-    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
+    print('📢 Permisos notificaciones: $settings');
 
-    // Obtener token siempre
+    // Obtener token FCM
     _fcmToken = await messaging.getToken();
+    print('💠 Token FCM obtenido: $_fcmToken');
 
     // Escuchar cambios de token
     messaging.onTokenRefresh.listen((newToken) {
+      print('🔄 Token FCM actualizado: $newToken');
       _fcmToken = newToken;
-      _sendTokenWhenUserLogged();
+      _sendTokenWhenUserLogged(force: true);
     });
 
     // Escuchar notificaciones en foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {});
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('📩 Notificación en foreground: ${message.data}');
+    });
+
+    // Intentar enviar token si ya hay usuario
+    _sendTokenWhenUserLogged(force: true);
   }
 
-  Future<void> _sendTokenWhenUserLogged() async {
-    if (_fcmToken == null || _controller == null) return;
+  Future<void> _sendTokenWhenUserLogged({bool force = false}) async {
+    if (_fcmToken == null || _controller == null) {
+      print('❌ Token o controller no disponibles.');
+      return;
+    }
 
-    for (int i = 0; i < 5; i++) {
+    // Intentar obtener user_id de la web hasta 10 veces si es necesario
+    for (int i = 0; i < 10; i++) {
       try {
         final result = await _controller!.evaluateJavascript(source: """
           (function() {
@@ -79,22 +91,39 @@ class _WebPageState extends State<WebPage> {
 
         final userId = int.tryParse(result?.toString() ?? '0') ?? 0;
         if (userId > 0) {
-          await _sendTokenViaHttp(userId, _fcmToken!);
+          print('✅ Usuario detectado: $userId, enviando token...');
+          await _sendTokenViaHttp(userId, _fcmToken!, force: force);
           return;
+        } else {
+          print('⏳ Usuario no logueado aún, intento ${i + 1}');
         }
-      } catch (_) {}
+      } catch (e) {
+        print('⚠ Error obteniendo user_id: $e');
+      }
+
       await Future.delayed(const Duration(milliseconds: 500));
     }
+
+    print('❌ No se pudo detectar usuario logueado.');
   }
 
-  Future<void> _sendTokenViaHttp(int userId, String token) async {
+  Future<void> _sendTokenViaHttp(int userId, String token, bool force) async {
     try {
-      await http.post(
+      print('🌐 Enviando token FCM $token para user $userId');
+      final response = await http.post(
         Uri.parse('https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'user_id': userId, 'token': token}),
+        body: jsonEncode({'user_id': userId, 'token': token, 'force': force}),
       ).timeout(const Duration(seconds: 10));
-    } catch (_) {}
+
+      if (response.statusCode == 200) {
+        print('✅ Token enviado correctamente.');
+      } else {
+        print('❌ Error enviando token, status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Excepción enviando token FCM: $e');
+    }
   }
 
   Future<void> _restoreCookies() async {
@@ -116,9 +145,7 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _saveCookies() async {
-    final cookies = await CookieManager.instance().getCookies(
-      url: WebUri('https://zoomubik.com'),
-    );
+    final cookies = await CookieManager.instance().getCookies(url: WebUri('https://zoomubik.com'));
     if (cookies.isEmpty) return;
 
     final prefs = await SharedPreferences.getInstance();
@@ -151,8 +178,9 @@ class _WebPageState extends State<WebPage> {
             _setupJavaScriptChannels(controller);
           },
           onLoadStop: (controller, url) async {
+            print('🌐 Página cargada: $url');
             await _saveCookies();
-            await _sendTokenWhenUserLogged();
+            _sendTokenWhenUserLogged(force: true);
             _monitorUserLogin();
           },
         ),
@@ -164,7 +192,8 @@ class _WebPageState extends State<WebPage> {
     controller.addJavaScriptHandler(
       handlerName: 'fcmTokenReady',
       callback: (args) {
-        _sendTokenWhenUserLogged();
+        print('🔔 JS notificó cambio de usuario');
+        _sendTokenWhenUserLogged(force: true);
       },
     );
   }
