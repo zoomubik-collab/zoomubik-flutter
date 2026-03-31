@@ -61,6 +61,7 @@ workflows:
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="zoomubik-app-store" \
             PODS_CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_ENTITLEMENTS="Runner/Runner.entitlements" \
             archive
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
