@@ -215,12 +215,20 @@ class _WebPageState extends State<WebPage> {
       if (!mounted) return;
       _controller?.evaluateJavascript(source: """
         (function() {
+          console.log('🔍 Monitoreando sesión...');
+          console.log('zmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined' ? 'OK' : 'NO'));
+          console.log('fcm_token: ' + (window.fcm_token ? window.fcm_token.substring(0, 20) + '...' : 'NO'));
+          console.log('fcm_token_ready: ' + window.fcm_token_ready);
+          
           if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
+            console.log('✅ Usuario logueado: ' + zmoriginal_ajax.current_user_id);
+            
             if (!window.fcm_user_synced || window.fcm_user_synced != zmoriginal_ajax.current_user_id) {
               window.fcm_user_synced = zmoriginal_ajax.current_user_id;
               console.log('🔄 Usuario detectado: ' + zmoriginal_ajax.current_user_id + ', sincronizando token...');
               
               if (window.fcm_token_ready && window.fcm_token) {
+                console.log('📤 Enviando token a: ' + zmoriginal_ajax.ajax_url);
                 jQuery.post(
                   zmoriginal_ajax.ajax_url,
                   {
@@ -230,11 +238,19 @@ class _WebPageState extends State<WebPage> {
                     nonce: zmoriginal_ajax.nonce
                   },
                   function(response) {
-                    console.log('✅ Token sincronizado para usuario ' + zmoriginal_ajax.current_user_id);
+                    console.log('✅ Respuesta servidor: ' + JSON.stringify(response));
                   }
-                );
+                ).fail(function(error) {
+                  console.error('❌ Error en AJAX: ' + JSON.stringify(error));
+                });
+              } else {
+                console.warn('⚠️ Token no listo: fcm_token_ready=' + window.fcm_token_ready + ', fcm_token=' + (window.fcm_token ? 'OK' : 'NO'));
               }
+            } else {
+              console.log('ℹ️ Usuario ya sincronizado: ' + window.fcm_user_synced);
             }
+          } else {
+            console.log('⚠️ Usuario no logueado o zmoriginal_ajax no disponible');
           }
         })();
       """);
