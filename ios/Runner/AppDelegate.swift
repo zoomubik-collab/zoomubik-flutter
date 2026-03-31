@@ -19,7 +19,7 @@ import UserNotifications
     // 1. Firebase — debe ser lo primero
     FirebaseApp.configure()
 
-    // 2. Notificaciones foreground — SIN esto el usuario no ve nada con la app abierta
+    // 2. Notificaciones foreground
     UNUserNotificationCenter.current().delegate = self
 
     // 3. Cookies persistentes
@@ -47,7 +47,7 @@ import UserNotifications
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // APNs → FCM: necesario para que Firebase obtenga el token en iOS
+  // APNs → FCM
   override func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
@@ -56,16 +56,20 @@ import UserNotifications
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
-  // Mostrar notificación aunque la app esté en foreground
+  // Mostrar notificación con la app en foreground
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    completionHandler([.banner, .badge, .sound])
+    if #available(iOS 14.0, *) {
+      completionHandler([.banner, .badge, .sound])
+    } else {
+      completionHandler([.alert, .badge, .sound])
+    }
   }
 
-  // Manejar tap en notificación (foreground y background)
+  // Tap en notificación
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
