@@ -72,12 +72,12 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _sendTokenWhenUserLogged() async {
-    if (_fcmToken == null) return;
+    if (_fcmToken == null || _controller == null) return;
     
-    // Esperar a que la página cargue y zmoriginal_ajax esté disponible
-    for (int i = 0; i < 10; i++) {
+    // Intentar obtener el user_id, máximo 5 intentos
+    for (int i = 0; i < 5; i++) {
       try {
-        final result = await _controller?.evaluateJavascript(source: """
+        final result = await _controller!.evaluateJavascript(source: """
           (function() {
             if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
               return zmoriginal_ajax.current_user_id.toString();
@@ -95,8 +95,8 @@ class _WebPageState extends State<WebPage> {
         // Continuar intentando
       }
       
-      // Esperar 1 segundo antes de reintentar
-      await Future.delayed(const Duration(seconds: 1));
+      // Esperar 500ms antes de reintentar
+      await Future.delayed(const Duration(milliseconds: 500));
     }
   }
 
@@ -180,7 +180,7 @@ class _WebPageState extends State<WebPage> {
     controller.addJavaScriptHandler(
       handlerName: 'fcmTokenReady',
       callback: (args) {
-        // Cuando el usuario cambia, enviar el token
+        // Cuando el usuario cambia, enviar el token (sin await)
         _sendTokenWhenUserLogged();
       },
     );
