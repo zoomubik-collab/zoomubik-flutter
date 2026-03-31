@@ -215,20 +215,21 @@ class _WebPageState extends State<WebPage> {
       if (!mounted) return;
       _controller?.evaluateJavascript(source: """
         (function() {
-          console.log('🔍 Monitoreando sesión...');
-          console.log('zmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined' ? 'OK' : 'NO'));
-          console.log('fcm_token: ' + (window.fcm_token ? window.fcm_token.substring(0, 20) + '...' : 'NO'));
-          console.log('fcm_token_ready: ' + window.fcm_token_ready);
+          var messages = [];
+          messages.push('🔍 Monitoreando sesión...');
+          messages.push('zmoriginal_ajax: ' + (typeof zmoriginal_ajax !== 'undefined' ? 'OK' : 'NO'));
+          messages.push('fcm_token: ' + (window.fcm_token ? window.fcm_token.substring(0, 20) + '...' : 'NO'));
+          messages.push('fcm_token_ready: ' + window.fcm_token_ready);
           
           if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id > 0) {
-            console.log('✅ Usuario logueado: ' + zmoriginal_ajax.current_user_id);
+            messages.push('✅ Usuario logueado: ' + zmoriginal_ajax.current_user_id);
             
             if (!window.fcm_user_synced || window.fcm_user_synced != zmoriginal_ajax.current_user_id) {
               window.fcm_user_synced = zmoriginal_ajax.current_user_id;
-              console.log('🔄 Usuario detectado: ' + zmoriginal_ajax.current_user_id + ', sincronizando token...');
+              messages.push('🔄 Usuario detectado: ' + zmoriginal_ajax.current_user_id);
               
               if (window.fcm_token_ready && window.fcm_token) {
-                console.log('📤 Enviando token a: ' + zmoriginal_ajax.ajax_url);
+                messages.push('📤 Enviando token a: ' + zmoriginal_ajax.ajax_url);
                 jQuery.post(
                   zmoriginal_ajax.ajax_url,
                   {
@@ -238,19 +239,35 @@ class _WebPageState extends State<WebPage> {
                     nonce: zmoriginal_ajax.nonce
                   },
                   function(response) {
-                    console.log('✅ Respuesta servidor: ' + JSON.stringify(response));
+                    messages.push('✅ Respuesta servidor: ' + JSON.stringify(response));
+                    sendLogsToServer(messages);
                   }
                 ).fail(function(error) {
-                  console.error('❌ Error en AJAX: ' + JSON.stringify(error));
+                  messages.push('❌ Error en AJAX: ' + JSON.stringify(error));
+                  sendLogsToServer(messages);
                 });
               } else {
-                console.warn('⚠️ Token no listo: fcm_token_ready=' + window.fcm_token_ready + ', fcm_token=' + (window.fcm_token ? 'OK' : 'NO'));
+                messages.push('⚠️ Token no listo: fcm_token_ready=' + window.fcm_token_ready);
+                sendLogsToServer(messages);
               }
             } else {
-              console.log('ℹ️ Usuario ya sincronizado: ' + window.fcm_user_synced);
+              messages.push('ℹ️ Usuario ya sincronizado: ' + window.fcm_user_synced);
+              sendLogsToServer(messages);
             }
           } else {
-            console.log('⚠️ Usuario no logueado o zmoriginal_ajax no disponible');
+            messages.push('⚠️ Usuario no logueado');
+            sendLogsToServer(messages);
+          }
+          
+          // Enviar logs al servidor
+          function sendLogsToServer(logs) {
+            fetch('https://www.zoomubik.com/log-fcm.php', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({message: logs.join(' | ')})
+            }).catch(function(e) {
+              console.error('Error enviando logs:', e);
+            });
           }
         })();
       """);
