@@ -89,84 +89,42 @@ class _WebPageState extends State<WebPage> {
       return;
     }
 
-    debugPrint('💉 Inyectando token FCM en WebView...');
+    debugPrint('💉 Inyectando token FCM en WebView: ${_fcmToken!.substring(0, 20)}...');
 
+    // Inyectar token en variable global
     await _controller!.evaluateJavascript(source: """
-      (function() {
-        window.fcm_token = '${_fcmToken}';
-        window.fcm_token_ready = true;
-        console.log('✅ FCM Token inyectado: ' + window.fcm_token.substring(0, 20) + '...');
+      window.fcm_token = '${_fcmToken}';
+      console.log('✅ FCM Token inyectado');
+    """);
 
-        // Enviar log al servidor
-        fetch('https://www.zoomubik.com/log-fcm.php', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({message: '✅ Token inyectado en WebView'})
-        }).catch(function(e) {});
+    // Esperar a que jQuery esté disponible
+    await Future.delayed(const Duration(seconds: 2));
 
-        var maxAttempts = 40;
-        var attempts = 0;
-        var interval = setInterval(function() {
-          attempts++;
-          if (typeof zmoriginal_ajax !== 'undefined' && typeof jQuery !== 'undefined') {
-            clearInterval(interval);
-            var userId = zmoriginal_ajax.current_user_id;
-            var nonce = zmoriginal_ajax.nonce;
-
-            console.log('✅ FCM: zmoriginal_ajax encontrado, userId=' + userId);
-            
-            // Enviar log
-            fetch('https://www.zoomubik.com/log-fcm.php', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({message: '✅ zmoriginal_ajax encontrado, userId=' + userId})
-            }).catch(function(e) {});
-
-            if (!userId || userId == 0) {
-              console.log('⚠️ FCM: userId=0, no se registra el token');
-              fetch('https://www.zoomubik.com/log-fcm.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: '⚠️ userId=0, no se registra'})
-              }).catch(function(e) {});
-              return;
+    // Enviar token
+    await _controller!.evaluateJavascript(source: """
+      if (typeof jQuery !== 'undefined' && typeof zmoriginal_ajax !== 'undefined') {
+        var userId = zmoriginal_ajax.current_user_id;
+        if (userId && userId > 0 && window.fcm_token) {
+          jQuery.post(
+            zmoriginal_ajax.ajax_url,
+            {
+              action: 'zmoriginal_save_fcm_token',
+              user_id: userId,
+              token: window.fcm_token,
+              nonce: zmoriginal_ajax.nonce
+            },
+            function(response) {
+              console.log('✅ Token enviado correctamente');
             }
-
-            jQuery.post(
-              zmoriginal_ajax.ajax_url,
-              {
-                action: 'zmoriginal_save_fcm_token',
-                user_id: userId,
-                token: window.fcm_token,
-                nonce: nonce
-              },
-              function(response) {
-                console.log('✅ FCM Token registrado en servidor');
-                fetch('https://www.zoomubik.com/log-fcm.php', {
-                  method: 'POST',
-                  headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({message: '✅ Token enviado a servidor: ' + JSON.stringify(response)})
-                }).catch(function(e) {});
-              }
-            ).fail(function(error) {
-              console.error('❌ Error registrando FCM Token:', error);
-              fetch('https://www.zoomubik.com/log-fcm.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: '❌ Error AJAX: ' + JSON.stringify(error)})
-              }).catch(function(e) {});
-            });
-          } else if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.error('❌ FCM TIMEOUT: zmoriginal_ajax no encontrado después de 20 segundos');
-            fetch('https://www.zoomubik.com/log-fcm.php', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({message: '❌ TIMEOUT: zmoriginal_ajax no encontrado'})
-            }).catch(function(e) {});
-          }
-        }, 500);
-      })();
+          ).fail(function() {
+            console.log('❌ Error enviando token');
+          });
+        } else {
+          console.log('⚠️ No se puede enviar: userId=' + userId + ', token=' + (window.fcm_token ? 'OK' : 'NO'));
+        }
+      } else {
+        console.log('⚠️ jQuery o zmoriginal_ajax no disponibles');
+      }
     """);
   }
 
