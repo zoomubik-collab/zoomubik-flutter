@@ -91,13 +91,7 @@ workflows:
           flutter pub get
       - name: Set up keystore
         script: |
-          echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/upload-keystore.jks
-          cat > $CM_BUILD_DIR/android/key.properties <<EOF
-          storePassword=$CM_KEYSTORE_PASSWORD
-          keyPassword=$CM_KEY_PASSWORD
-          keyAlias=$CM_KEY_ALIAS
-          storeFile=$CM_BUILD_DIR/upload-keystore.jks
-          EOF
+          echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/app/upload-keystore.jks
       - name: Build Android AAB
         script: |
           flutter build appbundle --release
