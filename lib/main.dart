@@ -183,8 +183,7 @@ class _WebPageState extends State<WebPage> {
                 databaseEnabled: true,
                 cacheEnabled: true,
                 userAgent:
-                    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-              ),
+                    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",              ),
               onWebViewCreated: (controller) {
                 _controller = controller;
               },
