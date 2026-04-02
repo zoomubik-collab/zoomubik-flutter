@@ -94,6 +94,6 @@ workflows:
           echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/app/upload-keystore.jks
       - name: Build Android AAB
         script: |
-          flutter build appbundle --release
+          flutter build appbundle --release --verbose 2>&1 | tail -50
     artifacts:
       - build/app/outputs/bundle/release/*.aab
