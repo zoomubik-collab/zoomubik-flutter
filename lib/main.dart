@@ -72,10 +72,10 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _checkAndSendToken() async {
-    if (_fcmToken == null || _controller == null) return;
+    if (_fcmToken == null) return;
     
     try {
-      final userId = await _getUserIdFromPage();
+      final userId = await _getUserIdViaAjax();
       if (userId > 0 && userId != _lastUserId) {
         _lastUserId = userId;
         await _sendTokenViaHttp(userId, _fcmToken!);
@@ -85,20 +85,33 @@ class _WebPageState extends State<WebPage> {
     }
   }
 
-  Future<int> _getUserIdFromPage() async {
+  Future<int> _getUserIdViaAjax() async {
     try {
-      final result = await _controller?.evaluateJavascript(source: """
-        (function() {
-          if (typeof zmoriginal_ajax !== 'undefined' && zmoriginal_ajax.current_user_id) {
-            return zmoriginal_ajax.current_user_id;
-          }
-          return 0;
-        })();
-      """);
-      return int.tryParse(result?.toString() ?? "0") ?? 0;
+      final cookieHeader = await _getCookieHeader();
+      final response = await http.post(
+        Uri.parse("https://www.zoomubik.com/wp-admin/admin-ajax.php"),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Cookie": cookieHeader,
+        },
+        body: {"action": "get_current_user_id"},
+      ).timeout(const Duration(seconds: 5));
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data["data"]?["user_id"] ?? 0;
+      }
+      return 0;
     } catch (e) {
       return 0;
     }
+  }
+
+  Future<String> _getCookieHeader() async {
+    final cookies = await CookieManager.instance().getCookies(
+      url: WebUri("https://zoomubik.com"),
+    );
+    return cookies.map((c) => "\${c.name}=\${c.value}").join("; ");
   }
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
@@ -152,6 +165,7 @@ class _WebPageState extends State<WebPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
           initialSettings: InAppWebViewSettings(
@@ -159,7 +173,7 @@ class _WebPageState extends State<WebPage> {
             domStorageEnabled: true,
             databaseEnabled: true,
             cacheEnabled: true,
-            userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
           ),
           onWebViewCreated: (controller) {
             _controller = controller;
@@ -176,7 +190,7 @@ class _WebPageState extends State<WebPage> {
   }
 
   void _monitorUserChanges() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) return;
       _checkAndSendToken();
       _monitorUserChanges();
