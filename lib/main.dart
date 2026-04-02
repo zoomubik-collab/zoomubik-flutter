@@ -166,38 +166,36 @@ class _WebPageState extends State<WebPage> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
     return Scaffold(
-      body: SafeArea(
-        top: true,
-        child: InAppWebView(
-          initialUrlRequest:
-              URLRequest(url: WebUri("https://zoomubik.com")),
-          initialSettings: InAppWebViewSettings(
-            javaScriptEnabled: true,
-            domStorageEnabled: true,
-            databaseEnabled: true,
-            cacheEnabled: true,
-            userAgent:
-                "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          SizedBox(height: topInset),
+          Expanded(
+            child: InAppWebView(
+              initialUrlRequest:
+                  URLRequest(url: WebUri("https://zoomubik.com")),
+              initialSettings: InAppWebViewSettings(
+                javaScriptEnabled: true,
+                domStorageEnabled: true,
+                databaseEnabled: true,
+                cacheEnabled: true,
+                userAgent:
+                    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
+              ),
+              onWebViewCreated: (controller) {
+                _controller = controller;
+              },
+              onLoadStop: (controller, url) async {
+                await _saveCookies();
+                await Future.delayed(const Duration(seconds: 2));
+                await _checkAndSendToken();
+                _monitorUserChanges();
+              },
+            ),
           ),
-          onWebViewCreated: (controller) {
-            _controller = controller;
-          },
-          onLoadStop: (controller, url) async {
-            await _saveCookies();
-
-            // Inyectar safe area top y marcar como app Flutter
-            final topInset = MediaQuery.of(context).padding.top;
-            await controller.evaluateJavascript(source: """
-              document.documentElement.style.setProperty('--flutter-safe-top', '${topInset}px');
-              document.documentElement.classList.add('flutter-app');
-            """);
-
-            await Future.delayed(const Duration(seconds: 2));
-            await _checkAndSendToken();
-            _monitorUserChanges();
-          },
-        ),
+        ],
       ),
     );
   }
