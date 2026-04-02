@@ -56,7 +56,7 @@ class _WebPageState extends State<WebPage> {
 
     final apns = await messaging.getAPNSToken();
     final fcm = await messaging.getToken();
-    
+
     if (apns != null) {
       _fcmToken = fcm;
     }
@@ -73,7 +73,7 @@ class _WebPageState extends State<WebPage> {
 
   Future<void> _checkAndSendToken() async {
     if (_fcmToken == null) return;
-    
+
     try {
       final userId = await _getUserIdViaAjax();
       if (userId > 0 && userId != _lastUserId) {
@@ -96,7 +96,7 @@ class _WebPageState extends State<WebPage> {
         },
         body: {"action": "get_current_user_id"},
       ).timeout(const Duration(seconds: 5));
-      
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data["data"]?["user_id"] ?? 0;
@@ -111,13 +111,14 @@ class _WebPageState extends State<WebPage> {
     final cookies = await CookieManager.instance().getCookies(
       url: WebUri("https://zoomubik.com"),
     );
-    return cookies.map((c) => "\${c.name}=\${c.value}").join("; ");
+    return cookies.map((c) => "${c.name}=${c.value}").join("; ");
   }
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
       await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
+        Uri.parse(
+            "https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId, "token": token}),
       ).timeout(const Duration(seconds: 10));
@@ -151,13 +152,15 @@ class _WebPageState extends State<WebPage> {
     if (cookies.isEmpty) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final data = cookies.map((c) => {
-      "name": c.name,
-      "value": c.value,
-      "domain": c.domain,
-      "isHttpOnly": c.isHttpOnly,
-      "isSecure": c.isSecure,
-    }).toList();
+    final data = cookies
+        .map((c) => {
+              "name": c.name,
+              "value": c.value,
+              "domain": c.domain,
+              "isHttpOnly": c.isHttpOnly,
+              "isSecure": c.isSecure,
+            })
+        .toList();
     await prefs.setString("wp_cookies", jsonEncode(data));
   }
 
@@ -165,21 +168,31 @@ class _WebPageState extends State<WebPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        top: false,
+        top: true,
         child: InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
+          initialUrlRequest:
+              URLRequest(url: WebUri("https://zoomubik.com")),
           initialSettings: InAppWebViewSettings(
             javaScriptEnabled: true,
             domStorageEnabled: true,
             databaseEnabled: true,
             cacheEnabled: true,
-            userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
+            userAgent:
+                "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
           ),
           onWebViewCreated: (controller) {
             _controller = controller;
           },
           onLoadStop: (controller, url) async {
             await _saveCookies();
+
+            // Inyectar safe area top y marcar como app Flutter
+            final topInset = MediaQuery.of(context).padding.top;
+            await controller.evaluateJavascript(source: """
+              document.documentElement.style.setProperty('--flutter-safe-top', '${topInset}px');
+              document.documentElement.classList.add('flutter-app');
+            """);
+
             await Future.delayed(const Duration(seconds: 2));
             await _checkAndSendToken();
             _monitorUserChanges();
