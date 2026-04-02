@@ -89,6 +89,10 @@ workflows:
         script: |
           flutter clean
           flutter pub get
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > $CM_BUILD_DIR/android/local.properties
+          echo "sdk.dir=$ANDROID_SDK_ROOT" >> $CM_BUILD_DIR/android/local.properties
       - name: Set up keystore
         script: |
           echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/app/upload-keystore.jks
