@@ -167,6 +167,7 @@ class _WebPageState extends State<WebPage> {
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -195,6 +196,7 @@ class _WebPageState extends State<WebPage> {
               },
             ),
           ),
+          SizedBox(height: bottomInset),
         ],
       ),
     );
