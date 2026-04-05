@@ -15,6 +15,8 @@ class DefaultFirebaseOptions {
         return ios;
       case TargetPlatform.macOS:
         return ios;
+      case TargetPlatform.android:
+        return android;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -24,10 +26,3 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAJ_fqr5QJi8QOGAhnRaIEK0SoE15TjHts',
-    appId: '1:733963653129:ios:7895ec5098bb6c7eb068d8',
-    messagingSenderId: '733963653129',
-    projectId: 'ios-app-42b04',
-    storageBucket: 'ios-app-42b04.firebasestorage.app',
-    iosBundleId: 'com.zoomubik.app',
-  );
-}
