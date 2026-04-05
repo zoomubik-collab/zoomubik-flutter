@@ -100,4 +100,4 @@ workflows:
         script: |
           flutter build appbundle --release
     artifacts:
-      - build/app/outputs/bundle/release/*.aab
+      - android/app/build/outputs/bundle/release/*.aab
