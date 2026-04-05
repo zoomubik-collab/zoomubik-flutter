@@ -84,7 +84,13 @@ workflows:
       flutter: 3.35.7
       groups:
         - android-signing
+        - firebase-secrets
     scripts:
+      - name: Restore google-services.json
+        script: |
+          echo $GOOGLE_SERVICES_JSON | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
+          echo "=== google-services.json restaurado ==="
+          cat $CM_BUILD_DIR/android/app/google-services.json
       - name: Install Flutter dependencies
         script: |
           flutter clean
