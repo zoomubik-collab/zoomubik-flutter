@@ -101,4 +101,4 @@ workflows:
           flutter build appbundle --release
           find / -name "*.aab" 2>/dev/null || true
     artifacts:
-      - "build/app/outputs/bundle/release/*.aab"
+      - android/app/build/outputs/bundle/release/*.aab
