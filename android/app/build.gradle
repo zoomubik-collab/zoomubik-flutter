@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.zoomubik.app"
+        applicationId "com.zoomubik.webview"
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
