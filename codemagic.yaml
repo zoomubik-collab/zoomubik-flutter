@@ -99,5 +99,6 @@ workflows:
       - name: Build Android AAB
         script: |
           flutter build appbundle --release
+          find / -name "*.aab" 2>/dev/null || true
     artifacts:
-      - **/app/build/outputs/bundle/release/*.aab
+      - "build/app/outputs/bundle/release/*.aab"
