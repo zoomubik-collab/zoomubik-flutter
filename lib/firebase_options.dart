@@ -26,3 +26,18 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAJ_fqr5QJi8QOGAhnRaIEK0SoE15TjHts',
+    appId: '1:733963653129:ios:7895ec5098bb6c7eb068d8',
+    messagingSenderId: '733963653129',
+    projectId: 'ios-app-42b04',
+    storageBucket: 'ios-app-42b04.firebasestorage.app',
+    iosBundleId: 'com.zoomubik.app',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyBuLEtOYr4afoPh8U9t9_My4kx3HrKG-nw',
+    appId: '1:257703384863:android:b7f5deacfaa4e9f8f7822a',
+    messagingSenderId: '257703384863',
+    projectId: 'zoomubik-37561',
+    storageBucket: 'zoomubik-37561.firebasestorage.app',
+  );
+}
