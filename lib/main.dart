@@ -164,6 +164,23 @@ class _WebPageState extends State<WebPage> {
     await prefs.setString("wp_cookies", jsonEncode(data));
   }
 
+  Future<void> _hideAppBanners(InAppWebViewController controller) async {
+    await controller.evaluateJavascript(source: """
+      (function() {
+        var style = document.createElement('style');
+        style.innerHTML = `
+          .app-promotion-content,
+          .app-promotion-banner,
+          .cky-consent-container,
+          .cky-consent-bar {
+            display: none !important;
+          }
+        `;
+        document.head.appendChild(style);
+      })();
+    """);
+  }
+
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
@@ -192,6 +209,7 @@ class _WebPageState extends State<WebPage> {
               },
               onLoadStop: (controller, url) async {
                 await _saveCookies();
+                await _hideAppBanners(controller);
                 await Future.delayed(const Duration(seconds: 2));
                 await _checkAndSendToken();
                 _monitorUserChanges();
