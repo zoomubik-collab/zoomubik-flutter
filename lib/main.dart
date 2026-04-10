@@ -10,6 +10,7 @@ import "firebase_options.dart";
 @pragma("vm:entry-point")
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Background: la notificación se muestra automáticamente por el sistema
 }
 
 void main() async {
@@ -66,10 +67,123 @@ class _WebPageState extends State<WebPage> {
       _checkAndSendToken();
     });
 
+    // Notificación recibida con app en FOREGROUND
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Notificación en foreground
+      final type = message.data['type'] ?? '';
+      final url  = message.data['url']  ?? '';
+
+      if (type == 'nuevo_anuncio' && url.isNotEmpty && _controller != null) {
+        // Mostrar banner nativo y navegar al anuncio al pulsar
+        _showInAppNotificationBanner(
+          title: message.notification?.title ?? '¡Nuevo anuncio!',
+          body:  message.notification?.body  ?? '',
+          onTap: () => _controller!.loadUrl(
+            urlRequest: URLRequest(url: WebUri(url)),
+          ),
+        );
+      }
+    });
+
+    // App abierta desde notificación (estaba en background/terminada)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      final url = message.data['url'] ?? '';
+      if (url.isNotEmpty && _controller != null) {
+        _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+      }
+    });
+
+    // App lanzada desde notificación (estaba terminada)
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      final url = initialMessage.data['url'] ?? '';
+      if (url.isNotEmpty) {
+        // Esperar a que el WebView esté listo
+        Future.delayed(const Duration(seconds: 3), () {
+          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+        });
+      }
+    }
+  }
+
+  void _showInAppNotificationBanner({
+    required String title,
+    required String body,
+    required VoidCallback onTap,
+  }) {
+    final context = _controller != null ? _getContext() : null;
+    if (context == null) return;
+
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 16,
+        right: 16,
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () {
+              onTap();
+              entry.remove();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF3BA1DA), width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  const Text('🏠', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF15418A))),
+                        const SizedBox(height: 2),
+                        Text(body,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+                    onPressed: () => entry.remove(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    // Auto-cerrar después de 5 segundos
+    Future.delayed(const Duration(seconds: 5), () {
+      if (entry.mounted) entry.remove();
     });
   }
+
+  BuildContext? _getContext() {
+    // Obtiene el context del widget raíz
+    return _scaffoldKey.currentContext;
+  }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<void> _checkAndSendToken() async {
     if (_fcmToken == null) return;
@@ -186,6 +300,7 @@ class _WebPageState extends State<WebPage> {
     final topInset = MediaQuery.of(context).padding.top;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: Column(
         children: [
