@@ -34,10 +34,10 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBuLEtOYr4afoPh8U9t9_My4kx3HrKG-nw',
-    appId: '1:257703384863:android:b7f5deacfaa4e9f8f7822a',
-    messagingSenderId: '257703384863',
-    projectId: 'zoomubik-37561',
-    storageBucket: 'zoomubik-37561.firebasestorage.app',
+    apiKey: 'AIzaSyDgrn-56m-lGRbx8Rzg3WuMVJKy5sds3Aw',
+    appId: '1:733963653129:android:f7e204a5afb1bb97b068d8',
+    messagingSenderId: '733963653129',
+    projectId: 'ios-app-42b04',
+    storageBucket: 'ios-app-42b04.firebasestorage.app',
   );
 }
