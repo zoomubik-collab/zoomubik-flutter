@@ -10,7 +10,6 @@ import "firebase_options.dart";
 @pragma("vm:entry-point")
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Background: la notificación se muestra automáticamente por el sistema
 }
 
 void main() async {
@@ -38,6 +37,7 @@ class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
   String? _fcmToken;
   int _lastUserId = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -55,10 +55,8 @@ class _WebPageState extends State<WebPage> {
       sound: true,
     );
 
-    final apns = await messaging.getAPNSToken();
     final fcm = await messaging.getToken();
-
-    if (apns != null) {
+    if (fcm != null) {
       _fcmToken = fcm;
     }
 
@@ -67,13 +65,10 @@ class _WebPageState extends State<WebPage> {
       _checkAndSendToken();
     });
 
-    // Notificación recibida con app en FOREGROUND
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final type = message.data['type'] ?? '';
       final url  = message.data['url']  ?? '';
-
       if (type == 'nuevo_anuncio' && url.isNotEmpty && _controller != null) {
-        // Mostrar banner nativo y navegar al anuncio al pulsar
         _showInAppNotificationBanner(
           title: message.notification?.title ?? '¡Nuevo anuncio!',
           body:  message.notification?.body  ?? '',
@@ -84,7 +79,6 @@ class _WebPageState extends State<WebPage> {
       }
     });
 
-    // App abierta desde notificación (estaba en background/terminada)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       final url = message.data['url'] ?? '';
       if (url.isNotEmpty && _controller != null) {
@@ -92,12 +86,10 @@ class _WebPageState extends State<WebPage> {
       }
     });
 
-    // App lanzada desde notificación (estaba terminada)
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       final url = initialMessage.data['url'] ?? '';
       if (url.isNotEmpty) {
-        // Esperar a que el WebView esté listo
         Future.delayed(const Duration(seconds: 3), () {
           _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
         });
@@ -110,7 +102,7 @@ class _WebPageState extends State<WebPage> {
     required String body,
     required VoidCallback onTap,
   }) {
-    final context = _controller != null ? _getContext() : null;
+    final context = _getContext();
     if (context == null) return;
 
     final overlay = Overlay.of(context);
@@ -172,20 +164,19 @@ class _WebPageState extends State<WebPage> {
     );
 
     overlay.insert(entry);
-    // Auto-cerrar después de 5 segundos
     Future.delayed(const Duration(seconds: 5), () {
       if (entry.mounted) entry.remove();
     });
   }
 
   BuildContext? _getContext() {
-    // Obtiene el context del widget raíz
     return _scaffoldKey.currentContext;
   }
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   Future<void> _checkAndSendToken() async {
+    if (_fcmToken == null) {
+      _fcmToken = await FirebaseMessaging.instance.getToken();
+    }
     if (_fcmToken == null) return;
 
     try {
@@ -231,8 +222,7 @@ class _WebPageState extends State<WebPage> {
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
       await http.post(
-        Uri.parse(
-            "https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId, "token": token}),
       ).timeout(const Duration(seconds: 10));
@@ -307,8 +297,7 @@ class _WebPageState extends State<WebPage> {
           SizedBox(height: topInset),
           Expanded(
             child: InAppWebView(
-              initialUrlRequest:
-                  URLRequest(url: WebUri("https://zoomubik.com")),
+              initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
               initialSettings: InAppWebViewSettings(
                 javaScriptEnabled: true,
                 domStorageEnabled: true,
