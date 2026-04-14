@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
@@ -39,12 +40,17 @@ class _WebPageState extends State<WebPage> {
   int _lastUserId = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoading = true;
+  String _currentUrl = "https://zoomubik.com";
 
   @override
   void initState() {
     super.initState();
     _restoreCookies();
     _initPushNotifications();
+  }
+
+  Future<void> _shareCurrentPage() async {
+    await SystemChannels.platform.invokeMethod('Share.invoke', _currentUrl);
   }
 
   Future<void> _initPushNotifications() async {
@@ -319,8 +325,11 @@ class _WebPageState extends State<WebPage> {
                       _controller = controller;
                     },
                     onLoadStop: (controller, url) async {
-                      if (_isLoading) {
-                        setState(() => _isLoading = false);
+                      if (url != null) {
+                        setState(() {
+                          _currentUrl = url.toString();
+                          _isLoading = false;
+                        });
                       }
                       await _saveCookies();
                       await _hideAppBanners(controller);
@@ -330,6 +339,42 @@ class _WebPageState extends State<WebPage> {
                     },
                   ),
                 ),
+
+                // Botón compartir flotante
+                if (!_isLoading)
+                  Positioned(
+                    bottom: 80,
+                    right: 16,
+                    child: GestureDetector(
+                      onTap: _shareCurrentPage,
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.92),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: const Color(0xFF3BA1DA).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.ios_share_rounded,
+                          size: 20,
+                          color: Color(0xFF3BA1DA),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Splash screen
                 if (_isLoading)
                   AnimatedOpacity(
                     opacity: _isLoading ? 1.0 : 0.0,
