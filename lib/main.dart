@@ -1,11 +1,11 @@
 import "package:flutter/material.dart";
-import "package:flutter/services.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
 import "package:http/http.dart" as http;
+import "package:share_plus/share_plus.dart";
 import "firebase_options.dart";
 
 @pragma("vm:entry-point")
@@ -36,6 +36,7 @@ class WebPage extends StatefulWidget {
 
 class _WebPageState extends State<WebPage> {
   InAppWebViewController? _controller;
+  PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
   int _lastUserId = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -45,12 +46,22 @@ class _WebPageState extends State<WebPage> {
   @override
   void initState() {
     super.initState();
+    _pullToRefreshController = PullToRefreshController(
+      settings: PullToRefreshSettings(
+        color: const Color(0xFF3BA1DA),
+      ),
+      onRefresh: () async {
+        await _controller?.reload();
+      },
+    );
     _restoreCookies();
     _initPushNotifications();
   }
 
   Future<void> _shareCurrentPage() async {
-    await SystemChannels.platform.invokeMethod('Share.invoke', _currentUrl);
+    await SharePlus.instance.share(
+      ShareParams(text: _currentUrl),
+    );
   }
 
   Future<void> _initPushNotifications() async {
@@ -305,39 +316,36 @@ class _WebPageState extends State<WebPage> {
           Expanded(
             child: Stack(
               children: [
-                RefreshIndicator(
-                  onRefresh: () async {
-                    await _controller?.reload();
-                  },
-                  child: InAppWebView(
-                    initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
-                    initialSettings: InAppWebViewSettings(
-                      javaScriptEnabled: true,
-                      domStorageEnabled: true,
-                      databaseEnabled: true,
-                      cacheEnabled: true,
-                      useHybridComposition: true,
-                      hardwareAcceleration: true,
-                      userAgent:
-                          "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
-                    ),
-                    onWebViewCreated: (controller) {
-                      _controller = controller;
-                    },
-                    onLoadStop: (controller, url) async {
-                      if (url != null) {
-                        setState(() {
-                          _currentUrl = url.toString();
-                          _isLoading = false;
-                        });
-                      }
-                      await _saveCookies();
-                      await _hideAppBanners(controller);
-                      await Future.delayed(const Duration(seconds: 2));
-                      await _checkAndSendToken();
-                      _monitorUserChanges();
-                    },
+                InAppWebView(
+                  initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
+                  pullToRefreshController: _pullToRefreshController,
+                  initialSettings: InAppWebViewSettings(
+                    javaScriptEnabled: true,
+                    domStorageEnabled: true,
+                    databaseEnabled: true,
+                    cacheEnabled: true,
+                    useHybridComposition: true,
+                    hardwareAcceleration: true,
+                    userAgent:
+                        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
                   ),
+                  onWebViewCreated: (controller) {
+                    _controller = controller;
+                  },
+                  onLoadStop: (controller, url) async {
+                    _pullToRefreshController?.endRefreshing();
+                    if (url != null) {
+                      setState(() {
+                        _currentUrl = url.toString();
+                        _isLoading = false;
+                      });
+                    }
+                    await _saveCookies();
+                    await _hideAppBanners(controller);
+                    await Future.delayed(const Duration(seconds: 2));
+                    await _checkAndSendToken();
+                    _monitorUserChanges();
+                  },
                 ),
 
                 // Botón compartir flotante
