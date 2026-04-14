@@ -2,11 +2,9 @@ name: zoomubik
 description: A minimal Flutter app for Zoomubik.
 publish_to: 'none'
 version: 1.0.3+110
-
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.10.0'
-
 dependencies:
   flutter:
     sdk: flutter
@@ -16,17 +14,16 @@ dependencies:
   firebase_messaging: ^15.0.0
   http: ^1.2.0
   shared_preferences: ^2.2.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.1
-
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "icon.png"
   remove_alpha_ios: true
-
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo.png
