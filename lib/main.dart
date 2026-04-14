@@ -59,9 +59,7 @@ class _WebPageState extends State<WebPage> {
   }
 
   Future<void> _shareCurrentPage() async {
-    await SharePlus.instance.share(
-      ShareParams(text: _currentUrl),
-    );
+    await Share.share(_currentUrl);
   }
 
   Future<void> _initPushNotifications() async {
