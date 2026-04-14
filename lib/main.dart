@@ -346,10 +346,10 @@ class _WebPageState extends State<WebPage> {
                   },
                 ),
 
-                // Botón compartir flotante — esquina superior derecha
+                // Botón compartir flotante
                 if (!_isLoading)
                   Positioned(
-                    top: 16,
+                    top: 80,
                     right: 16,
                     child: GestureDetector(
                       onTap: _shareCurrentPage,
