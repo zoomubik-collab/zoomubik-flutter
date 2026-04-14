@@ -38,6 +38,7 @@ class _WebPageState extends State<WebPage> {
   String? _fcmToken;
   int _lastUserId = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -296,28 +297,63 @@ class _WebPageState extends State<WebPage> {
         children: [
           SizedBox(height: topInset),
           Expanded(
-            child: InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
-              initialSettings: InAppWebViewSettings(
-                javaScriptEnabled: true,
-                domStorageEnabled: true,
-                databaseEnabled: true,
-                cacheEnabled: true,
-                useHybridComposition: true,
-                hardwareAcceleration: true,
-                userAgent:
-                    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
-              ),
-              onWebViewCreated: (controller) {
-                _controller = controller;
-              },
-              onLoadStop: (controller, url) async {
-                await _saveCookies();
-                await _hideAppBanners(controller);
-                await Future.delayed(const Duration(seconds: 2));
-                await _checkAndSendToken();
-                _monitorUserChanges();
-              },
+            child: Stack(
+              children: [
+                RefreshIndicator(
+                  onRefresh: () async {
+                    await _controller?.reload();
+                  },
+                  child: InAppWebView(
+                    initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
+                    initialSettings: InAppWebViewSettings(
+                      javaScriptEnabled: true,
+                      domStorageEnabled: true,
+                      databaseEnabled: true,
+                      cacheEnabled: true,
+                      useHybridComposition: true,
+                      hardwareAcceleration: true,
+                      userAgent:
+                          "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
+                    ),
+                    onWebViewCreated: (controller) {
+                      _controller = controller;
+                    },
+                    onLoadStop: (controller, url) async {
+                      if (_isLoading) {
+                        setState(() => _isLoading = false);
+                      }
+                      await _saveCookies();
+                      await _hideAppBanners(controller);
+                      await Future.delayed(const Duration(seconds: 2));
+                      await _checkAndSendToken();
+                      _monitorUserChanges();
+                    },
+                  ),
+                ),
+                if (_isLoading)
+                  AnimatedOpacity(
+                    opacity: _isLoading ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 400),
+                    child: Container(
+                      color: Colors.white,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/logo.png',
+                              width: 160,
+                            ),
+                            const SizedBox(height: 24),
+                            const CircularProgressIndicator(
+                              color: Color(0xFF3BA1DA),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           SizedBox(height: bottomInset),
