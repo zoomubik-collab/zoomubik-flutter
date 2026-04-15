@@ -165,18 +165,18 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     _drawerAnimController.forward();
   }
 
-  void _closeDrawer() {
-    _drawerAnimController.reverse().then((_) {
-      if (mounted) setState(() => _drawerOpen = false);
-    });
+  // FIX: closeDrawer espera a que la animación termine antes de setState
+  // y devuelve un Future para que _navegarACategoria pueda esperar
+  Future<void> _closeDrawer() async {
+    await _drawerAnimController.reverse();
+    if (mounted) setState(() => _drawerOpen = false);
   }
 
-  void _navegarACategoria(String categoriaSlug) {
+  // FIX: primero cierra, luego navega — sin delay fijo
+  void _navegarACategoria(String categoriaSlug) async {
     final url = 'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
-    _closeDrawer();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-    });
+    await _closeDrawer();
+    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
 
   // ==================== PUSH ====================
@@ -354,8 +354,9 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     """);
   }
 
+  // FIX: monitor cada 60 segundos en lugar de 5 para no saturar el servidor
   void _monitorUserChanges() {
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 60), () {
       if (!mounted) return;
       _checkAndSendToken();
       _monitorUserChanges();
@@ -377,7 +378,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
           Expanded(
             child: Stack(
               children: [
-                // WebView — ocupa todo, recibe todos los touches cuando el drawer está cerrado
+                // WebView
                 InAppWebView(
                   initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
                   pullToRefreshController: _pullToRefreshController,
@@ -407,7 +408,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                   },
                 ),
 
-                // Botón hamburguesa — tamaño exacto, no bloquea el resto
+                // Botón hamburguesa — solo intercepta su área exacta
                 if (!_isLoading)
                   Positioned(
                     top: 8,
@@ -438,20 +439,21 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                     ),
                   ),
 
-                // Backdrop semitransparente (solo cuando drawer abierto)
-                if (_drawerOpen)
+                // FIX: backdrop solo existe cuando _drawerOpen es true
+                // y usa AbsorbPointer para garantizar que se destruye limpiamente
+                if (_drawerOpen) ...[
                   Positioned.fill(
-                    child: GestureDetector(
-                      onTap: _closeDrawer,
-                      child: FadeTransition(
-                        opacity: _backdropFade,
-                        child: Container(color: Colors.black),
+                    child: AbsorbPointer(
+                      absorbing: true,
+                      child: GestureDetector(
+                        onTap: _closeDrawer,
+                        child: FadeTransition(
+                          opacity: _backdropFade,
+                          child: Container(color: Colors.black),
+                        ),
                       ),
                     ),
                   ),
-
-                // Panel drawer deslizante desde la derecha
-                if (_drawerOpen)
                   Positioned(
                     top: 0,
                     bottom: 0,
@@ -462,6 +464,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                       child: _buildDrawerContent(context),
                     ),
                   ),
+                ],
 
                 // Splash
                 if (_isLoading)
@@ -501,7 +504,6 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabecera azul
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -518,7 +520,6 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
               ),
             ),
 
-            // Selector de provincia
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: Column(
@@ -556,7 +557,6 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
 
             const Divider(height: 1),
 
-            // Lista de categorías
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 16),
