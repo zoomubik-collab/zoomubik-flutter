@@ -5,7 +5,6 @@ import "package:firebase_messaging/firebase_messaging.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
 import "package:http/http.dart" as http;
-import "package:share_plus/share_plus.dart";
 import "firebase_options.dart";
 
 @pragma("vm:entry-point")
@@ -28,6 +27,88 @@ class ZoomubikApp extends StatelessWidget {
   }
 }
 
+// ==================== DATOS DE CATEGORÍAS Y PROVINCIAS ====================
+
+const Map<String, String> kProvincias = {
+  'almeria': 'Almería',
+  'cadiz': 'Cádiz',
+  'cordoba': 'Córdoba',
+  'granada': 'Granada',
+  'huelva': 'Huelva',
+  'jaen': 'Jaén',
+  'malaga': 'Málaga',
+  'sevilla': 'Sevilla',
+  'huesca': 'Huesca',
+  'teruel': 'Teruel',
+  'zaragoza': 'Zaragoza',
+  'asturias': 'Asturias',
+  'baleares': 'Baleares',
+  'barcelona': 'Barcelona',
+  'girona': 'Girona',
+  'lleida': 'Lleida',
+  'tarragona': 'Tarragona',
+  'cuenca': 'Cuenca',
+  'guadalajara': 'Guadalajara',
+  'toledo': 'Toledo',
+  'ciudad-real': 'Ciudad Real',
+  'albacete': 'Albacete',
+  'badajoz': 'Badajoz',
+  'caceres': 'Cáceres',
+  'corunha': 'A Coruña',
+  'lugo': 'Lugo',
+  'ourense': 'Ourense',
+  'pontevedra': 'Pontevedra',
+  'madrid': 'Madrid',
+  'murcia': 'Murcia',
+  'navarra': 'Navarra',
+  'alava': 'Álava',
+  'guipuzcoa': 'Guipúzcoa',
+  'vizcaya': 'Vizcaya',
+  'la-rioja': 'La Rioja',
+  'segovia': 'Segovia',
+  'soria': 'Soria',
+  'valladolid': 'Valladolid',
+  'avila': 'Ávila',
+  'burgos': 'Burgos',
+  'leon': 'León',
+  'palencia': 'Palencia',
+  'salamanca': 'Salamanca',
+  'zamora': 'Zamora',
+  'alicante': 'Alicante',
+  'castellon': 'Castellón',
+  'valencia': 'Valencia',
+  'ceuta': 'Ceuta',
+  'melilla': 'Melilla',
+};
+
+class Categoria {
+  final String slug;
+  final String label;
+  final String emoji;
+  const Categoria({required this.slug, required this.label, required this.emoji});
+}
+
+const List<Categoria> kBuscadores = [
+  Categoria(slug: 'desean-alquilar-vivienda',        label: 'Alquilar vivienda',        emoji: '🏠'),
+  Categoria(slug: 'desean-comprar-vivienda',          label: 'Comprar vivienda',          emoji: '🏡'),
+  Categoria(slug: 'desean-compartir-piso',            label: 'Compartir piso',            emoji: '🤝'),
+  Categoria(slug: 'desean-alquilar-habitacion',       label: 'Alquilar habitación',       emoji: '🛏️'),
+  Categoria(slug: 'desean-alquilar-plaza-de-garaje',  label: 'Alquilar plaza de garaje',  emoji: '🚗'),
+  Categoria(slug: 'desean-comprar-plaza-de-garaje',   label: 'Comprar plaza de garaje',   emoji: '🅿️'),
+  Categoria(slug: 'desean-compartir-garaje',          label: 'Compartir garaje',          emoji: '🔑'),
+];
+
+const List<Categoria> kPropietarios = [
+  Categoria(slug: 'alquilo-vivienda',    label: 'Alquilo vivienda',    emoji: '🏠'),
+  Categoria(slug: 'vendo-vivienda',      label: 'Vendo vivienda',      emoji: '🏡'),
+  Categoria(slug: 'alquilo-habitacion',  label: 'Alquilo habitación',  emoji: '🛏️'),
+  Categoria(slug: 'alquilo-garaje',      label: 'Alquilo garaje',      emoji: '🚗'),
+  Categoria(slug: 'vendo-garaje',        label: 'Vendo garaje',        emoji: '🅿️'),
+  Categoria(slug: 'comparto-garaje',     label: 'Comparto garaje',     emoji: '🔑'),
+];
+
+// ==================== PÁGINA PRINCIPAL ====================
+
 class WebPage extends StatefulWidget {
   const WebPage({super.key});
   @override
@@ -42,6 +123,9 @@ class _WebPageState extends State<WebPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
+
+  // Provincia seleccionada en el drawer
+  String _provinciaSeleccionada = 'madrid';
 
   @override
   void initState() {
@@ -58,8 +142,11 @@ class _WebPageState extends State<WebPage> {
     _initPushNotifications();
   }
 
-  Future<void> _shareCurrentPage() async {
-    await Share.share(_currentUrl);
+  void _navegarACategoria(String categoriaSlug) {
+    final url =
+        'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
+    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+    Navigator.of(context).pop(); // cerrar drawer
   }
 
   Future<void> _initPushNotifications() async {
@@ -118,7 +205,7 @@ class _WebPageState extends State<WebPage> {
     required String body,
     required VoidCallback onTap,
   }) {
-    final context = _getContext();
+    final context = _scaffoldKey.currentContext;
     if (context == null) return;
 
     final overlay = Overlay.of(context);
@@ -185,10 +272,6 @@ class _WebPageState extends State<WebPage> {
     });
   }
 
-  BuildContext? _getContext() {
-    return _scaffoldKey.currentContext;
-  }
-
   Future<void> _checkAndSendToken() async {
     if (_fcmToken == null) {
       _fcmToken = await FirebaseMessaging.instance.getToken();
@@ -238,7 +321,8 @@ class _WebPageState extends State<WebPage> {
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
       await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
+        Uri.parse(
+            "https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId, "token": token}),
       ).timeout(const Duration(seconds: 10));
@@ -301,13 +385,25 @@ class _WebPageState extends State<WebPage> {
     """);
   }
 
+  void _monitorUserChanges() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _checkAndSendToken();
+      _monitorUserChanges();
+    });
+  }
+
+  // ==================== BUILD ====================
+
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
+      endDrawer: _buildDrawer(context),
       body: Column(
         children: [
           SizedBox(height: topInset),
@@ -315,7 +411,8 @@ class _WebPageState extends State<WebPage> {
             child: Stack(
               children: [
                 InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
+                  initialUrlRequest:
+                      URLRequest(url: WebUri("https://zoomubik.com")),
                   pullToRefreshController: _pullToRefreshController,
                   initialSettings: InAppWebViewSettings(
                     javaScriptEnabled: true,
@@ -346,35 +443,40 @@ class _WebPageState extends State<WebPage> {
                   },
                 ),
 
-                // Botón compartir flotante
+                // Botón hamburguesa flotante (esquina superior derecha)
                 if (!_isLoading)
                   Positioned(
-                    top: 80,
-                    right: 16,
-                    child: GestureDetector(
-                      onTap: _shareCurrentPage,
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.92),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                    top: 12,
+                    right: 12,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () =>
+                            _scaffoldKey.currentState?.openEndDrawer(),
+                        borderRadius: BorderRadius.circular(22),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.95),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: const Color(0xFF3BA1DA).withOpacity(0.4),
+                              width: 1,
                             ),
-                          ],
-                          border: Border.all(
-                            color: const Color(0xFF3BA1DA).withOpacity(0.3),
-                            width: 1,
                           ),
-                        ),
-                        child: const Icon(
-                          Icons.ios_share_rounded,
-                          size: 20,
-                          color: Color(0xFF3BA1DA),
+                          child: const Icon(
+                            Icons.menu_rounded,
+                            size: 22,
+                            color: Color(0xFF15418A),
+                          ),
                         ),
                       ),
                     ),
@@ -413,11 +515,138 @@ class _WebPageState extends State<WebPage> {
     );
   }
 
-  void _monitorUserChanges() {
-    Future.delayed(const Duration(seconds: 5), () {
-      if (!mounted) return;
-      _checkAndSendToken();
-      _monitorUserChanges();
-    });
+  // ==================== DRAWER ====================
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cabecera
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                color: Color(0xFF15418A),
+              ),
+              child: Row(
+                children: [
+                  Image.asset('assets/logo.png', height: 32),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+
+            // Selector de provincia
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'PROVINCIA',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3BA1DA),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF3BA1DA).withOpacity(0.4)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: _provinciaSeleccionada,
+                        icon: const Icon(Icons.keyboard_arrow_down,
+                            color: Color(0xFF15418A)),
+                        style: const TextStyle(
+                          color: Color(0xFF15418A),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        items: kProvincias.entries
+                            .map((e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value),
+                                ))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _provinciaSeleccionada = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Divider(height: 1),
+
+            // Lista de categorías scrollable
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 16),
+                children: [
+                  _buildSeccionTitulo('🔍  BUSCAN'),
+                  ...kBuscadores.map((cat) => _buildCategoriaTile(cat)),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  _buildSeccionTitulo('🏠  OFRECEN'),
+                  ...kPropietarios.map((cat) => _buildCategoriaTile(cat)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSeccionTitulo(String titulo) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      child: Text(
+        titulo,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF3BA1DA),
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriaTile(Categoria cat) {
+    return ListTile(
+      dense: true,
+      leading: Text(cat.emoji, style: const TextStyle(fontSize: 20)),
+      title: Text(
+        cat.label,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFF15418A),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right,
+          size: 18, color: Color(0xFF3BA1DA)),
+      onTap: () => _navegarACategoria(cat.slug),
+    );
   }
 }
