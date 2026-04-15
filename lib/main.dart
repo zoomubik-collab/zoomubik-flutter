@@ -348,7 +348,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     await controller.evaluateJavascript(source: """
       (function() {
         var style = document.createElement('style');
-        style.innerHTML = '.app-promotion-content,.app-promotion-banner,.cky-consent-container,.cky-consent-bar{display:none!important}';
+        style.innerHTML = '.app-promotion-content,.app-promotion-banner,.cky-consent-container,.cky-consent-bar,#header-registro-btn{display:none!important}';
         document.head.appendChild(style);
       })();
     """);
@@ -412,7 +412,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                 if (!_isLoading)
                   Positioned(
                     top: 8,
-                    left: 10,
+                    right: 10,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: _openDrawer,
