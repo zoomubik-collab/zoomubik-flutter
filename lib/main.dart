@@ -165,14 +165,11 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     _drawerAnimController.forward();
   }
 
-  // FIX: closeDrawer espera a que la animación termine antes de setState
-  // y devuelve un Future para que _navegarACategoria pueda esperar
   Future<void> _closeDrawer() async {
     await _drawerAnimController.reverse();
     if (mounted) setState(() => _drawerOpen = false);
   }
 
-  // FIX: primero cierra, luego navega — sin delay fijo
   void _navegarACategoria(String categoriaSlug) async {
     final url = 'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
     await _closeDrawer();
@@ -348,13 +345,25 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     await controller.evaluateJavascript(source: """
       (function() {
         var style = document.createElement('style');
-        style.innerHTML = '.app-promotion-content,.app-promotion-banner,.cky-consent-container,.cky-consent-bar,#header-registro-btn{display:none!important}';
+        style.innerHTML = `
+          .app-promotion-content,
+          .app-promotion-banner,
+          .cky-consent-container,
+          .cky-consent-bar {
+            display: none !important;
+          }
+          #header-registro-btn {
+            display: none !important;
+          }
+          .header-search-wrap {
+            padding-right: 52px !important;
+          }
+        `;
         document.head.appendChild(style);
       })();
     """);
   }
 
-  // FIX: monitor cada 60 segundos en lugar de 5 para no saturar el servidor
   void _monitorUserChanges() {
     Future.delayed(const Duration(seconds: 60), () {
       if (!mounted) return;
@@ -408,7 +417,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                   },
                 ),
 
-                // Botón hamburguesa — solo intercepta su área exacta
+                // Botón hamburguesa
                 if (!_isLoading)
                   Positioned(
                     top: 8,
@@ -439,8 +448,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                     ),
                   ),
 
-                // FIX: backdrop solo existe cuando _drawerOpen es true
-                // y usa AbsorbPointer para garantizar que se destruye limpiamente
+                // Backdrop + drawer
                 if (_drawerOpen) ...[
                   Positioned.fill(
                     child: AbsorbPointer(
