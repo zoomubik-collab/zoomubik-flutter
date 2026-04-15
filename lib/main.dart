@@ -412,7 +412,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                 if (!_isLoading)
                   Positioned(
                     top: 8,
-                    right: 10,
+                    left: 10,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: _openDrawer,
