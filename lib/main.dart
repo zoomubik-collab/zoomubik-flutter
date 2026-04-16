@@ -517,9 +517,10 @@ class _WebPageState extends State<WebPage>
                     ),
                   ),
 
-                // Backdrop + drawer
-                if (_drawerOpen) ...[
-                  Positioned.fill(
+                // Backdrop + drawer (siempre en el tree, toggle con IgnorePointer)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    ignoring: !_drawerOpen,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: _closeDrawer,
@@ -529,22 +530,25 @@ class _WebPageState extends State<WebPage>
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    bottom: 0,
-                    right: 0,
-                    width: MediaQuery.of(context).size.width * 0.82,
+                ),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: MediaQuery.of(context).size.width * 0.82,
+                  child: IgnorePointer(
+                    ignoring: !_drawerOpen,
                     child: SlideTransition(
                       position: _drawerSlide,
                       child: _buildDrawerContent(context),
                     ),
                   ),
-                ],
+                ),
 
                 // Botón compartir (solo en páginas de anuncio)
                 if (!_isLoading && _isAnuncioPage)
                   Positioned(
-                    bottom: 16,
+                    bottom: 130,
                     left: 16,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
