@@ -5,6 +5,7 @@ import "package:firebase_messaging/firebase_messaging.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
 import "package:http/http.dart" as http;
+import "package:share_plus/share_plus.dart";
 import "firebase_options.dart";
 
 @pragma("vm:entry-point")
@@ -518,6 +519,41 @@ class _WebPageState extends State<WebPage>
                     ),
                   ),
                 ],
+
+                // Botón compartir (solo en detalle-anuncio)
+                if (!_isLoading && _currentUrl.contains('detalle-anuncio'))
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        SharePlus.instance.share(ShareParams(
+                          text: _currentUrl,
+                        ));
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: const Color(0xFF3BA1DA).withOpacity(0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(Icons.ios_share_rounded, size: 22, color: Color(0xFF15418A)),
+                      ),
+                    ),
+                  ),
 
                 // Splash
                 if (_isLoading)
