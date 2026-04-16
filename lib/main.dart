@@ -1,4 +1,3 @@
-
 import "package:flutter/material.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
@@ -132,6 +131,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // Provincia para el drawer
   String _provinciaSeleccionada = 'madrid';
 
+  // Flag para saber si se navegó desde el drawer
+  bool _navigatedFromDrawer = false;
+
   @override
   void initState() {
     super.initState();
@@ -174,6 +176,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   void _navegarACategoria(String categoriaSlug) {
     final url = 'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
+    _navigatedFromDrawer = true;
     Navigator.of(context).pop(); // Cierra el endDrawer
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
@@ -413,6 +416,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       backgroundColor: Colors.white,
       endDrawer: _buildDrawerContent(context),
       endDrawerEnableOpenDragGesture: false,
+      onEndDrawerChanged: (isOpen) {
+        if (!isOpen && _controller != null) {
+          if (_navigatedFromDrawer) {
+            _navigatedFromDrawer = false; // Ya navega, no recargar
+          } else {
+            _controller!.reload(); // Cerró sin navegar, refrescar
+          }
+        }
+      },
       body: Column(
         children: [
           SizedBox(height: topInset),
