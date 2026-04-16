@@ -528,9 +528,7 @@ class _WebPageState extends State<WebPage>
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
-                        SharePlus.instance.share(ShareParams(
-                          text: _currentUrl,
-                        ));
+                        Share.share(_currentUrl);
                       },
                       child: Container(
                         width: 44,
