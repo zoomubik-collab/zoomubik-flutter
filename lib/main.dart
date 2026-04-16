@@ -115,13 +115,17 @@ class WebPage extends StatefulWidget {
   State<WebPage> createState() => _WebPageState();
 }
 
-class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
+class _WebPageState extends State<WebPage>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   InAppWebViewController? _controller;
   PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
   int _lastUserId = 0;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
+
+  // Control para evitar loops múltiples de _monitorUserChanges
+  bool _monitorActive = false;
 
   // Drawer manual
   bool _drawerOpen = false;
@@ -133,6 +137,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _drawerAnimController = AnimationController(
       vsync: this,
@@ -156,8 +161,38 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _drawerAnimController.dispose();
     super.dispose();
+  }
+
+  // ==================== CICLO DE VIDA ====================
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _controller != null) {
+      // Al volver de background, re-inyectar JS para restaurar listeners
+      // y verificar que la WebView responde
+      _controller!.evaluateJavascript(source: """
+        (function() {
+          // Test si JS sigue vivo
+          if (typeof document.body === 'undefined' || document.body === null) {
+            // Contexto JS corrupto, necesita recarga
+            location.reload();
+            return;
+          }
+          // Re-disparar eventos por si algún listener se perdió
+          document.dispatchEvent(new Event('zm_app_resumed'));
+        })();
+      """).catchError((_) {
+        // Si evaluateJavascript falla, el contexto JS está muerto -> recargar
+        _controller?.reload();
+      });
+
+      // Re-ocultar banners y verificar token
+      _hideAppBanners(_controller!);
+      _checkAndSendToken();
+    }
   }
 
   void _openDrawer() {
@@ -364,11 +399,21 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
     """);
   }
 
+  // Monitor controlado: solo un loop activo a la vez
   void _monitorUserChanges() {
+    if (_monitorActive) return; // Ya hay un loop corriendo, no crear otro
+    _monitorActive = true;
+    _monitorLoop();
+  }
+
+  void _monitorLoop() {
     Future.delayed(const Duration(seconds: 60), () {
-      if (!mounted) return;
+      if (!mounted) {
+        _monitorActive = false;
+        return;
+      }
       _checkAndSendToken();
-      _monitorUserChanges();
+      _monitorLoop();
     });
   }
 
@@ -413,7 +458,7 @@ class _WebPageState extends State<WebPage> with SingleTickerProviderStateMixin {
                     await _hideAppBanners(controller);
                     await Future.delayed(const Duration(seconds: 2));
                     await _checkAndSendToken();
-                    _monitorUserChanges();
+                    _monitorUserChanges(); // Ahora es seguro: solo arranca un loop
                   },
                 ),
 
