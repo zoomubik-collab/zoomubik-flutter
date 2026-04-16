@@ -1,3 +1,4 @@
+
 import "package:flutter/material.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
@@ -116,8 +117,8 @@ class WebPage extends StatefulWidget {
   State<WebPage> createState() => _WebPageState();
 }
 
-class _WebPageState extends State<WebPage>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   InAppWebViewController? _controller;
   PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
@@ -128,29 +129,13 @@ class _WebPageState extends State<WebPage>
   // Control para evitar loops múltiples de _monitorUserChanges
   bool _monitorActive = false;
 
-  // Drawer manual
-  bool _drawerOpen = false;
+  // Provincia para el drawer
   String _provinciaSeleccionada = 'madrid';
-  late AnimationController _drawerAnimController;
-  late Animation<Offset> _drawerSlide;
-  late Animation<double> _backdropFade;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    _drawerAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _drawerSlide = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _drawerAnimController, curve: Curves.easeOut));
-    _backdropFade = Tween<double>(begin: 0.0, end: 0.5).animate(
-      CurvedAnimation(parent: _drawerAnimController, curve: Curves.easeOut),
-    );
 
     _pullToRefreshController = PullToRefreshController(
       settings: PullToRefreshSettings(color: const Color(0xFF3BA1DA)),
@@ -163,7 +148,6 @@ class _WebPageState extends State<WebPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _drawerAnimController.dispose();
     super.dispose();
   }
 
@@ -172,44 +156,43 @@ class _WebPageState extends State<WebPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _controller != null) {
-      // Al volver de background, re-inyectar JS para restaurar listeners
-      // y verificar que la WebView responde
       _controller!.evaluateJavascript(source: """
         (function() {
-          // Test si JS sigue vivo
           if (typeof document.body === 'undefined' || document.body === null) {
-            // Contexto JS corrupto, necesita recarga
             location.reload();
             return;
           }
-          // Re-disparar eventos por si algún listener se perdió
           document.dispatchEvent(new Event('zm_app_resumed'));
         })();
       """).catchError((_) {
-        // Si evaluateJavascript falla, el contexto JS está muerto -> recargar
         _controller?.reload();
       });
-
-      // Re-ocultar banners y verificar token
       _hideAppBanners(_controller!);
       _checkAndSendToken();
     }
   }
 
-  void _openDrawer() {
-    setState(() => _drawerOpen = true);
-    _drawerAnimController.forward();
-  }
-
-  Future<void> _closeDrawer() async {
-    await _drawerAnimController.reverse();
-    if (mounted) setState(() => _drawerOpen = false);
-  }
-
-  void _navegarACategoria(String categoriaSlug) async {
+  void _navegarACategoria(String categoriaSlug) {
     final url = 'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
-    await _closeDrawer();
+    Navigator.of(context).pop(); // Cierra el endDrawer
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+  }
+
+  // ==================== DETECCIÓN DE ANUNCIO ====================
+
+  static const _categorySlugs = {
+    'desean-alquilar-vivienda', 'desean-comprar-vivienda', 'desean-compartir-piso',
+    'desean-alquilar-habitacion', 'desean-alquilar-plaza-de-garaje',
+    'desean-comprar-plaza-de-garaje', 'desean-compartir-garaje',
+    'alquilo-vivienda', 'vendo-vivienda', 'alquilo-habitacion',
+    'alquilo-garaje', 'vendo-garaje', 'comparto-garaje',
+  };
+
+  bool get _isAnuncioPage {
+    final uri = Uri.tryParse(_currentUrl);
+    if (uri == null) return false;
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    return segments.length >= 3 && _categorySlugs.contains(segments[0]);
   }
 
   // ==================== PUSH ====================
@@ -402,7 +385,7 @@ class _WebPageState extends State<WebPage>
 
   // Monitor controlado: solo un loop activo a la vez
   void _monitorUserChanges() {
-    if (_monitorActive) return; // Ya hay un loop corriendo, no crear otro
+    if (_monitorActive) return;
     _monitorActive = true;
     _monitorLoop();
   }
@@ -418,24 +401,6 @@ class _WebPageState extends State<WebPage>
     });
   }
 
-  // ==================== DETECCIÓN DE ANUNCIO ====================
-
-  static const _categorySlugs = {
-    'desean-alquilar-vivienda', 'desean-comprar-vivienda', 'desean-compartir-piso',
-    'desean-alquilar-habitacion', 'desean-alquilar-plaza-de-garaje',
-    'desean-comprar-plaza-de-garaje', 'desean-compartir-garaje',
-    'alquilo-vivienda', 'vendo-vivienda', 'alquilo-habitacion',
-    'alquilo-garaje', 'vendo-garaje', 'comparto-garaje',
-  };
-
-  bool get _isAnuncioPage {
-    final uri = Uri.tryParse(_currentUrl);
-    if (uri == null) return false;
-    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
-    // Anuncio individual: /categoria/provincia/titulo-anuncio/
-    return segments.length >= 3 && _categorySlugs.contains(segments[0]);
-  }
-
   // ==================== BUILD ====================
 
   @override
@@ -444,7 +409,10 @@ class _WebPageState extends State<WebPage>
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      endDrawer: _buildDrawerContent(context),
+      endDrawerEnableOpenDragGesture: false,
       body: Column(
         children: [
           SizedBox(height: topInset),
@@ -477,7 +445,7 @@ class _WebPageState extends State<WebPage>
                     await _hideAppBanners(controller);
                     await Future.delayed(const Duration(seconds: 2));
                     await _checkAndSendToken();
-                    _monitorUserChanges(); // Ahora es seguro: solo arranca un loop
+                    _monitorUserChanges();
                   },
                   onUpdateVisitedHistory: (controller, url, isReload) {
                     if (url != null) {
@@ -493,7 +461,7 @@ class _WebPageState extends State<WebPage>
                     right: 10,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: _openDrawer,
+                      onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
                       child: Container(
                         width: 40,
                         height: 40,
@@ -513,67 +481,6 @@ class _WebPageState extends State<WebPage>
                           ),
                         ),
                         child: const Icon(Icons.menu_rounded, size: 21, color: Color(0xFF15418A)),
-                      ),
-                    ),
-                  ),
-
-                // Backdrop + drawer (siempre en el tree, toggle con IgnorePointer)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: !_drawerOpen,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _closeDrawer,
-                      child: FadeTransition(
-                        opacity: _backdropFade,
-                        child: Container(color: Colors.black),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  width: MediaQuery.of(context).size.width * 0.82,
-                  child: IgnorePointer(
-                    ignoring: !_drawerOpen,
-                    child: SlideTransition(
-                      position: _drawerSlide,
-                      child: _buildDrawerContent(context),
-                    ),
-                  ),
-                ),
-
-                // Botón compartir (solo en páginas de anuncio)
-                if (!_isLoading && _isAnuncioPage)
-                  Positioned(
-                    bottom: 130,
-                    left: 16,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        Share.share(_currentUrl);
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: const Color(0xFF3BA1DA).withOpacity(0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Icon(Icons.ios_share_rounded, size: 22, color: Color(0xFF15418A)),
                       ),
                     ),
                   ),
@@ -609,79 +516,81 @@ class _WebPageState extends State<WebPage>
   // ==================== DRAWER CONTENT ====================
 
   Widget _buildDrawerContent(BuildContext context) {
-    return Material(
-      elevation: 16,
-      color: Colors.white,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              color: const Color(0xFF15418A),
-              child: Row(
-                children: [
-                  Image.asset('assets/logo.png', height: 30),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _closeDrawer,
-                    child: const Icon(Icons.close, color: Colors.white, size: 22),
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PROVINCIA',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF3BA1DA), letterSpacing: 1.2),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF3BA1DA).withOpacity(0.4)),
-                      borderRadius: BorderRadius.circular(10),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.82,
+      child: Drawer(
+        backgroundColor: Colors.white,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                color: const Color(0xFF15418A),
+                child: Row(
+                  children: [
+                    Image.asset('assets/logo.png', height: 30),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.close, color: Colors.white, size: 22),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _provinciaSeleccionada,
-                        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF15418A)),
-                        style: const TextStyle(color: Color(0xFF15418A), fontSize: 15, fontWeight: FontWeight.w500),
-                        items: kProvincias.entries
-                            .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _provinciaSeleccionada = val);
-                        },
+                  ],
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'PROVINCIA',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF3BA1DA), letterSpacing: 1.2),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF3BA1DA).withOpacity(0.4)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _provinciaSeleccionada,
+                          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF15418A)),
+                          style: const TextStyle(color: Color(0xFF15418A), fontSize: 15, fontWeight: FontWeight.w500),
+                          items: kProvincias.entries
+                              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _provinciaSeleccionada = val);
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            const Divider(height: 1),
+              const Divider(height: 1),
 
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 16),
-                children: [
-                  _seccionTitulo('🔍  BUSCAN'),
-                  ...kBuscadores.map((cat) => _categoriaTile(cat)),
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-                  _seccionTitulo('🏠  OFRECEN'),
-                  ...kPropietarios.map((cat) => _categoriaTile(cat)),
-                ],
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  children: [
+                    _seccionTitulo('🔍  BUSCAN'),
+                    ...kBuscadores.map((cat) => _categoriaTile(cat)),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    _seccionTitulo('🏠  OFRECEN'),
+                    ...kPropietarios.map((cat) => _categoriaTile(cat)),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
