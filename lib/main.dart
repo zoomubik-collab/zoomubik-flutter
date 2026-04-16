@@ -418,6 +418,24 @@ class _WebPageState extends State<WebPage>
     });
   }
 
+  // ==================== DETECCIÓN DE ANUNCIO ====================
+
+  static const _categorySlugs = {
+    'desean-alquilar-vivienda', 'desean-comprar-vivienda', 'desean-compartir-piso',
+    'desean-alquilar-habitacion', 'desean-alquilar-plaza-de-garaje',
+    'desean-comprar-plaza-de-garaje', 'desean-compartir-garaje',
+    'alquilo-vivienda', 'vendo-vivienda', 'alquilo-habitacion',
+    'alquilo-garaje', 'vendo-garaje', 'comparto-garaje',
+  };
+
+  bool get _isAnuncioPage {
+    final uri = Uri.tryParse(_currentUrl);
+    if (uri == null) return false;
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    // Anuncio individual: /categoria/provincia/titulo-anuncio/
+    return segments.length >= 3 && _categorySlugs.contains(segments[0]);
+  }
+
   // ==================== BUILD ====================
 
   @override
@@ -461,6 +479,11 @@ class _WebPageState extends State<WebPage>
                     await _checkAndSendToken();
                     _monitorUserChanges(); // Ahora es seguro: solo arranca un loop
                   },
+                  onUpdateVisitedHistory: (controller, url, isReload) {
+                    if (url != null) {
+                      setState(() => _currentUrl = url.toString());
+                    }
+                  },
                 ),
 
                 // Botón hamburguesa
@@ -497,14 +520,12 @@ class _WebPageState extends State<WebPage>
                 // Backdrop + drawer
                 if (_drawerOpen) ...[
                   Positioned.fill(
-                    child: AbsorbPointer(
-                      absorbing: true,
-                      child: GestureDetector(
-                        onTap: _closeDrawer,
-                        child: FadeTransition(
-                          opacity: _backdropFade,
-                          child: Container(color: Colors.black),
-                        ),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _closeDrawer,
+                      child: FadeTransition(
+                        opacity: _backdropFade,
+                        child: Container(color: Colors.black),
                       ),
                     ),
                   ),
@@ -520,8 +541,8 @@ class _WebPageState extends State<WebPage>
                   ),
                 ],
 
-                // Botón compartir (solo en detalle-anuncio)
-                if (!_isLoading && _currentUrl.contains('detalle-anuncio'))
+                // Botón compartir (solo en páginas de anuncio)
+                if (!_isLoading && _isAnuncioPage)
                   Positioned(
                     bottom: 16,
                     left: 16,
