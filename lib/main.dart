@@ -1,8 +1,10 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "dart:collection";
 import "dart:convert";
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
@@ -78,14 +80,6 @@ const List<Categoria> kPropietarios = [
 
 // ==================== TABS ====================
 
-const List<String> kTabUrls = [
-  'https://zoomubik.com/',
-  'https://zoomubik.com/mis-favoritos/',
-  'https://zoomubik.com/?abrir_publicar=1',
-  'https://zoomubik.com/mensajes-privados/',
-  'https://zoomubik.com/account/',
-];
-
 int _tabFromUrl(String url) {
   if (url.contains('/mis-favoritos')) return 1;
   if (url.contains('abrir_publicar')) return 2;
@@ -93,6 +87,12 @@ int _tabFromUrl(String url) {
   if (url.contains('/account') || url.contains('/mis-anuncios') || url.contains('/mi-avatar')) return 4;
   return 0;
 }
+
+// CSS inyectado al inicio para evitar parpadeo del footer web
+const String kHideWebFooterCSS = """
+  .mobile-footer-sticky .tab-btn,
+  .mobile-footer-sticky .cuenta-menu-modern { display: none !important; }
+""";
 
 // ==================== PÁGINA PRINCIPAL ====================
 
@@ -162,9 +162,27 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // ==================== TAB BAR ====================
 
   void _onTabTapped(int index) {
-    if (index == 4) { _showCuentaSheet(); return; }
+    if (index == 2) {
+      // Publicar: forzar navegación con parámetro para abrir modal
+      _controller?.loadUrl(
+        urlRequest: URLRequest(url: WebUri('https://zoomubik.com/?abrir_publicar=1')),
+      );
+      setState(() => _selectedTab = 2);
+      return;
+    }
+    if (index == 4) {
+      _showCuentaSheet();
+      return;
+    }
     setState(() => _selectedTab = index);
-    _navigateTo(kTabUrls[index]);
+    final urls = [
+      'https://zoomubik.com/',
+      'https://zoomubik.com/mis-favoritos/',
+      '',
+      'https://zoomubik.com/mensajes-privados/',
+      'https://zoomubik.com/account/',
+    ];
+    _navigateTo(urls[index]);
   }
 
   void _showCuentaSheet() {
@@ -190,9 +208,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
             }),
             const Divider(height: 1, indent: 16, endIndent: 16),
             _cuentaTile(
-              icon: Icons.logout_rounded,
-              label: 'Cerrar sesión',
-              color: Colors.red,
+              icon: Icons.logout_rounded, label: 'Cerrar sesión', color: Colors.red,
               onTap: () {
                 Navigator.pop(context);
                 _controller?.evaluateJavascript(source: """
@@ -242,9 +258,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       final url = message.data['url'] ?? '';
-      if (url.isNotEmpty && _controller != null) {
-        _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-      }
+      if (url.isNotEmpty && _controller != null) _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
     });
 
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -303,8 +317,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       if (userId == 0 && _lastUserId > 0) {
         await _removeTokenFromServer(_lastUserId, _fcmToken!);
         await FirebaseMessaging.instance.deleteToken();
-        _fcmToken = null;
-        _lastUserId = 0;
+        _fcmToken = null; _lastUserId = 0;
         return;
       }
       if (userId > 0 && userId != _lastUserId) {
@@ -318,8 +331,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Future<void> _removeTokenFromServer(int userId, String token) async {
     try {
-      await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/remove-fcm-token"),
+      await http.post(Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/remove-fcm-token"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId, "token": token}),
       ).timeout(const Duration(seconds: 10));
@@ -349,8 +361,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     try {
-      await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
+      await http.post(Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId, "token": token}),
       ).timeout(const Duration(seconds: 10));
@@ -390,9 +401,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           .cky-consent-container, .cky-consent-bar { display: none !important; }
           #header-registro-btn { display: none !important; }
           .header-search-wrap { padding-right: 52px !important; }
-          .mobile-footer-sticky { display: none !important; }
-          .footer-principal, .footer-nav-app, .bottom-nav-bar,
-          [class*="bottom-tab"], [class*="nav-footer"] { display: none !important; }
+          .mobile-footer-sticky .tab-btn,
+          .mobile-footer-sticky .cuenta-menu-modern { display: none !important; }
         `;
         document.head.appendChild(style);
       })();
@@ -439,6 +449,20 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 InAppWebView(
                   initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
                   pullToRefreshController: _pullToRefreshController,
+                  // Inyección CSS al inicio para evitar parpadeo del footer web
+                  initialUserScripts: UnmodifiableListView([
+                    UserScript(
+                      source: """
+                        (function() {
+                          var style = document.createElement('style');
+                          style.innerHTML = '$kHideWebFooterCSS';
+                          var head = document.head || document.documentElement;
+                          head.appendChild(style);
+                        })();
+                      """,
+                      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                    ),
+                  ]),
                   initialSettings: InAppWebViewSettings(
                     javaScriptEnabled: true, domStorageEnabled: true, databaseEnabled: true,
                     cacheEnabled: true, useHybridComposition: true, hardwareAcceleration: true,
@@ -463,6 +487,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                 ),
 
+                // Botón hamburguesa
                 if (!_isLoading)
                   Positioned(
                     top: 8, right: 10,
@@ -481,6 +506,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     ),
                   ),
 
+                // Splash
                 if (_isLoading)
                   AnimatedOpacity(
                     opacity: _isLoading ? 1.0 : 0.0,
@@ -505,30 +531,96 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // ==================== BOTTOM NAV ====================
 
   Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: _selectedTab,
-      onTap: _onTabTapped,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFF15418A),
-      unselectedItemColor: Colors.grey,
-      selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-      unselectedLabelStyle: const TextStyle(fontSize: 11),
-      elevation: 12,
-      items: [
-        const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Inicio'),
-        const BottomNavigationBarItem(icon: Icon(Icons.favorite_rounded), label: 'Favoritos'),
-        BottomNavigationBarItem(
-          icon: Container(
-            width: 44, height: 44,
-            decoration: const BoxDecoration(color: Color(0xFF15418A), shape: BoxShape.circle),
-            child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, -2)),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: [
+              _navItem(index: 0, icon: Icons.home_rounded, label: 'Inicio'),
+              _navItem(index: 1, icon: Icons.favorite_rounded, label: 'Favoritos'),
+              _navItemPublicar(),
+              _navItem(index: 3, icon: Icons.chat_bubble_outline_rounded, label: 'Mensajes'),
+              _navItem(index: 4, icon: Icons.person_outline_rounded, label: 'Cuenta'),
+            ],
           ),
-          label: 'Publicar',
         ),
-        const BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_rounded), label: 'Mensajes'),
-        const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Cuenta'),
-      ],
+      ),
+    );
+  }
+
+  Widget _navItem({required int index, required IconData icon, required String label}) {
+    final bool selected = _selectedTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTabTapped(index),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: selected ? const Color(0xFF15418A) : Colors.grey,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? const Color(0xFF15418A) : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItemPublicar() {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTabTapped(2),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF15418A).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+            ),
+            const SizedBox(height: 3),
+            const Text(
+              'Publicar',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF15418A)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
