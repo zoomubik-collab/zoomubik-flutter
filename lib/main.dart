@@ -162,6 +162,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // ==================== TAB BAR ====================
 
   void _onTabTapped(int index) {
+    // Si no está logueado, todos los tabs (menos Inicio) requieren login
+    if (_lastUserId == 0 && index != 0) {
+      _triggerLoginModal();
+      return;
+    }
     if (index == 2) {
       // Publicar: forzar navegación con parámetro para abrir modal
       _controller?.loadUrl(
@@ -183,6 +188,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       'https://zoomubik.com/account/',
     ];
     _navigateTo(urls[index]);
+  }
+
+  void _triggerLoginModal() {
+    _controller?.evaluateJavascript(source: """
+      (function() {
+        // Buscar el botón Acceder y simular click para abrir el modal
+        var btn = document.querySelector('.cuenta-menu-btn-login, #cuenta-menu-login-btn, .cuenta-menu-auth button');
+        if (btn) { btn.click(); return; }
+        // Fallback: navegar a /account/ que muestra el login
+        window.location.href = 'https://zoomubik.com/account/';
+      })();
+    """);
   }
 
   void _showCuentaSheet() {
