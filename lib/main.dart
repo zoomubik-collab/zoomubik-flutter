@@ -125,20 +125,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
 
-  // Control para evitar loops múltiples de _monitorUserChanges
   bool _monitorActive = false;
-
-  // Provincia para el drawer
   String _provinciaSeleccionada = 'madrid';
-
-  // Flag para saber si se navegó desde el drawer
   bool _navigatedFromDrawer = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
     _pullToRefreshController = PullToRefreshController(
       settings: PullToRefreshSettings(color: const Color(0xFF3BA1DA)),
       onRefresh: () async => await _controller?.reload(),
@@ -177,7 +171,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   void _navegarACategoria(String categoriaSlug) {
     final url = 'https://zoomubik.com/$categoriaSlug/$_provinciaSeleccionada/';
     _navigatedFromDrawer = true;
-    Navigator.of(context).pop(); // Cierra el endDrawer
+    Navigator.of(context).pop();
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
 
@@ -298,10 +292,34 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     if (_fcmToken == null) return;
     try {
       final userId = await _getUserIdViaAjax();
+
+      // LOGOUT detectado: userId pasó a 0 y antes había un usuario logueado
+      if (userId == 0 && _lastUserId > 0) {
+        await _removeTokenFromServer(_lastUserId, _fcmToken!);
+        await FirebaseMessaging.instance.deleteToken();
+        _fcmToken = null;
+        _lastUserId = 0;
+        return;
+      }
+
+      // LOGIN o cambio de usuario
       if (userId > 0 && userId != _lastUserId) {
+        // Si el token fue borrado en el logout anterior, pedimos uno nuevo
+        _fcmToken ??= await FirebaseMessaging.instance.getToken();
+        if (_fcmToken == null) return;
         _lastUserId = userId;
         await _sendTokenViaHttp(userId, _fcmToken!);
       }
+    } catch (e) {}
+  }
+
+  Future<void> _removeTokenFromServer(int userId, String token) async {
+    try {
+      await http.post(
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/remove-fcm-token"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_id": userId, "token": token}),
+      ).timeout(const Duration(seconds: 10));
     } catch (e) {}
   }
 
@@ -386,7 +404,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     """);
   }
 
-  // Monitor controlado: solo un loop activo a la vez
   void _monitorUserChanges() {
     if (_monitorActive) return;
     _monitorActive = true;
@@ -419,9 +436,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       onEndDrawerChanged: (isOpen) {
         if (!isOpen && _controller != null) {
           if (_navigatedFromDrawer) {
-            _navigatedFromDrawer = false; // Ya navega, no recargar
+            _navigatedFromDrawer = false;
           } else {
-            _controller!.reload(); // Cerró sin navegar, refrescar
+            _controller!.reload();
           }
         }
       },
@@ -431,7 +448,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           Expanded(
             child: Stack(
               children: [
-                // WebView
                 InAppWebView(
                   initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
                   pullToRefreshController: _pullToRefreshController,
@@ -466,7 +482,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                 ),
 
-                // Botón hamburguesa
                 if (!_isLoading)
                   Positioned(
                     top: 8,
@@ -497,7 +512,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     ),
                   ),
 
-                // Splash
                 if (_isLoading)
                   AnimatedOpacity(
                     opacity: _isLoading ? 1.0 : 0.0,
