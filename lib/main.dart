@@ -64,18 +64,20 @@ const List<Categoria> kBuscadores = [
   Categoria(slug: 'desean-comprar-vivienda',         label: 'Comprar vivienda',         emoji: '🏡'),
   Categoria(slug: 'desean-compartir-piso',           label: 'Compartir piso',           emoji: '🤝'),
   Categoria(slug: 'desean-alquilar-habitacion',      label: 'Alquilar habitación',      emoji: '🛏️'),
+  Categoria(slug: 'desean-alquiler-vacacional',      label: 'Alquiler vacacional',      emoji: '🏖️'),
   Categoria(slug: 'desean-alquilar-plaza-de-garaje', label: 'Alquilar plaza de garaje', emoji: '🚗'),
   Categoria(slug: 'desean-comprar-plaza-de-garaje',  label: 'Comprar plaza de garaje',  emoji: '🅿️'),
   Categoria(slug: 'desean-compartir-garaje',         label: 'Compartir garaje',         emoji: '🔑'),
 ];
 
 const List<Categoria> kPropietarios = [
-  Categoria(slug: 'alquilo-vivienda',   label: 'Alquilo vivienda',   emoji: '🏠'),
-  Categoria(slug: 'vendo-vivienda',     label: 'Vendo vivienda',     emoji: '🏡'),
-  Categoria(slug: 'alquilo-habitacion', label: 'Alquilo habitación', emoji: '🛏️'),
-  Categoria(slug: 'alquilo-garaje',     label: 'Alquilo garaje',     emoji: '🚗'),
-  Categoria(slug: 'vendo-garaje',       label: 'Vendo garaje',       emoji: '🅿️'),
-  Categoria(slug: 'comparto-garaje',    label: 'Comparto garaje',    emoji: '🔑'),
+  Categoria(slug: 'alquilo-vivienda',    label: 'Alquilo vivienda',    emoji: '🏠'),
+  Categoria(slug: 'vendo-vivienda',      label: 'Vendo vivienda',      emoji: '🏡'),
+  Categoria(slug: 'alquilo-habitacion',  label: 'Alquilo habitación',  emoji: '🛏️'),
+  Categoria(slug: 'alquilo-vacacional',  label: 'Alquiler vacacional', emoji: '🏖️'),
+  Categoria(slug: 'alquilo-garaje',      label: 'Alquilo garaje',      emoji: '🚗'),
+  Categoria(slug: 'vendo-garaje',        label: 'Vendo garaje',        emoji: '🅿️'),
+  Categoria(slug: 'comparto-garaje',     label: 'Comparto garaje',     emoji: '🔑'),
 ];
 
 // ==================== TABS ====================
@@ -168,11 +170,16 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       return;
     }
     if (index == 2) {
-      // Publicar: forzar navegación con parámetro para abrir modal
-      _controller?.loadUrl(
-        urlRequest: URLRequest(url: WebUri('https://zoomubik.com/?abrir_publicar=1')),
-      );
-      setState(() => _selectedTab = 2);
+      // Publicar: llamar a la función JS abrirModalProvincias(), o navegar si no existe
+      _controller?.evaluateJavascript(source: """
+        (function() {
+          if (typeof abrirModalProvincias === 'function') {
+            abrirModalProvincias();
+          } else {
+            window.location.href = 'https://zoomubik.com/?abrir_publicar=1';
+          }
+        })();
+      """);
       return;
     }
     if (index == 4) {
@@ -193,10 +200,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   void _triggerLoginModal() {
     _controller?.evaluateJavascript(source: """
       (function() {
-        // Buscar el botón Acceder y simular click para abrir el modal
-        var btn = document.querySelector('.cuenta-menu-btn-login, #cuenta-menu-login-btn, .cuenta-menu-auth button');
+        // Llamar a la función global de login si existe
+        if (typeof window.abrirGlobalLoginModal === 'function') {
+          window.abrirGlobalLoginModal();
+          return;
+        }
+        // Fallback: click en el botón de login
+        var btn = document.querySelector('#cuenta-menu-login-btn, .cuenta-menu-btn-login');
         if (btn) { btn.click(); return; }
-        // Fallback: navegar a /account/ que muestra el login
+        // Último recurso: navegar a account
         window.location.href = 'https://zoomubik.com/account/';
       })();
     """);
@@ -643,55 +655,108 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   // ==================== DRAWER CONTENT ====================
 
+  // Colores por categoría (mismos que los marcadores del mapa)
+  Color _categoryColor(String slug) {
+    if (slug.contains('vacacional')) return const Color(0xFFFF6B9D); // rosa coral
+    if (slug.contains('compartir-piso') || slug.contains('habitacion')) return const Color(0xFFAA00FF); // morado
+    if (slug.contains('comprar-vivienda') || slug.contains('vendo-vivienda')) return const Color(0xFFFF6D00); // naranja
+    if (slug.contains('vivienda')) return const Color(0xFF00C853); // verde
+    if (slug.contains('compartir-garaje') || slug.contains('comparto-garaje')) return const Color(0xFFF50057); // rosa
+    if (slug.contains('comprar-plaza') || slug.contains('vendo-garaje')) return const Color(0xFF00BCD4); // cyan
+    if (slug.contains('garaje')) return const Color(0xFFFFD600); // amarillo
+    return const Color(0xFF3BA1DA);
+  }
+
   Widget _buildDrawerContent(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.82,
+      width: MediaQuery.of(context).size.width * 0.85,
       child: Drawer(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8FAFC),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header con gradiente
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                color: const Color(0xFF15418A),
-                child: Row(children: [
-                  Image.asset('assets/logo.png', height: 30),
-                  const Spacer(),
-                  GestureDetector(onTap: () => Navigator.of(context).pop(), child: const Icon(Icons.close, color: Colors.white, size: 22)),
-                ]),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('PROVINCIA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF3BA1DA), letterSpacing: 1.2)),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF3BA1DA).withOpacity(0.4)), borderRadius: BorderRadius.circular(10)),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true, value: _provinciaSeleccionada,
-                        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF15418A)),
-                        style: const TextStyle(color: Color(0xFF15418A), fontSize: 15, fontWeight: FontWeight.w500),
-                        items: kProvincias.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
-                        onChanged: (val) { if (val != null) setState(() => _provinciaSeleccionada = val); },
+                padding: const EdgeInsets.fromLTRB(20, 18, 16, 18),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF15418A), Color(0xFF3BA1DA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset('assets/logo.png', height: 32),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close, color: Colors.white, size: 20),
                       ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
               ),
-              const Divider(height: 1),
+
+              // Selector de provincia
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 20, color: Color(0xFF3BA1DA)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _provinciaSeleccionada,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF15418A)),
+                          style: const TextStyle(color: Color(0xFF15418A), fontSize: 15, fontWeight: FontWeight.w600),
+                          items: kProvincias.entries
+                              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _provinciaSeleccionada = val);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Lista de categorías
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   children: [
-                    _seccionTitulo('🔍  BUSCAN'),
-                    ...kBuscadores.map((cat) => _categoriaTile(cat)),
-                    const Divider(height: 1, indent: 16, endIndent: 16),
-                    _seccionTitulo('🏠  OFRECEN'),
-                    ...kPropietarios.map((cat) => _categoriaTile(cat)),
+                    _seccionTitulo('Estoy buscando', Icons.search_rounded, const Color(0xFF3BA1DA)),
+                    const SizedBox(height: 8),
+                    ...kBuscadores.map((cat) => _categoriaCard(cat)),
+                    const SizedBox(height: 20),
+                    _seccionTitulo('Tengo / Ofrezco', Icons.home_work_rounded, const Color(0xFFFF6D00)),
+                    const SizedBox(height: 8),
+                    ...kPropietarios.map((cat) => _categoriaCard(cat)),
                   ],
                 ),
               ),
@@ -702,20 +767,78 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _seccionTitulo(String titulo) {
+  Widget _seccionTitulo(String titulo, IconData icon, Color color) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-      child: Text(titulo, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF3BA1DA), letterSpacing: 1.2)),
+      padding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            titulo,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF15418A),
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _categoriaTile(Categoria cat) {
-    return ListTile(
-      dense: true,
-      leading: Text(cat.emoji, style: const TextStyle(fontSize: 20)),
-      title: Text(cat.label, style: const TextStyle(fontSize: 14, color: Color(0xFF15418A), fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right, size: 18, color: Color(0xFF3BA1DA)),
-      onTap: () => _navegarACategoria(cat.slug),
+  Widget _categoriaCard(Categoria cat) {
+    final color = _categoryColor(cat.slug);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _navegarACategoria(cat.slug),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.12)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(child: Text(cat.emoji, style: const TextStyle(fontSize: 20))),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    cat.label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF15418A),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
