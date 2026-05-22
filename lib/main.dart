@@ -326,6 +326,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
 
+  void _navegarAPublicarProvincia() {
+    final url = 'https://zoomubik.com/provincias/$_provinciaSeleccionada/';
+    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+    setState(() => _selectedTab = 2);
+  }
+
   void _navigateTo(String url) {
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
   }
@@ -617,71 +623,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         document.head.appendChild(style);
         var sticky = document.querySelector('.mobile-footer-sticky');
         if (sticky) { sticky.style.display = 'none'; sticky.style.visibility = 'hidden'; }
-      })();
-    """);
-
-    // Preselección de categoría en el wizard de provincia
-    await controller.evaluateJavascript(source: """
-      (function() {
-        var params = new URLSearchParams(window.location.search);
-        var cat = params.get('categoria_preseleccionada');
-        if (!cat) return;
-
-        // Determinar modo según el slug
-        var esBuscador = cat.indexOf('desean-') === 0;
-        var modo = esBuscador ? 'buscador' : 'propietario';
-
-        function activarModoYCategoria() {
-          // 1. Activar el modo (buscador o propietario)
-          var btnModo = document.getElementById('btn-modo-' + modo);
-          if (!btnModo) return false;
-          if (typeof zmActivarModo === 'function') {
-            zmActivarModo(modo);
-          } else {
-            btnModo.click();
-          }
-
-          // 2. Esperar a que aparezcan los botones de categoría y clicar el correcto
-          var intentos = 0;
-          var maxIntentos = 20;
-          var iv = setInterval(function() {
-            intentos++;
-            var btnCat = document.querySelector('[data-category="' + cat + '"]');
-            if (btnCat) {
-              clearInterval(iv);
-              // Simular pointerdown para activar la categoría
-              try {
-                btnCat.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, cancelable: true}));
-              } catch(e) {
-                btnCat.click();
-              }
-              // Hacer scroll a la categoría seleccionada
-              setTimeout(function() {
-                btnCat.scrollIntoView({behavior: 'smooth', block: 'center'});
-              }, 300);
-              // Limpiar el param de la URL para no repetir si recarga
-              try {
-                var cleanUrl = window.location.pathname;
-                window.history.replaceState({}, '', cleanUrl);
-              } catch(e) {}
-            } else if (intentos >= maxIntentos) {
-              clearInterval(iv);
-            }
-          }, 200);
-          return true;
-        }
-
-        // Esperar a que el wizard esté listo
-        var intentosWizard = 0;
-        var ivWizard = setInterval(function() {
-          intentosWizard++;
-          if (document.getElementById('btn-modo-' + modo)) {
-            clearInterval(ivWizard);
-            activarModoYCategoria();
-          } else if (intentosWizard >= 30) {
-            clearInterval(ivWizard);
-          }
-        }, 250);
       })();
     """);
   }
@@ -1252,25 +1193,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 cat: cat,
                 onTap: () {
                   if (cat.propietarioSlug == null) return;
-                  // Si no está logueado, mostrar login modal
                   if (_lastUserId == 0) {
                     Navigator.pop(sheetContext);
-                    Future.delayed(const Duration(milliseconds: 150), () {
-                      _triggerLoginModal();
-                    });
+                    Future.delayed(const Duration(milliseconds: 150), _triggerLoginModal);
                     return;
                   }
-                  // Capturar valores antes de cerrar el modal
-                  final slug = cat.propietarioSlug!;
-                  final provincia = _provinciaSeleccionada;
                   Navigator.pop(sheetContext);
-                  // Pequeño delay para que el modal se cierre antes de navegar
-                  Future.delayed(const Duration(milliseconds: 200), () {
-                    if (!mounted) return;
-                    setState(() => _selectedTab = 2);
-                    final url = 'https://zoomubik.com/provincias/$provincia/?categoria_preseleccionada=$slug';
-                    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-                  });
+                  _navegarAPublicarProvincia();
                 },
               ),
             ],
@@ -1285,77 +1214,80 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     required VoidCallback onTap,
   }) {
     final disabled = cat.propietarioSlug == null;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: disabled ? null : onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: disabled ? Colors.grey[200] : null,
-          gradient: disabled
-              ? null
-              : const LinearGradient(
-                  colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: disabled ? null : onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: disabled ? Colors.grey[200] : null,
+            gradient: disabled
+                ? null
+                : const LinearGradient(
+                    colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: disabled
+                ? null
+                : [
+                    BoxShadow(
+                      color: const Color(0xFF15418A).withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: disabled
-              ? null
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF15418A).withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
-                borderRadius: BorderRadius.circular(10),
+                child: Icon(
+                  Icons.add_rounded,
+                  color: disabled ? Colors.grey[500] : Colors.white,
+                  size: 22,
+                ),
               ),
-              child: Icon(
-                Icons.add_rounded,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      disabled ? 'No disponible' : 'Publicar mi anuncio',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: disabled ? Colors.grey[600] : Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      cat.label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: disabled
+                            ? Colors.grey[500]
+                            : Colors.white.withOpacity(0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_rounded,
                 color: disabled ? Colors.grey[500] : Colors.white,
-                size: 22,
+                size: 20,
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    disabled ? 'No disponible' : 'Publicar mi anuncio',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: disabled ? Colors.grey[600] : Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    cat.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: disabled
-                          ? Colors.grey[500]
-                          : Colors.white.withOpacity(0.85),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_rounded,
-              color: disabled ? Colors.grey[500] : Colors.white,
-              size: 20,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
