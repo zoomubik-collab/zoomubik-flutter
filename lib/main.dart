@@ -328,6 +328,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   void _navegarAPublicarProvincia() {
     final url = 'https://zoomubik.com/provincias/$_provinciaSeleccionada/';
+    _navigatedFromDrawer = true;
+    Navigator.of(context).pop();
     _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
     setState(() => _selectedTab = 2);
   }
@@ -1109,7 +1111,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       ),
       builder: (sheetContext) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1225,12 +1227,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }) {
     final disabled = cat.propietarioSlug == null;
     return Material(
-      color: disabled ? Colors.grey[200] : const Color(0xFF15418A),
+      color: const Color(0xFF15418A),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: disabled ? null : onTap,
-        child: Ink(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: disabled
                 ? null
@@ -1239,22 +1242,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
+            color: disabled ? Colors.grey[400] : null,
             borderRadius: BorderRadius.circular(14),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               Container(
                 width: 36, height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
+                  color: Colors.white.withOpacity(0.18),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  Icons.add_rounded,
-                  color: disabled ? Colors.grey[500] : Colors.white,
-                  size: 22,
-                ),
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1263,10 +1262,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   children: [
                     Text(
                       disabled ? 'No disponible' : 'Publicar mi anuncio',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: disabled ? Colors.grey[600] : Colors.white,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1274,19 +1273,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       cat.label,
                       style: TextStyle(
                         fontSize: 12,
-                        color: disabled
-                            ? Colors.grey[500]
-                            : Colors.white.withOpacity(0.85),
+                        color: Colors.white.withOpacity(0.85),
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_rounded,
-                color: disabled ? Colors.grey[500] : Colors.white,
-                size: 20,
-              ),
+              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
             ],
           ),
         ),
