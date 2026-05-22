@@ -636,7 +636,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   void _monitorLoop() {
-    Future.delayed(const Duration(seconds: 60), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) { _monitorActive = false; return; }
       _checkAndSendToken();
       _monitorLoop();
@@ -1213,7 +1213,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   if (_lastUserId == 0) {
                     // Cerrar también el drawer y luego abrir login
                     Navigator.of(context).pop();
-                    Future.delayed(const Duration(milliseconds: 150), _triggerLoginModal);
+                    Future.delayed(const Duration(milliseconds: 350), _triggerLoginModal);
                     return;
                   }
                   _navegarAPublicarProvincia();
