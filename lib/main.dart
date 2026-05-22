@@ -227,6 +227,7 @@ int _tabFromUrl(String url) {
 // CSS inyectado al inicio para evitar parpadeo del footer web
 const String kHideWebFooterCSS = """
   .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
+  body #ast-scroll-top.ast-scroll-top { bottom: 8px !important; right: 12px !important; }
 """;
 
 // ==================== PÁGINA PRINCIPAL ====================
@@ -611,6 +612,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           #header-registro-btn { display: none !important; }
           .header-search-wrap { padding-right: 52px !important; }
           .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
+          #ast-scroll-top, body #ast-scroll-top.ast-scroll-top { bottom: 8px !important; right: 12px !important; }
         `;
         document.head.appendChild(style);
         var sticky = document.querySelector('.mobile-footer-sticky');
@@ -1249,18 +1251,26 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               _botonPublicarCategoria(
                 cat: cat,
                 onTap: () {
-                  Navigator.pop(sheetContext);
                   if (cat.propietarioSlug == null) return;
                   // Si no está logueado, mostrar login modal
                   if (_lastUserId == 0) {
-                    _triggerLoginModal();
+                    Navigator.pop(sheetContext);
+                    Future.delayed(const Duration(milliseconds: 150), () {
+                      _triggerLoginModal();
+                    });
                     return;
                   }
-                  // Navegar directamente al wizard de la provincia del usuario
-                  // con la categoría preseleccionada (saltamos el modal de provincia)
-                  final url = 'https://zoomubik.com/provincias/$_provinciaSeleccionada/?categoria_preseleccionada=${cat.propietarioSlug}';
-                  _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-                  setState(() => _selectedTab = 2);
+                  // Capturar valores antes de cerrar el modal
+                  final slug = cat.propietarioSlug!;
+                  final provincia = _provinciaSeleccionada;
+                  Navigator.pop(sheetContext);
+                  // Pequeño delay para que el modal se cierre antes de navegar
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    if (!mounted) return;
+                    setState(() => _selectedTab = 2);
+                    final url = 'https://zoomubik.com/provincias/$provincia/?categoria_preseleccionada=$slug';
+                    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+                  });
                 },
               ),
             ],
@@ -1275,82 +1285,77 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     required VoidCallback onTap,
   }) {
     final disabled = cat.propietarioSlug == null;
-    return Material(
-      color: disabled ? Colors.grey[200] : null,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: disabled ? null : onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: disabled
-                ? null
-                : const LinearGradient(
-                    colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: disabled
-                ? null
-                : [
-                    BoxShadow(
-                      color: const Color(0xFF15418A).withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  width: 36, height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: disabled ? Colors.grey[500] : Colors.white,
-                    size: 22,
-                  ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: disabled ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: disabled ? Colors.grey[200] : null,
+          gradient: disabled
+              ? null
+              : const LinearGradient(
+                  colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        disabled ? 'No disponible' : 'Publicar mi anuncio',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: disabled ? Colors.grey[600] : Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        cat.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: disabled
-                              ? Colors.grey[500]
-                              : Colors.white.withOpacity(0.85),
-                        ),
-                      ),
-                    ],
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: disabled
+              ? null
+              : [
+                  BoxShadow(
+                    color: const Color(0xFF15418A).withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  color: disabled ? Colors.grey[500] : Colors.white,
-                  size: 20,
-                ),
-              ],
+                ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.add_rounded,
+                color: disabled ? Colors.grey[500] : Colors.white,
+                size: 22,
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    disabled ? 'No disponible' : 'Publicar mi anuncio',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: disabled ? Colors.grey[600] : Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    cat.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: disabled
+                          ? Colors.grey[500]
+                          : Colors.white.withOpacity(0.85),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_rounded,
+              color: disabled ? Colors.grey[500] : Colors.white,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
