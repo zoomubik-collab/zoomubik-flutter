@@ -4,8 +4,10 @@ import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "package:geolocator/geolocator.dart";
 import "dart:collection";
 import "dart:convert";
+import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
 import "firebase_options.dart";
@@ -52,6 +54,138 @@ const Map<String, String> kProvincias = {
   'melilla': 'Melilla',
 };
 
+// Coordenadas (lat, lng) del centro de cada provincia
+const Map<String, List<double>> kProvinciaCoords = {
+  'almeria':       [36.8381, -2.4597],
+  'cadiz':         [36.5298, -6.2924],
+  'cordoba':       [37.8882, -4.7794],
+  'granada':       [37.1773, -3.5986],
+  'huelva':        [37.2614, -6.9447],
+  'jaen':          [37.7796, -3.7849],
+  'malaga':        [36.7213, -4.4214],
+  'sevilla':       [37.3891, -5.9845],
+  'huesca':        [42.1401, -0.4087],
+  'teruel':        [40.3457, -1.1065],
+  'zaragoza':      [41.6488, -0.8891],
+  'asturias':      [43.3614, -5.8593],
+  'baleares':      [39.5696, 2.6502],
+  'barcelona':     [41.3851, 2.1734],
+  'girona':        [41.9794, 2.8214],
+  'lleida':        [41.6176, 0.6200],
+  'tarragona':     [41.1189, 1.2445],
+  'cuenca':        [40.0704, -2.1374],
+  'guadalajara':   [40.6333, -3.1669],
+  'toledo':        [39.8628, -4.0273],
+  'ciudad-real':   [38.9848, -3.9274],
+  'albacete':      [38.9943, -1.8585],
+  'badajoz':       [38.8794, -6.9707],
+  'caceres':       [39.4753, -6.3725],
+  'corunha':       [43.3623, -8.4115],
+  'lugo':          [43.0097, -7.5567],
+  'ourense':       [42.3401, -7.8645],
+  'pontevedra':    [42.4310, -8.6444],
+  'madrid':        [40.4168, -3.7038],
+  'murcia':        [37.9922, -1.1307],
+  'navarra':       [42.8125, -1.6458],
+  'alava':         [42.8467, -2.6716],
+  'guipuzcoa':     [43.3183, -1.9812],
+  'vizcaya':       [43.2630, -2.9350],
+  'la-rioja':      [42.4627, -2.4451],
+  'segovia':       [40.9429, -4.1088],
+  'soria':         [41.7665, -2.4790],
+  'valladolid':    [41.6523, -4.7245],
+  'avila':         [40.6566, -4.6817],
+  'burgos':        [42.3439, -3.6970],
+  'leon':          [42.5987, -5.5671],
+  'palencia':      [42.0095, -4.5288],
+  'salamanca':     [40.9701, -5.6635],
+  'zamora':        [41.5036, -5.7448],
+  'alicante':      [38.3452, -0.4810],
+  'castellon':     [39.9864, -0.0513],
+  'valencia':      [39.4699, -0.3763],
+  'ceuta':         [35.8894, -5.3213],
+  'melilla':       [35.2923, -2.9381],
+};
+
+// Calcula distancia Haversine entre dos puntos
+double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
+  const r = 6371.0;
+  final dLat = (lat2 - lat1) * math.pi / 180;
+  final dLng = (lng2 - lng1) * math.pi / 180;
+  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(lat1 * math.pi / 180) * math.cos(lat2 * math.pi / 180) *
+      math.sin(dLng / 2) * math.sin(dLng / 2);
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  return r * c;
+}
+
+// Encuentra la provincia más cercana a unas coordenadas
+String _findNearestProvincia(double lat, double lng) {
+  String nearest = 'madrid';
+  double minDist = double.infinity;
+  kProvinciaCoords.forEach((slug, coords) {
+    final d = _distanceKm(lat, lng, coords[0], coords[1]);
+    if (d < minDist) {
+      minDist = d;
+      nearest = slug;
+    }
+  });
+  return nearest;
+}
+
+// Categorías unificadas: una sola lista donde cada categoría tiene
+// dos posibles destinos (buscador y/o propietario)
+class CategoriaUnificada {
+  final String label;
+  final String emoji;
+  final String? buscadorSlug;
+  final String? propietarioSlug;
+  const CategoriaUnificada({
+    required this.label,
+    required this.emoji,
+    this.buscadorSlug,
+    this.propietarioSlug,
+  });
+}
+
+const List<CategoriaUnificada> kCategorias = [
+  CategoriaUnificada(
+    label: 'Vivienda en alquiler', emoji: '🏠',
+    buscadorSlug: 'desean-alquilar-vivienda',
+    propietarioSlug: 'alquilo-vivienda',
+  ),
+  CategoriaUnificada(
+    label: 'Vivienda en venta', emoji: '🏡',
+    buscadorSlug: 'desean-comprar-vivienda',
+    propietarioSlug: 'vendo-vivienda',
+  ),
+  CategoriaUnificada(
+    label: 'Habitación en alquiler', emoji: '🛏️',
+    buscadorSlug: 'desean-alquilar-habitacion',
+    propietarioSlug: 'alquilo-habitacion',
+  ),
+  CategoriaUnificada(
+    label: 'Vacacional', emoji: '🏖️',
+    buscadorSlug: 'desean-alquiler-vacacional',
+    propietarioSlug: 'alquilo-vacacional',
+  ),
+  CategoriaUnificada(
+    label: 'Garaje en alquiler', emoji: '🚗',
+    buscadorSlug: 'desean-alquilar-plaza-de-garaje',
+    propietarioSlug: 'alquilo-garaje',
+  ),
+  CategoriaUnificada(
+    label: 'Garaje en venta', emoji: '🅿️',
+    buscadorSlug: 'desean-comprar-plaza-de-garaje',
+    propietarioSlug: 'vendo-garaje',
+  ),
+  CategoriaUnificada(
+    label: 'Compartir garaje', emoji: '🔑',
+    buscadorSlug: 'desean-compartir-garaje',
+    propietarioSlug: 'comparto-garaje',
+  ),
+];
+
 class Categoria {
   final String slug;
   final String label;
@@ -92,8 +226,7 @@ int _tabFromUrl(String url) {
 
 // CSS inyectado al inicio para evitar parpadeo del footer web
 const String kHideWebFooterCSS = """
-  .mobile-footer-sticky .tab-btn,
-  .mobile-footer-sticky .cuenta-menu-modern { display: none !important; }
+  .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
 """;
 
 // ==================== PÁGINA PRINCIPAL ====================
@@ -126,8 +259,42 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       settings: PullToRefreshSettings(color: const Color(0xFF3BA1DA)),
       onRefresh: () async => await _controller?.reload(),
     );
+    _loadOrDetectProvincia();
     _restoreCookies();
     _initPushNotifications();
+  }
+
+  Future<void> _loadOrDetectProvincia() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('provincia_seleccionada');
+    if (saved != null && kProvincias.containsKey(saved)) {
+      setState(() => _provinciaSeleccionada = saved);
+      return;
+    }
+    // Primera vez: intentar detectar ubicación
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low,
+      ).timeout(const Duration(seconds: 8));
+      final detected = _findNearestProvincia(position.latitude, position.longitude);
+      await prefs.setString('provincia_seleccionada', detected);
+      if (mounted) setState(() => _provinciaSeleccionada = detected);
+    } catch (e) {
+      // Si falla, queda Madrid por defecto
+    }
+  }
+
+  Future<void> _saveProvincia(String slug) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('provincia_seleccionada', slug);
   }
 
   @override
@@ -240,12 +407,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               icon: Icons.logout_rounded, label: 'Cerrar sesión', color: Colors.red,
               onTap: () {
                 Navigator.pop(context);
-                _controller?.evaluateJavascript(source: """
-                  (function() {
-                    var link = document.querySelector('a[href*="action=logout"], a[href*="cerrar"], .logout-link');
-                    if (link) link.click();
-                  })();
-                """);
+                _navigateTo('https://zoomubik.com/logout/');
               },
             ),
             const SizedBox(height: 8),
@@ -430,10 +592,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           .cky-consent-container, .cky-consent-bar { display: none !important; }
           #header-registro-btn { display: none !important; }
           .header-search-wrap { padding-right: 52px !important; }
-          .mobile-footer-sticky .tab-btn,
-          .mobile-footer-sticky .cuenta-menu-modern { display: none !important; }
+          .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
         `;
         document.head.appendChild(style);
+        // Por si ya estaba renderizado, ocultarlo directamente
+        var sticky = document.querySelector('.mobile-footer-sticky');
+        if (sticky) { sticky.style.display = 'none'; sticky.style.visibility = 'hidden'; }
       })();
     """);
   }
@@ -736,7 +900,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                               .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                               .toList(),
                           onChanged: (val) {
-                            if (val != null) setState(() => _provinciaSeleccionada = val);
+                            if (val != null) {
+                              setState(() => _provinciaSeleccionada = val);
+                              _saveProvincia(val);
+                            }
                           },
                         ),
                       ),
@@ -745,18 +912,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 ),
               ),
 
-              // Lista de categorías
+              // Lista de categorías unificada
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   children: [
-                    _seccionTitulo('Estoy buscando', Icons.search_rounded, const Color(0xFF3BA1DA)),
+                    _seccionTitulo('Categorías', Icons.apps_rounded, const Color(0xFF3BA1DA)),
                     const SizedBox(height: 8),
-                    ...kBuscadores.map((cat) => _categoriaCard(cat)),
-                    const SizedBox(height: 20),
-                    _seccionTitulo('Tengo / Ofrezco', Icons.home_work_rounded, const Color(0xFFFF6D00)),
-                    const SizedBox(height: 8),
-                    ...kPropietarios.map((cat) => _categoriaCard(cat)),
+                    ...kCategorias.map((cat) => _categoriaUnificadaCard(cat)),
                   ],
                 ),
               ),
@@ -795,8 +958,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _categoriaCard(Categoria cat) {
-    final color = _categoryColor(cat.slug);
+  Widget _categoriaUnificadaCard(CategoriaUnificada cat) {
+    // Color basado en el slug del buscador (que siempre existe)
+    final color = _categoryColor(cat.buscadorSlug ?? cat.propietarioSlug ?? '');
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Material(
@@ -804,7 +968,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _navegarACategoria(cat.slug),
+          onTap: () => _showSelectorTipo(cat),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
@@ -836,6 +1000,161 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSelectorTipo(CategoriaUnificada cat) {
+    final color = _categoryColor(cat.buscadorSlug ?? cat.propietarioSlug ?? '');
+
+    // Si solo hay una opción, navegar directamente sin modal
+    if (cat.buscadorSlug != null && cat.propietarioSlug == null) {
+      _navegarACategoria(cat.buscadorSlug!);
+      return;
+    }
+    if (cat.propietarioSlug != null && cat.buscadorSlug == null) {
+      _navegarACategoria(cat.propietarioSlug!);
+      return;
+    }
+
+    // Modal con las dos opciones
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Título con emoji
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(cat.emoji, style: const TextStyle(fontSize: 24)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      cat.label,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF15418A),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '¿Qué quieres ver?',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 20),
+
+              // Opción 1: Buscadores
+              _opcionSelectorTipo(
+                icon: Icons.search_rounded,
+                title: 'Personas que buscan',
+                subtitle: 'Quieren encontrar ${cat.label.toLowerCase()}',
+                color: const Color(0xFF3BA1DA),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _navegarACategoria(cat.buscadorSlug!);
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Opción 2: Propietarios
+              _opcionSelectorTipo(
+                icon: Icons.home_work_rounded,
+                title: 'Propietarios que ofrecen',
+                subtitle: 'Ya tienen ${cat.label.toLowerCase()} disponible',
+                color: const Color(0xFFFF6D00),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _navegarACategoria(cat.propietarioSlug!);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _opcionSelectorTipo({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF15418A),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+            ],
           ),
         ),
       ),
