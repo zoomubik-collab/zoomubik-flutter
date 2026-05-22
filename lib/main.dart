@@ -377,15 +377,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   void _triggerLoginModal() {
     _controller?.evaluateJavascript(source: """
       (function() {
-        // Llamar a la función global de login si existe
+        // Mostrar directamente el modal de login del footer
+        var modal = document.getElementById('footer-login-modal');
+        if (modal) {
+          modal.style.display = 'flex';
+          return;
+        }
+        // Fallback 1: funciones globales si llegaran a existir
         if (typeof window.abrirGlobalLoginModal === 'function') {
           window.abrirGlobalLoginModal();
           return;
         }
-        // Fallback: click en el botón de login
+        if (typeof window.openLoginModal === 'function') {
+          window.openLoginModal();
+          return;
+        }
+        // Fallback 2: click en el botón aunque esté oculto
         var btn = document.querySelector('#cuenta-menu-login-btn, .cuenta-menu-btn-login');
         if (btn) { btn.click(); return; }
-        // Último recurso: navegar a account
+        // Último recurso: navegar
         window.location.href = 'https://zoomubik.com/account/';
       })();
     """);
