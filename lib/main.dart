@@ -245,6 +245,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   String? _fcmToken;
   int _lastUserId = 0;
   String? _avatarUrl;
+  int _unreadCount = 0;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
   int _selectedTab = 0;
@@ -458,12 +459,16 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final type = message.data['type'] ?? '';
       final url  = message.data['url']  ?? '';
-      if (type == 'nuevo_anuncio' && url.isNotEmpty && _controller != null) {
+      if ((type == 'nuevo_anuncio' || type == 'nuevo_mensaje') && url.isNotEmpty && _controller != null) {
         _showInAppNotificationBanner(
-          title: message.notification?.title ?? '¡Nuevo anuncio!',
+          title: message.notification?.title ?? (type == 'nuevo_mensaje' ? 'Nuevo mensaje' : '¡Nuevo anuncio!'),
           body:  message.notification?.body  ?? '',
           onTap: () => _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url))),
         );
+      }
+      // Refrescar contador si llega un mensaje
+      if (type == 'nuevo_mensaje' && _lastUserId > 0) {
+        _fetchUnreadCount(_lastUserId);
       }
     });
 
@@ -529,7 +534,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         await _removeTokenFromServer(_lastUserId, _fcmToken!);
         await FirebaseMessaging.instance.deleteToken();
         _fcmToken = null; _lastUserId = 0;
-        if (mounted) setState(() => _avatarUrl = null);
+        if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; });
         return;
       }
       if (userId > 0 && userId != _lastUserId) {
@@ -538,6 +543,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         _lastUserId = userId;
         await _sendTokenViaHttp(userId, _fcmToken!);
         await _fetchUserAvatar(userId);
+      }
+      // Actualizar contador de mensajes si está logueado
+      if (_lastUserId > 0) {
+        await _fetchUnreadCount(_lastUserId);
+      }
+    } catch (e) {}
+  }
+
+  Future<void> _fetchUnreadCount(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/unread-count?user_id=$userId"),
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final count = data['unread_count'] as int? ?? 0;
+        if (mounted && count != _unreadCount) {
+          setState(() => _unreadCount = count);
+        }
       }
     } catch (e) {}
   }
@@ -844,6 +868,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       );
     }
 
+    // Tab Mensajes con badge
+    final bool isMensajes = index == 3;
     return Expanded(
       child: GestureDetector(
         onTap: () => _onTabTapped(index),
@@ -851,10 +877,39 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: selected ? const Color(0xFF15418A) : Colors.grey,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: selected ? const Color(0xFF15418A) : Colors.grey,
+                ),
+                if (isMensajes && _unreadCount > 0)
+                  Positioned(
+                    top: -6,
+                    right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF3B30),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        _unreadCount > 99 ? '99+' : '$_unreadCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          height: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 3),
             Text(
