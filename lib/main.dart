@@ -1111,7 +1111,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       ),
       builder: (sheetContext) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1126,7 +1126,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Título con emoji
               Row(
@@ -1146,13 +1146,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 '¿Qué quieres ver?',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Colors.grey[600]),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Opción 1: Buscadores
               _opcionSelectorTipo(
@@ -1165,7 +1165,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   _navegarACategoria(cat.buscadorSlug!);
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
 
               // Opción 2: Propietarios
               _opcionSelectorTipo(
@@ -1180,7 +1180,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               ),
 
               // Separador
-              const SizedBox(height: 22),
+              const SizedBox(height: 28),
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
@@ -1198,88 +1198,24 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
 
-              // Botón Publicar en esta categoría
-              _botonPublicarCategoria(
-                cat: cat,
+              // Botón Publicar - mismo patrón que las opciones de arriba
+              _opcionSelectorTipo(
+                icon: Icons.add_rounded,
+                title: 'Publicar mi anuncio',
+                subtitle: cat.label,
+                color: const Color(0xFF15418A),
                 onTap: () {
                   if (cat.propietarioSlug == null) return;
+                  Navigator.pop(sheetContext);
                   if (_lastUserId == 0) {
-                    Navigator.pop(sheetContext);
                     Future.delayed(const Duration(milliseconds: 150), _triggerLoginModal);
                     return;
                   }
-                  Navigator.pop(sheetContext);
                   _navegarAPublicarProvincia();
                 },
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _botonPublicarCategoria({
-    required CategoriaUnificada cat,
-    required VoidCallback onTap,
-  }) {
-    final disabled = cat.propietarioSlug == null;
-    return Material(
-      color: const Color(0xFF15418A),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: disabled ? null : onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: disabled
-                ? null
-                : const LinearGradient(
-                    colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            color: disabled ? Colors.grey[400] : null,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      disabled ? 'No disponible' : 'Publicar mi anuncio',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      cat.label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
             ],
           ),
         ),
