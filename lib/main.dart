@@ -377,19 +377,19 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   void _triggerLoginModal() {
     _controller?.evaluateJavascript(source: """
       (function() {
-        // Mostrar directamente el modal de login del footer
-        var modal = document.getElementById('footer-login-modal');
-        if (modal) {
-          modal.style.display = 'flex';
-          return;
-        }
-        // Fallback 1: funciones globales si llegaran a existir
+        // Modal global del header (el correcto: Google + Apple + email)
         if (typeof window.abrirGlobalLoginModal === 'function') {
           window.abrirGlobalLoginModal();
           return;
         }
         if (typeof window.openLoginModal === 'function') {
           window.openLoginModal();
+          return;
+        }
+        // Fallback 1: modal del footer
+        var modal = document.getElementById('footer-login-modal');
+        if (modal) {
+          modal.style.display = 'flex';
           return;
         }
         // Fallback 2: click en el botón aunque esté oculto
