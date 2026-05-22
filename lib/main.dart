@@ -1211,6 +1211,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   if (cat.propietarioSlug == null) return;
                   Navigator.pop(sheetContext);
                   if (_lastUserId == 0) {
+                    // Cerrar también el drawer y luego abrir login
+                    Navigator.of(context).pop();
                     Future.delayed(const Duration(milliseconds: 150), _triggerLoginModal);
                     return;
                   }
