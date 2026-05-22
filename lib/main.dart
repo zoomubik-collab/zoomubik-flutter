@@ -243,6 +243,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
   int _lastUserId = 0;
+  String? _avatarUrl;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
   int _selectedTab = 0;
@@ -509,6 +510,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         await _removeTokenFromServer(_lastUserId, _fcmToken!);
         await FirebaseMessaging.instance.deleteToken();
         _fcmToken = null; _lastUserId = 0;
+        if (mounted) setState(() => _avatarUrl = null);
         return;
       }
       if (userId > 0 && userId != _lastUserId) {
@@ -516,6 +518,22 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         if (_fcmToken == null) return;
         _lastUserId = userId;
         await _sendTokenViaHttp(userId, _fcmToken!);
+        await _fetchUserAvatar(userId);
+      }
+    } catch (e) {}
+  }
+
+  Future<void> _fetchUserAvatar(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/user-avatar?user_id=$userId"),
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final url = data['avatar_url'] as String?;
+        if (url != null && url.isNotEmpty && mounted) {
+          setState(() => _avatarUrl = url);
+        }
       }
     } catch (e) {}
   }
@@ -595,9 +613,73 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
         `;
         document.head.appendChild(style);
-        // Por si ya estaba renderizado, ocultarlo directamente
         var sticky = document.querySelector('.mobile-footer-sticky');
         if (sticky) { sticky.style.display = 'none'; sticky.style.visibility = 'hidden'; }
+      })();
+    """);
+
+    // Preselección de categoría en el wizard de provincia
+    await controller.evaluateJavascript(source: """
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var cat = params.get('categoria_preseleccionada');
+        if (!cat) return;
+
+        // Determinar modo según el slug
+        var esBuscador = cat.indexOf('desean-') === 0;
+        var modo = esBuscador ? 'buscador' : 'propietario';
+
+        function activarModoYCategoria() {
+          // 1. Activar el modo (buscador o propietario)
+          var btnModo = document.getElementById('btn-modo-' + modo);
+          if (!btnModo) return false;
+          if (typeof zmActivarModo === 'function') {
+            zmActivarModo(modo);
+          } else {
+            btnModo.click();
+          }
+
+          // 2. Esperar a que aparezcan los botones de categoría y clicar el correcto
+          var intentos = 0;
+          var maxIntentos = 20;
+          var iv = setInterval(function() {
+            intentos++;
+            var btnCat = document.querySelector('[data-category="' + cat + '"]');
+            if (btnCat) {
+              clearInterval(iv);
+              // Simular pointerdown para activar la categoría
+              try {
+                btnCat.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, cancelable: true}));
+              } catch(e) {
+                btnCat.click();
+              }
+              // Hacer scroll a la categoría seleccionada
+              setTimeout(function() {
+                btnCat.scrollIntoView({behavior: 'smooth', block: 'center'});
+              }, 300);
+              // Limpiar el param de la URL para no repetir si recarga
+              try {
+                var cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+              } catch(e) {}
+            } else if (intentos >= maxIntentos) {
+              clearInterval(iv);
+            }
+          }, 200);
+          return true;
+        }
+
+        // Esperar a que el wizard esté listo
+        var intentosWizard = 0;
+        var ivWizard = setInterval(function() {
+          intentosWizard++;
+          if (document.getElementById('btn-modo-' + modo)) {
+            clearInterval(ivWizard);
+            activarModoYCategoria();
+          } else if (intentosWizard >= 30) {
+            clearInterval(ivWizard);
+          }
+        }, 250);
       })();
     """);
   }
@@ -751,6 +833,52 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Widget _navItem({required int index, required IconData icon, required String label}) {
     final bool selected = _selectedTab == index;
+    // Caso especial: tab Cuenta con avatar si está logueado
+    if (index == 4 && _avatarUrl != null && _lastUserId > 0) {
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => _onTabTapped(index),
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? const Color(0xFF15418A) : Colors.grey.withOpacity(0.4),
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: Image.network(
+                    _avatarUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.person_rounded,
+                      size: 18,
+                      color: selected ? const Color(0xFF15418A) : Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? const Color(0xFF15418A) : Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Expanded(
       child: GestureDetector(
         onTap: () => _onTabTapped(index),
@@ -1095,7 +1223,133 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   _navegarACategoria(cat.propietarioSlug!);
                 },
               ),
+
+              // Separador
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      '¿Y si quieres publicar?',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Botón Publicar en esta categoría
+              _botonPublicarCategoria(
+                cat: cat,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  if (cat.propietarioSlug == null) return;
+                  // Si no está logueado, mostrar login modal
+                  if (_lastUserId == 0) {
+                    _triggerLoginModal();
+                    return;
+                  }
+                  // Navegar directamente al wizard de la provincia del usuario
+                  // con la categoría preseleccionada (saltamos el modal de provincia)
+                  final url = 'https://zoomubik.com/provincias/$_provinciaSeleccionada/?categoria_preseleccionada=${cat.propietarioSlug}';
+                  _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+                  setState(() => _selectedTab = 2);
+                },
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _botonPublicarCategoria({
+    required CategoriaUnificada cat,
+    required VoidCallback onTap,
+  }) {
+    final disabled = cat.propietarioSlug == null;
+    return Material(
+      color: disabled ? Colors.grey[200] : null,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: disabled ? null : onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: disabled
+                ? null
+                : const LinearGradient(
+                    colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: disabled
+                ? null
+                : [
+                    BoxShadow(
+                      color: const Color(0xFF15418A).withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(disabled ? 0.4 : 0.18),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: disabled ? Colors.grey[500] : Colors.white,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        disabled ? 'No disponible' : 'Publicar mi anuncio',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: disabled ? Colors.grey[600] : Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        cat.label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: disabled
+                              ? Colors.grey[500]
+                              : Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  color: disabled ? Colors.grey[500] : Colors.white,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),
