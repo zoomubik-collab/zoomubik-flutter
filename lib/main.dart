@@ -713,13 +713,23 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
                       child: Container(
-                        width: 40, height: 40,
+                        width: 42, height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95), shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
-                          border: Border.all(color: const Color(0xFF3BA1DA).withOpacity(0.4), width: 1),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF3BA1DA), Color(0xFF15418A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF15418A).withOpacity(0.35),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.menu_rounded, size: 21, color: Color(0xFF15418A)),
+                        child: const Icon(Icons.menu_rounded, size: 24, color: Colors.white),
                       ),
                     ),
                   ),
@@ -1215,13 +1225,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }) {
     final disabled = cat.propietarioSlug == null;
     return Material(
-      color: Colors.transparent,
+      color: disabled ? Colors.grey[200] : const Color(0xFF15418A),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: disabled ? null : onTap,
-        child: Container(
+        child: Ink(
           decoration: BoxDecoration(
-            color: disabled ? Colors.grey[200] : null,
             gradient: disabled
                 ? null
                 : const LinearGradient(
@@ -1230,15 +1240,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     end: Alignment.bottomRight,
                   ),
             borderRadius: BorderRadius.circular(14),
-            boxShadow: disabled
-                ? null
-                : [
-                    BoxShadow(
-                      color: const Color(0xFF15418A).withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
