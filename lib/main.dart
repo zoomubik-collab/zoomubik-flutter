@@ -7,6 +7,7 @@ import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
 import "dart:convert";
+import "dart:io" show Platform;
 import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
@@ -645,6 +646,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   Future<void> _hideAppBanners(InAppWebViewController controller) async {
+    // En Android ocultamos el botón de Sign in with Apple (no disponible en Android)
+    final appleHide = Platform.isAndroid
+        ? "a[href*='appleid.apple.com'] { display: none !important; }"
+        : "";
+
     await controller.evaluateJavascript(source: """
       (function() {
         var style = document.createElement('style');
@@ -655,6 +661,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           .header-search-wrap { padding-right: 52px !important; }
           .mobile-footer-sticky { display: none !important; visibility: hidden !important; }
           #ast-scroll-top, body #ast-scroll-top.ast-scroll-top { bottom: 8px !important; right: 12px !important; }
+          $appleHide
         `;
         document.head.appendChild(style);
         var sticky = document.querySelector('.mobile-footer-sticky');
@@ -1266,7 +1273,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 18),
 
-              // Botón Publicar - mismo patrón que las opciones de arriba
+              // Botón Publicar
               _opcionSelectorTipo(
                 icon: Icons.add_rounded,
                 title: 'Publicar mi anuncio',
@@ -1276,7 +1283,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   if (cat.propietarioSlug == null) return;
                   Navigator.pop(sheetContext);
                   if (_lastUserId == 0) {
-                    // Marcar para que el listener del drawer NO recargue el WebView
                     _navigatedFromDrawer = true;
                     Navigator.of(context).pop();
                     Future.delayed(const Duration(milliseconds: 350), _triggerLoginModal);
