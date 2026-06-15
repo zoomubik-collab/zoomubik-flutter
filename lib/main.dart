@@ -1081,62 +1081,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _navItemNotif() {
-    final bool selected = _selectedTab == 5;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() { _selectedTab = 5; _notifCount = 0; });
-          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com/notificaciones/")));
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  size: 24,
-                  color: selected ? const Color(0xFF15418A) : Colors.grey,
-                ),
-                if (_notifCount > 0)
-                  Positioned(
-                    top: -6,
-                    right: -10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF3B30),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                      child: Text(
-                        _notifCount > 99 ? '99+' : '$_notifCount',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.1),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 3),
-            Text(
-              'Avisos',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                color: selected ? const Color(0xFF15418A) : Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _navItemPublicar() {
     return Expanded(
       child: GestureDetector(
