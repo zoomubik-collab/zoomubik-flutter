@@ -75,7 +75,6 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
-
   android-workflow:
     name: Android Build (Flutter)
     instance_type: linux_x2
@@ -104,7 +103,7 @@ workflows:
           echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/app/upload-keystore.jks
       - name: Build Android AAB
         script: |
-          flutter build appbundle --release
+          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000))
           find / -name "*.aab" 2>/dev/null || true
     artifacts:
       - android/app/build/outputs/bundle/release/*.aab
