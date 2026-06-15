@@ -902,30 +902,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                 ),
 
-                // Rueda de carga mientras carga la página
+                // Rueda de carga moderna (solo el círculo, sobre la web)
                 if (_isLoading)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.white.withOpacity(0.6),
-                      child: const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3BA1DA)),
-                              ),
-                            ),
-                            SizedBox(height: 14),
-                            Text(
-                              'Cargando…',
-                              style: TextStyle(color: Color(0xFF15418A), fontSize: 14, fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      child: Center(
+                        child: _ModernSpinner(),
                       ),
                     ),
                   ),
@@ -1591,4 +1573,87 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+// ── Spinner moderno: arco con degradado y cola que se desvanece ──────────────
+class _ModernSpinner extends StatefulWidget {
+  final double size;
+  final double strokeWidth;
+  const _ModernSpinner({this.size = 46, this.strokeWidth = 4});
+
+  @override
+  State<_ModernSpinner> createState() => _ModernSpinnerState();
+}
+
+class _ModernSpinnerState extends State<_ModernSpinner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: RotationTransition(
+        turns: _c,
+        child: CustomPaint(
+          painter: _SpinnerPainter(strokeWidth: widget.strokeWidth),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpinnerPainter extends CustomPainter {
+  final double strokeWidth;
+  _SpinnerPainter({required this.strokeWidth});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final center = rect.center;
+    final radius = (size.shortestSide - strokeWidth) / 2;
+
+    const gradient = SweepGradient(
+      colors: [
+        Color(0x003BA1DA), // transparente (cola)
+        Color(0xFF3BA1DA), // azul claro
+        Color(0xFF15418A), // azul oscuro (cabeza)
+      ],
+      stops: [0.0, 0.7, 1.0],
+    );
+
+    final paint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Arco de ~300° (deja un hueco que crea el efecto de giro)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0.0,
+      5.2359877, // ~300 grados en radianes
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpinnerPainter oldDelegate) => false;
 }
