@@ -266,7 +266,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       onRefresh: () async => await _controller?.reload(),
     );
     _loadOrDetectProvincia();
-    _restoreCookies();
     _initPushNotifications();
   }
 
@@ -736,6 +735,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         domain: c["domain"] ?? ".zoomubik.com",
         isHttpOnly: c["isHttpOnly"] ?? false,
         isSecure: c["isSecure"] ?? false,
+        expiresDate: c["expiresDate"],
       );
     }
   }
@@ -743,8 +743,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   Future<void> _saveCookies() async {
     final cookies = await CookieManager.instance().getCookies(url: WebUri("https://zoomubik.com"));
     if (cookies.isEmpty) return;
+    // Solo guardamos si hay sesión iniciada, para no machacar las cookies buenas con unas de "deslogueado".
+    final loggedIn = cookies.any((c) => c.name.startsWith("wordpress_logged_in"));
+    if (!loggedIn) return;
     final prefs = await SharedPreferences.getInstance();
-    final data = cookies.map((c) => {"name": c.name, "value": c.value, "domain": c.domain, "isHttpOnly": c.isHttpOnly, "isSecure": c.isSecure}).toList();
+    final data = cookies.map((c) => {
+      "name": c.name, "value": c.value, "domain": c.domain,
+      "isHttpOnly": c.isHttpOnly, "isSecure": c.isSecure,
+      "expiresDate": c.expiresDate,
+    }).toList();
     await prefs.setString("wp_cookies", jsonEncode(data));
   }
 
@@ -811,7 +818,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
             child: Stack(
               children: [
                 InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri("https://zoomubik.com")),
+                  initialUrlRequest: URLRequest(url: WebUri("about:blank")),
                   pullToRefreshController: _pullToRefreshController,
                   // Inyección CSS al inicio para evitar parpadeo del footer web
                   initialUserScripts: UnmodifiableListView([
@@ -832,8 +839,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     cacheEnabled: true, useHybridComposition: true, hardwareAcceleration: true,
                     userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
                   ),
-                  onWebViewCreated: (controller) => _controller = controller,
+                  onWebViewCreated: (controller) async {
+                    _controller = controller;
+                    await _restoreCookies();
+                    await controller.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com")));
+                  },
                   onLoadStop: (controller, url) async {
+                    if (url != null && url.toString() == "about:blank") return;
                     _pullToRefreshController?.endRefreshing();
                     if (url != null) {
                       setState(() { _currentUrl = url.toString(); _isLoading = false; _selectedTab = _tabFromUrl(url.toString()); });
@@ -922,7 +934,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               _navItem(index: 1, icon: Icons.favorite_rounded, label: 'Favoritos'),
               _navItemPublicar(),
               _navItem(index: 3, icon: Icons.chat_bubble_outline_rounded, label: 'Mensajes'),
-              _navItemNotif(),
               _navItem(index: 4, icon: Icons.person_outline_rounded, label: 'Cuenta'),
             ],
           ),
@@ -1031,50 +1042,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 color: selected ? const Color(0xFF15418A) : Colors.grey,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _navItemNotif() {
-    final bool selected = _selectedTab == 5;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() { _selectedTab = 5; _notifCount = 0; });
-          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com/notificaciones/")));
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(Icons.notifications_none_rounded, size: 24, color: selected ? const Color(0xFF15418A) : Colors.grey),
-                if (_notifCount > 0)
-                  Positioned(
-                    top: -6, right: -10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF3B30),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                      child: Text(
-                        _notifCount > 99 ? '99+' : '$_notifCount',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.1),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 3),
-            Text('Avisos', style: TextStyle(fontSize: 10, fontWeight: selected ? FontWeight.w600 : FontWeight.normal, color: selected ? const Color(0xFF15418A) : Colors.grey)),
           ],
         ),
       ),
