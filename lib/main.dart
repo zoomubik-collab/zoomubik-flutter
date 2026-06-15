@@ -246,6 +246,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
   int _lastUserId = 0;
+  int _zeroStrikes = 0;
   String? _avatarUrl;
   int _unreadCount = 0;
   int _notifCount = 0;
@@ -343,11 +344,23 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   // ==================== TAB BAR ====================
 
-  void _onTabTapped(int index) {
-    // Si no está logueado, todos los tabs (menos Inicio) requieren login
+  Future<void> _onTabTapped(int index) async {
+    // Tabs que requieren login (todos menos Inicio y Publicar).
     if (_lastUserId == 0 && index != 0 && index != 2) {
-      _triggerLoginModal();
-      return;
+      // Reconfirmar antes de bloquear: la comprobación de fondo pudo no haber corrido aún
+      // o haber fallado por red. Solo bloqueamos si el servidor confirma que NO hay sesión.
+      final uid = await _getUserIdViaAjax();
+      if (uid != null && uid > 0) {
+        _lastUserId = uid;
+        _zeroStrikes = 0;
+        _fetchUserAvatar(uid);
+        if (mounted) setState(() {});
+        // Hay sesión: seguimos sin bloquear.
+      } else if (uid == 0) {
+        _triggerLoginModal();
+        return;
+      }
+      // uid == null (no se pudo comprobar): dejamos pasar; la web mostrará login si hiciera falta.
     }
     if (index == 2) {
       // Publicar: llamar a la función JS abrirModalProvincias(), o navegar si no existe
@@ -608,21 +621,33 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     try {
       final userId = await _getUserIdViaAjax();
 
-      // Logout detectado
-      if (userId == 0 && _lastUserId > 0) {
-        final oldId = _lastUserId;
-        _lastUserId = 0;
-        if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
-        if (_fcmToken != null) {
-          await _removeTokenFromServer(oldId, _fcmToken!);
-          await FirebaseMessaging.instance.deleteToken();
-          _fcmToken = null;
+      // Comprobación no concluyente (timeout/red): mantener el estado actual, NO desloguear.
+      if (userId == null) return;
+
+      // Logout: solo si el servidor confirma 0, y exigiendo 2 veces seguidas
+      // para no echar al usuario por un fallo puntual.
+      if (userId == 0) {
+        if (_lastUserId > 0) {
+          _zeroStrikes++;
+          if (_zeroStrikes < 2) return;
+          final oldId = _lastUserId;
+          _lastUserId = 0;
+          _zeroStrikes = 0;
+          if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+          if (_fcmToken != null) {
+            await _removeTokenFromServer(oldId, _fcmToken!);
+            await FirebaseMessaging.instance.deleteToken();
+            _fcmToken = null;
+          }
         }
         return;
       }
 
+      // userId > 0 → logueado: reseteamos el contador de ceros.
+      _zeroStrikes = 0;
+
       // Login nuevo o cambio de usuario → avatar y contadores YA, sin esperar al token
-      if (userId > 0 && userId != _lastUserId) {
+      if (userId != _lastUserId) {
         _lastUserId = userId;
         _fetchUserAvatar(userId);   // sin await: aparece en cuanto responde
       }
@@ -693,20 +718,26 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     } catch (e) {}
   }
 
-  Future<int> _getUserIdViaAjax() async {
+  // Devuelve: >0 logueado, 0 confirmado deslogueado, null = no se pudo comprobar (timeout/red).
+  Future<int?> _getUserIdViaAjax() async {
     try {
       final cookieHeader = await _getCookieHeader();
+      if (cookieHeader.isEmpty) return null; // sin cookies disponibles aún: no concluimos nada
       final response = await http.post(
-        Uri.parse("https://www.zoomubik.com/wp-admin/admin-ajax.php"),
+        // Mismo host que la cookie (sin www) para que la cookie viaje de verdad.
+        Uri.parse("https://zoomubik.com/wp-admin/admin-ajax.php"),
         headers: {"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookieHeader},
         body: {"action": "get_current_user_id"},
-      ).timeout(const Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data["data"]?["user_id"] ?? 0;
-      }
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return null; // fallo de servidor: desconocido
+      final data = jsonDecode(response.body);
+      final uid = data["data"]?["user_id"];
+      if (uid is int) return uid;
+      if (uid is String) return int.tryParse(uid) ?? 0;
       return 0;
-    } catch (e) { return 0; }
+    } catch (e) {
+      return null; // timeout/excepción: desconocido, NO es logout
+    }
   }
 
   Future<String> _getCookieHeader() async {
@@ -844,6 +875,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     await _restoreCookies();
                     await controller.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com")));
                   },
+                  onLoadStart: (controller, url) {
+                    if (url != null && url.toString() == "about:blank") return;
+                    if (mounted) setState(() => _isLoading = true);
+                    // Seguridad: si por lo que sea no llega onLoadStop, ocultamos la rueda a los 15s.
+                    Future.delayed(const Duration(seconds: 15), () {
+                      if (mounted && _isLoading) setState(() => _isLoading = false);
+                    });
+                  },
                   onLoadStop: (controller, url) async {
                     if (url != null && url.toString() == "about:blank") return;
                     _pullToRefreshController?.endRefreshing();
@@ -862,6 +901,34 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     }
                   },
                 ),
+
+                // Rueda de carga mientras carga la página
+                if (_isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white.withOpacity(0.6),
+                      child: const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3BA1DA)),
+                              ),
+                            ),
+                            SizedBox(height: 14),
+                            Text(
+                              'Cargando…',
+                              style: TextStyle(color: Color(0xFF15418A), fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Botón hamburguesa
                 if (!_isLoading)
