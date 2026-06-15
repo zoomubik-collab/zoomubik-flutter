@@ -221,6 +221,7 @@ int _tabFromUrl(String url) {
   if (url.contains('/mis-favoritos')) return 1;
   if (url.contains('abrir_publicar')) return 2;
   if (url.contains('/mensajes-privados')) return 3;
+  if (url.contains('/notificaciones')) return 5;
   if (url.contains('/account') || url.contains('/mis-anuncios') || url.contains('/mi-avatar')) return 4;
   return 0;
 }
@@ -247,6 +248,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _lastUserId = 0;
   String? _avatarUrl;
   int _unreadCount = 0;
+  int _notifCount = 0;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
   int _selectedTab = 0;
@@ -344,7 +346,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   void _onTabTapped(int index) {
     // Si no está logueado, todos los tabs (menos Inicio) requieren login
-    if (_lastUserId == 0 && index != 0) {
+    if (_lastUserId == 0 && index != 0 && index != 2) {
       _triggerLoginModal();
       return;
     }
@@ -406,45 +408,119 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   void _showCuentaSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            _cuentaTile(icon: Icons.manage_accounts_rounded, label: 'Mi cuenta', onTap: () {
-              Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
-            }),
-            _cuentaTile(icon: Icons.list_alt_rounded, label: 'Mis anuncios', onTap: () {
-              Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mis-anuncios/');
-            }),
-            _cuentaTile(icon: Icons.photo_camera_rounded, label: 'Mi foto', onTap: () {
-              Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-avatar/');
-            }),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _cuentaTile(
-              icon: Icons.logout_rounded, label: 'Cerrar sesión', color: Colors.red,
-              onTap: () {
-                Navigator.pop(context);
-                _navigateTo('https://zoomubik.com/logout/');
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              Container(width: 44, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(3))),
+              const SizedBox(height: 18),
+              // Cabecera con avatar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2.5),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(colors: [Color(0xFF3BA1DA), Color(0xFF15418A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                      ),
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.white,
+                        backgroundImage: (_avatarUrl != null && _avatarUrl!.isNotEmpty) ? NetworkImage(_avatarUrl!) : null,
+                        child: (_avatarUrl == null || _avatarUrl!.isEmpty) ? const Icon(Icons.person_rounded, color: Color(0xFF15418A), size: 30) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Mi cuenta', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Color(0xFF15418A))),
+                        SizedBox(height: 2),
+                        Text('Gestiona tu perfil y anuncios', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    _cuentaOpcion(icon: Icons.manage_accounts_rounded, color: const Color(0xFF3BA1DA), title: 'Mi cuenta', subtitle: 'Datos y ajustes', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
+                    }),
+                    _cuentaOpcion(icon: Icons.list_alt_rounded, color: const Color(0xFF15418A), title: 'Mis anuncios', subtitle: 'Gestiona tus publicaciones', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mis-anuncios/');
+                    }),
+                    _cuentaOpcion(icon: Icons.photo_camera_rounded, color: const Color(0xFF7C5CFF), title: 'Mi foto', subtitle: 'Cambia tu avatar', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-avatar/');
+                    }),
+                    _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', onTap: () {
+                      Navigator.pop(context); setState(() { _selectedTab = 5; _notifCount = 0; }); _navigateTo('https://zoomubik.com/notificaciones/');
+                    }),
+                    const SizedBox(height: 6),
+                    _cuentaOpcion(icon: Icons.logout_rounded, color: const Color(0xFFFF3B30), title: 'Cerrar sesión', danger: true, onTap: () {
+                      Navigator.pop(context); _navigateTo('https://zoomubik.com/logout/');
+                    }),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _cuentaTile({required IconData icon, required String label, required VoidCallback onTap, Color? color}) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? const Color(0xFF15418A)),
-      title: Text(label, style: TextStyle(color: color ?? const Color(0xFF15418A), fontWeight: FontWeight.w500)),
-      trailing: Icon(Icons.chevron_right, color: color ?? const Color(0xFF3BA1DA)),
-      onTap: onTap,
+  Widget _cuentaOpcion({required IconData icon, required Color color, required String title, String? subtitle, required VoidCallback onTap, bool danger = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: danger ? const Color(0xFFFF3B30) : const Color(0xFF1A2942))),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(subtitle, style: TextStyle(fontSize: 12.5, color: Colors.grey[500])),
+                      ],
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: danger ? const Color(0xFFFF3B30) : Colors.grey[400]),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -470,6 +546,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       // Refrescar contador si llega un mensaje
       if (type == 'nuevo_mensaje' && _lastUserId > 0) {
         _fetchUnreadCount(_lastUserId);
+      }
+      if (_lastUserId > 0) {
+        _fetchNotifCount(_lastUserId);
       }
     });
 
@@ -527,27 +606,36 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   Future<void> _checkAndSendToken() async {
-    if (_fcmToken == null) _fcmToken = await FirebaseMessaging.instance.getToken();
-    if (_fcmToken == null) return;
     try {
       final userId = await _getUserIdViaAjax();
+
+      // Logout detectado
       if (userId == 0 && _lastUserId > 0) {
-        await _removeTokenFromServer(_lastUserId, _fcmToken!);
-        await FirebaseMessaging.instance.deleteToken();
-        _fcmToken = null; _lastUserId = 0;
-        if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; });
+        final oldId = _lastUserId;
+        _lastUserId = 0;
+        if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+        if (_fcmToken != null) {
+          await _removeTokenFromServer(oldId, _fcmToken!);
+          await FirebaseMessaging.instance.deleteToken();
+          _fcmToken = null;
+        }
         return;
       }
+
+      // Login nuevo o cambio de usuario → avatar y contadores YA, sin esperar al token
       if (userId > 0 && userId != _lastUserId) {
-        _fcmToken ??= await FirebaseMessaging.instance.getToken();
-        if (_fcmToken == null) return;
         _lastUserId = userId;
-        await _sendTokenViaHttp(userId, _fcmToken!);
-        await _fetchUserAvatar(userId);
+        _fetchUserAvatar(userId);   // sin await: aparece en cuanto responde
       }
-      // Actualizar contador de mensajes si está logueado
       if (_lastUserId > 0) {
-        await _fetchUnreadCount(_lastUserId);
+        _fetchUnreadCount(_lastUserId);
+        _fetchNotifCount(_lastUserId);
+      }
+
+      // El token FCM se gestiona en segundo plano, sin bloquear nada visual
+      if (_lastUserId > 0) {
+        _fcmToken ??= await FirebaseMessaging.instance.getToken();
+        if (_fcmToken != null) { _sendTokenViaHttp(_lastUserId, _fcmToken!); }
       }
     } catch (e) {}
   }
@@ -562,6 +650,21 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         final count = data['unread_count'] as int? ?? 0;
         if (mounted && count != _unreadCount) {
           setState(() => _unreadCount = count);
+        }
+      }
+    } catch (e) {}
+  }
+
+  Future<void> _fetchNotifCount(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/notif-unread-count?user_id=$userId"),
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final count = data['notif_unread'] as int? ?? 0;
+        if (mounted && count != _notifCount) {
+          setState(() => _notifCount = count);
         }
       }
     } catch (e) {}
@@ -737,7 +840,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     }
                     await _saveCookies();
                     await _hideAppBanners(controller);
-                    await Future.delayed(const Duration(seconds: 2));
+                    await Future.delayed(const Duration(milliseconds: 400));
                     await _checkAndSendToken();
                     _monitorUserChanges();
                   },
@@ -819,6 +922,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               _navItem(index: 1, icon: Icons.favorite_rounded, label: 'Favoritos'),
               _navItemPublicar(),
               _navItem(index: 3, icon: Icons.chat_bubble_outline_rounded, label: 'Mensajes'),
+              _navItemNotif(),
               _navItem(index: 4, icon: Icons.person_outline_rounded, label: 'Cuenta'),
             ],
           ),
@@ -933,6 +1037,106 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
+  Widget _navItemNotif() {
+    final bool selected = _selectedTab == 5;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() { _selectedTab = 5; _notifCount = 0; });
+          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com/notificaciones/")));
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(Icons.notifications_none_rounded, size: 24, color: selected ? const Color(0xFF15418A) : Colors.grey),
+                if (_notifCount > 0)
+                  Positioned(
+                    top: -6, right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF3B30),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        _notifCount > 99 ? '99+' : '$_notifCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.1),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text('Avisos', style: TextStyle(fontSize: 10, fontWeight: selected ? FontWeight.w600 : FontWeight.normal, color: selected ? const Color(0xFF15418A) : Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItemNotif() {
+    final bool selected = _selectedTab == 5;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() { _selectedTab = 5; _notifCount = 0; });
+          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com/notificaciones/")));
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  Icons.notifications_none_rounded,
+                  size: 24,
+                  color: selected ? const Color(0xFF15418A) : Colors.grey,
+                ),
+                if (_notifCount > 0)
+                  Positioned(
+                    top: -6,
+                    right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF3B30),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        _notifCount > 99 ? '99+' : '$_notifCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.1),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              'Avisos',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? const Color(0xFF15418A) : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _navItemPublicar() {
     return Expanded(
       child: GestureDetector(
@@ -1021,6 +1225,59 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         child: const Icon(Icons.close, color: Colors.white, size: 20),
                       ),
                     ),
+                  ],
+                ),
+              ),
+
+              // Acciones rápidas: Publicar (siempre) + Iniciar sesión (si no logueado)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          _navigatedFromDrawer = true;
+                          Navigator.of(context).pop();
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            _controller?.evaluateJavascript(source: "if(typeof abrirModalProvincias==='function'){abrirModalProvincias();}else{window.location.href='https://zoomubik.com/?abrir_publicar=1';}");
+                          });
+                        },
+                        icon: const Icon(Icons.add_rounded, size: 20),
+                        label: const Text('Publicar anuncio'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF15418A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    if (_lastUserId == 0) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            _navigatedFromDrawer = true;
+                            Navigator.of(context).pop();
+                            Future.delayed(const Duration(milliseconds: 300), _triggerLoginModal);
+                          },
+                          icon: const Icon(Icons.login_rounded, size: 20),
+                          label: const Text('Iniciar sesión'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF15418A),
+                            side: const BorderSide(color: Color(0xFF15418A), width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
