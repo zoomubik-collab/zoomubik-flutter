@@ -478,7 +478,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     _cuentaOpcion(icon: Icons.photo_camera_rounded, color: const Color(0xFF7C5CFF), title: 'Mi foto', subtitle: 'Cambia tu avatar', onTap: () {
                       Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-avatar/');
                     }),
-                    _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', onTap: () {
+                    _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', badge: _notifCount, onTap: () {
                       Navigator.pop(context); setState(() { _selectedTab = 5; _notifCount = 0; }); _navigateTo('https://zoomubik.com/notificaciones/');
                     }),
                     const SizedBox(height: 6),
@@ -496,7 +496,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _cuentaOpcion({required IconData icon, required Color color, required String title, String? subtitle, required VoidCallback onTap, bool danger = false}) {
+  Widget _cuentaOpcion({required IconData icon, required Color color, required String title, String? subtitle, required VoidCallback onTap, bool danger = false, int badge = 0}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -527,6 +527,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
+                if (badge > 0)
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFFFF3B30), borderRadius: BorderRadius.circular(12)),
+                    child: Text(badge > 99 ? '99+' : '$badge', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
                 Icon(Icons.chevron_right_rounded, color: danger ? const Color(0xFFFF3B30) : Colors.grey[400]),
               ],
             ),
@@ -977,6 +984,28 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
   }
 
+  // Badge rojo reutilizable para el contador
+  Widget _countBadge(int count) {
+    return Positioned(
+      top: -6,
+      right: -10,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF3B30),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white, width: 1.5),
+        ),
+        child: Text(
+          count > 99 ? '99+' : '$count',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1.1),
+        ),
+      ),
+    );
+  }
+
   Widget _navItem({required int index, required IconData icon, required String label}) {
     final bool selected = _selectedTab == index;
     // Caso especial: tab Cuenta con avatar si está logueado
@@ -988,27 +1017,33 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected ? const Color(0xFF15418A) : Colors.grey.withOpacity(0.4),
-                    width: 2,
-                  ),
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    _avatarUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.person_rounded,
-                      size: 18,
-                      color: selected ? const Color(0xFF15418A) : Colors.grey,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected ? const Color(0xFF15418A) : Colors.grey.withOpacity(0.4),
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Image.network(
+                        _avatarUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.person_rounded,
+                          size: 18,
+                          color: selected ? const Color(0xFF15418A) : Colors.grey,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  if (_notifCount > 0) _countBadge(_notifCount),
+                ],
               ),
               const SizedBox(height: 3),
               Text(
@@ -1042,30 +1077,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   size: 24,
                   color: selected ? const Color(0xFF15418A) : Colors.grey,
                 ),
-                if (isMensajes && _unreadCount > 0)
-                  Positioned(
-                    top: -6,
-                    right: -10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF3B30),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                      child: Text(
-                        _unreadCount > 99 ? '99+' : '$_unreadCount',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
+                if (isMensajes && _unreadCount > 0) _countBadge(_unreadCount),
+                if (index == 4 && _notifCount > 0) _countBadge(_notifCount),
               ],
             ),
             const SizedBox(height: 3),
