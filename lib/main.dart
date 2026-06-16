@@ -569,15 +569,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       if (url.isNotEmpty && _controller != null) _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
     });
 
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      final url = initialMessage.data['url'] ?? '';
-      if (url.isNotEmpty) {
-        Future.delayed(const Duration(seconds: 3), () {
-          _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-        });
-      }
-    }
+    // El destino de una notificación que abrió la app se gestiona en onWebViewCreated
+    // (carga directa, sin pasar por Inicio ni saltos).
   }
 
   void _showInAppNotificationBanner({required String title, required String body, required VoidCallback onTap}) {
@@ -873,7 +866,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   onWebViewCreated: (controller) async {
                     _controller = controller;
                     await _restoreCookies();
-                    await controller.loadUrl(urlRequest: URLRequest(url: WebUri("https://zoomubik.com")));
+                    // Si la app se abrió tocando una notificación, ir directo a su destino
+                    // (evita cargar Inicio y saltar después a la notificación).
+                    String startUrl = "https://zoomubik.com";
+                    try {
+                      final initial = await FirebaseMessaging.instance.getInitialMessage();
+                      final nurl = initial?.data['url'] ?? '';
+                      if (nurl is String && nurl.isNotEmpty) startUrl = nurl;
+                    } catch (_) {}
+                    await controller.loadUrl(urlRequest: URLRequest(url: WebUri(startUrl)));
                   },
                   onLoadStart: (controller, url) {
                     if (url != null && url.toString() == "about:blank") return;
@@ -938,21 +939,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         ),
                         child: const Icon(Icons.menu_rounded, size: 24, color: Colors.white),
                       ),
-                    ),
-                  ),
-
-                // Splash
-                if (_isLoading)
-                  AnimatedOpacity(
-                    opacity: _isLoading ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 400),
-                    child: Container(
-                      color: Colors.white,
-                      child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Image.asset('assets/logo.png', width: 160),
-                        const SizedBox(height: 24),
-                        const CircularProgressIndicator(color: Color(0xFF3BA1DA)),
-                      ])),
                     ),
                   ),
               ],
@@ -1631,11 +1617,11 @@ class _SpinnerPainter extends CustomPainter {
 
     const gradient = SweepGradient(
       colors: [
-        Color(0x003BA1DA), // transparente (cola)
         Color(0xFF3BA1DA), // azul claro
-        Color(0xFF15418A), // azul oscuro (cabeza)
+        Color(0xFF15418A), // azul oscuro
+        Color(0xFF3BA1DA), // azul claro
       ],
-      stops: [0.0, 0.7, 1.0],
+      stops: [0.0, 0.5, 1.0],
     );
 
     final paint = Paint()
