@@ -932,17 +932,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     _monitorUserChanges();
                   },
                   onReceivedError: (controller, request, error) {
-                    // Mostrar pantalla offline si es un error de red (sin internet)
-                    final errorCode = error.type.toString();
-                    final networkErrors = ['webKitErrorDomain', 'ERROR_HOST_LOOKUP',
-                      'ERROR_CONNECT', 'ERROR_TIMEOUT', 'ERROR_UNKNOWN',
-                      'webViewWebContentProcessTerminated'];
-                    final isNetworkError = networkErrors.any((e) => errorCode.contains(e))
-                      || error.type == WebResourceErrorType.HOST_LOOKUP
-                      || error.type == WebResourceErrorType.CONNECT
-                      || error.type == WebResourceErrorType.TIMEOUT
-                      || error.type == WebResourceErrorType.UNKNOWN;
-                    if (isNetworkError && mounted) {
+                    // Mostrar pantalla offline en errores del frame principal (sin internet,
+                    // host no encontrado, timeout, etc.). Errores de recursos secundarios
+                    // (imágenes, scripts) se ignoran — solo nos importa la página principal.
+                    if (request.isForMainFrame != true) return;
+                    if (mounted) {
                       setState(() { _isOffline = true; _isLoading = false; });
                       _pullToRefreshController?.endRefreshing();
                     }
