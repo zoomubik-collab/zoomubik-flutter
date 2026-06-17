@@ -756,6 +756,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   Future<String> _getCookieHeader() async {
+    // En Android, flush() fuerza la sincronización entre el almacén interno
+    // del WebView y el CookieManager de Flutter. Sin esto, las cookies escritas
+    // por el login AJAX tardan hasta 2 minutos en aparecer.
+    if (Platform.isAndroid) {
+      await CookieManager.instance().flush();
+    }
     final cookies = await CookieManager.instance().getCookies(url: WebUri("https://zoomubik.com"));
     return cookies.map((c) => "${c.name}=${c.value}").join("; ");
   }
