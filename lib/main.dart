@@ -872,6 +872,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     // Cookies de sesión en Android: necesario para que la cookie de login
                     // (incluida la que se crea por AJAX) se acepte y persista en el WebView.
                     thirdPartyCookiesEnabled: true,
+                    // Cookies de sesión en iOS: el WebView usa el almacén compartido en
+                    // tiempo real (login y avatar instantáneos, sin el retardo del método antiguo).
+                    sharedCookiesEnabled: true,
                   ),
                   onWebViewCreated: (controller) async {
                     _controller = controller;
