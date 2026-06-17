@@ -255,6 +255,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _selectedTab = 0;
 
   bool _monitorActive = false;
+  bool _isOffline = false;
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
 
@@ -756,17 +757,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   Future<String> _getCookieHeader() async {
-    // En Android, el CookieManager tarda en sincronizarse tras un login AJAX.
-    // Leemos las cookies directamente desde el WebView via JS, que las tiene
-    // disponibles al instante (sin esperar 2 minutos a la sincronización).
-    if (Platform.isAndroid && _controller != null) {
-      try {
-        final js = await _controller!.evaluateJavascript(source: 'document.cookie');
-        final jsStr = js?.toString().replaceAll('"', '') ?? '';
-        if (jsStr.isNotEmpty && jsStr.contains('wordpress_logged_in')) {
-          return jsStr;
-        }
-      } catch (_) {}
+    // En Android, flush() fuerza la sincronización entre el almacén interno
+    // del WebView y el CookieManager de Flutter. Sin esto, las cookies escritas
+    // por el login AJAX tardan hasta 2 minutos en aparecer.
+    if (Platform.isAndroid) {
+      await CookieManager.instance().flush();
     }
     final cookies = await CookieManager.instance().getCookies(url: WebUri("https://zoomubik.com"));
     return cookies.map((c) => "${c.name}=${c.value}").join("; ");
@@ -928,7 +923,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     if (url != null && url.toString() == "about:blank") return;
                     _pullToRefreshController?.endRefreshing();
                     if (url != null) {
-                      setState(() { _currentUrl = url.toString(); _isLoading = false; _selectedTab = _tabFromUrl(url.toString()); });
+                      setState(() { _currentUrl = url.toString(); _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(url.toString()); });
                     }
                     await _saveCookies();
                     await _hideAppBanners(controller);
@@ -936,12 +931,86 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     await _checkAndSendToken();
                     _monitorUserChanges();
                   },
+                  onReceivedError: (controller, request, error) {
+                    // Mostrar pantalla offline si es un error de red (sin internet)
+                    final errorCode = error.type.toString();
+                    final networkErrors = ['webKitErrorDomain', 'ERROR_HOST_LOOKUP',
+                      'ERROR_CONNECT', 'ERROR_TIMEOUT', 'ERROR_UNKNOWN',
+                      'webViewWebContentProcessTerminated'];
+                    final isNetworkError = networkErrors.any((e) => errorCode.contains(e))
+                      || error.type == WebResourceErrorType.HOST_LOOKUP
+                      || error.type == WebResourceErrorType.CONNECT
+                      || error.type == WebResourceErrorType.TIMEOUT
+                      || error.type == WebResourceErrorType.UNKNOWN;
+                    if (isNetworkError && mounted) {
+                      setState(() { _isOffline = true; _isLoading = false; });
+                      _pullToRefreshController?.endRefreshing();
+                    }
+                  },
                   onUpdateVisitedHistory: (controller, url, isReload) {
                     if (url != null) {
                       setState(() { _currentUrl = url.toString(); _selectedTab = _tabFromUrl(url.toString()); });
                     }
                   },
                 ),
+
+                // ── PANTALLA SIN INTERNET ──────────────────────────────────
+                if (_isOffline)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white,
+                      child: SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/logo.png', width: 90, height: 90),
+                            const SizedBox(height: 32),
+                            Icon(Icons.wifi_off_rounded,
+                              size: 72,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Sin conexión a internet',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF15418A),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Comprueba tu conexión y vuelve a intentarlo.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 36),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() { _isOffline = false; _isLoading = true; });
+                                _controller?.reload();
+                              },
+                              icon: const Icon(Icons.refresh_rounded),
+                              label: const Text('Reintentar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3BA1DA),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                                textStyle: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Rueda de carga moderna (solo el círculo, sobre la web)
                 if (_isLoading)
