@@ -105,5 +105,12 @@ workflows:
         script: |
           flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000))
           find / -name "*.aab" 2>/dev/null || true
+      - name: Build Android APK (para pruebas)
+        script: |
+          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000))
+          find / -name "*.apk" 2>/dev/null || true
     artifacts:
       - android/app/build/outputs/bundle/release/*.aab
+      - build/app/outputs/flutter-apk/*.apk
+      - android/app/build/outputs/apk/release/*.apk
+      - build/**/*.apk
