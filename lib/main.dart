@@ -734,37 +734,50 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     } catch (e) {}
   }
 
-  // Devuelve: >0 logueado, 0 confirmado deslogueado, null = no se pudo comprobar (timeout/red).
+  // Devuelve: >0 logueado, 0 confirmado deslogueado, null = no se pudo comprobar.
+  // Usa fetch() DESDE el WebView con credentials:'include' para que el navegador
+  // envie TODAS las cookies (incluidas httpOnly) sin depender del CookieManager.
   Future<int?> _getUserIdViaAjax() async {
+    if (_controller != null) {
+      try {
+        final result = await _controller!.evaluateJavascript(source:
+          "(async function() {"
+          "  try {"
+          "    const r = await fetch('/wp-admin/admin-ajax.php', {"
+          "      method: 'POST', credentials: 'include',"
+          "      headers: {'Content-Type': 'application/x-www-form-urlencoded'},"
+          "      body: 'action=get_current_user_id'"
+          "    });"
+          "    const d = await r.json();"
+          "    return d && d.data ? (parseInt(d.data.user_id) || 0) : 0;"
+          "  } catch(e) { return null; }"
+          "})()"
+        ).timeout(const Duration(seconds: 10));
+        if (result != null) {
+          final uid = result is int ? result : int.tryParse(result.toString());
+          if (uid != null) return uid;
+        }
+      } catch (_) {}
+    }
+    // Fallback HTTP desde Dart (puede tardar en sincronizarse en Android)
     try {
-      final cookieHeader = await _getCookieHeader();
-      if (cookieHeader.isEmpty) return null; // sin cookies disponibles aún: no concluimos nada
+      final cookies = await CookieManager.instance().getCookies(url: WebUri("https://zoomubik.com"));
+      final cookieHeader = cookies.map((c) => "${c.name}=${c.value}").join("; ");
+      if (cookieHeader.isEmpty) return null;
       final response = await http.post(
-        // Mismo host que la cookie (sin www) para que la cookie viaje de verdad.
         Uri.parse("https://zoomubik.com/wp-admin/admin-ajax.php"),
         headers: {"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookieHeader},
         body: {"action": "get_current_user_id"},
       ).timeout(const Duration(seconds: 8));
-      if (response.statusCode != 200) return null; // fallo de servidor: desconocido
+      if (response.statusCode != 200) return null;
       final data = jsonDecode(response.body);
       final uid = data["data"]?["user_id"];
       if (uid is int) return uid;
       if (uid is String) return int.tryParse(uid) ?? 0;
       return 0;
     } catch (e) {
-      return null; // timeout/excepción: desconocido, NO es logout
+      return null;
     }
-  }
-
-  Future<String> _getCookieHeader() async {
-    // En Android, flush() fuerza la sincronización entre el almacén interno
-    // del WebView y el CookieManager de Flutter. Sin esto, las cookies escritas
-    // por el login AJAX tardan hasta 2 minutos en aparecer.
-    if (Platform.isAndroid) {
-      await CookieManager.instance().flush();
-    }
-    final cookies = await CookieManager.instance().getCookies(url: WebUri("https://zoomubik.com"));
-    return cookies.map((c) => "${c.name}=${c.value}").join("; ");
   }
 
   Future<void> _sendTokenViaHttp(int userId, String token) async {
