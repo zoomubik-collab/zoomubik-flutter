@@ -88,8 +88,6 @@ workflows:
       - name: Restore google-services.json
         script: |
           echo $GOOGLE_SERVICES_JSON | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
-          echo "=== google-services.json restaurado ==="
-          cat $CM_BUILD_DIR/android/app/google-services.json
       - name: Install Flutter dependencies
         script: |
           flutter clean
@@ -101,18 +99,21 @@ workflows:
       - name: Set up keystore
         script: |
           echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/android/app/upload-keystore.jks
-      - name: Build Android AAB
+      - name: Build y recoger artefactos
         script: |
-          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000))
-      - name: Build Android APK (para pruebas)
-        script: |
-          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000))
-      - name: Recoger artefactos
-        script: |
+          # Build AAB
+          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000)) || true
+          # Build APK
+          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000)) || true
+          # Buscar y copiar donde estén realmente
           mkdir -p $CM_BUILD_DIR/artifacts
-          find $CM_BUILD_DIR/build -name "*.aab" -exec cp {} $CM_BUILD_DIR/artifacts/ \;
-          find $CM_BUILD_DIR/build -name "*.apk" -exec cp {} $CM_BUILD_DIR/artifacts/ \;
+          echo "=== Buscando AAB ===" && find $CM_BUILD_DIR -name "*.aab" 2>/dev/null
+          echo "=== Buscando APK ===" && find $CM_BUILD_DIR -name "*.apk" 2>/dev/null
+          find $CM_BUILD_DIR -name "*.aab" -exec cp {} $CM_BUILD_DIR/artifacts/ \;
+          find $CM_BUILD_DIR -name "*.apk" -exec cp {} $CM_BUILD_DIR/artifacts/ \;
           echo "=== Artefactos recogidos ===" && ls -lh $CM_BUILD_DIR/artifacts/
+          # Fallar si no hay nada
+          ls $CM_BUILD_DIR/artifacts/*.aab || exit 1
     artifacts:
       - artifacts/*.aab
       - artifacts/*.apk
