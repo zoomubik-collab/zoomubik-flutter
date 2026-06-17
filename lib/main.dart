@@ -672,11 +672,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       // Comprobación no concluyente (timeout/red): mantener el estado actual, NO desloguear.
       if (userId == null) return;
 
-      // Logout: solo si el servidor confirma 0, y exigiendo 2 veces seguidas
+      // Logout: solo si el servidor confirma 0, y exigiendo varias veces seguidas
       // para no echar al usuario por un fallo puntual.
       if (userId == 0) {
         if (_lastUserId > 0) {
           _zeroStrikes++;
+          // Al primer cero, intentar RESTAURAR las cookies guardadas: puede que el
+          // WebView las haya limpiado (Android libera memoria) y la sesión siga viva
+          // en el servidor. Si se recupera, no desloguea.
+          if (_zeroStrikes == 1) {
+            await _restoreCookies();
+            return;
+          }
           if (_zeroStrikes < 5) return;  // 5 ceros × 5s = 25s de confirmación antes de desloguear
           final oldId = _lastUserId;
           _lastUserId = 0;
@@ -891,6 +898,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) { _monitorActive = false; return; }
       _checkAndSendToken();
+      // Guardar cookies periódicamente: mantiene el respaldo en disco siempre fresco,
+      // para que _restoreCookies() pueda recuperar la sesión si el WebView las limpia.
+      if (_lastUserId > 0) _saveCookies();
       _monitorLoop();
     });
   }
