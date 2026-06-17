@@ -634,6 +634,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   Future<void> _checkAndSendToken() async {
+    // No comprobar mientras la página está cargando: el JS fetch devuelve 0
+    // durante transiciones de página y acumula falsos strikes de logout.
+    if (_isLoading) return;
     try {
       final userId = await _getUserIdViaAjax();
 
@@ -645,11 +648,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       if (userId == 0) {
         if (_lastUserId > 0) {
           _zeroStrikes++;
-          if (_zeroStrikes < 2) return;
+          if (_zeroStrikes < 5) return;  // 5 ceros × 5s = 25s de confirmación antes de desloguear
           final oldId = _lastUserId;
           _lastUserId = 0;
           _zeroStrikes = 0;
           if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+          // Recargar la página tras detectar logout para que el modal de login
+          // tenga un nonce fresco y no dé "usuario o contraseña incorrecta".
+          _controller?.reload();
           if (_fcmToken != null) {
             await _removeTokenFromServer(oldId, _fcmToken!);
             await FirebaseMessaging.instance.deleteToken();
