@@ -273,11 +273,22 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   Future<void> _loadOrDetectProvincia() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('provincia_seleccionada');
-    if (saved != null && kProvincias.containsKey(saved)) {
+    final manual = prefs.getBool('provincia_manual') ?? false;
+
+    // Si el usuario eligió la provincia A MANO, respetamos su elección y no detectamos.
+    if (manual && saved != null && kProvincias.containsKey(saved)) {
       setState(() => _provinciaSeleccionada = saved);
       return;
     }
-    // Primera vez: intentar detectar ubicación
+
+    // Mostramos de momento la guardada (o Madrid por defecto) para no quedar en blanco
+    // mientras se intenta detectar.
+    if (saved != null && kProvincias.containsKey(saved)) {
+      setState(() => _provinciaSeleccionada = saved);
+    }
+
+    // Intentamos detectar la ubicación SIEMPRE que NO sea elección manual,
+    // para corregir provincias antiguas o por defecto (ej. quedarse en "madrid").
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
@@ -292,15 +303,19 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       ).timeout(const Duration(seconds: 8));
       final detected = _findNearestProvincia(position.latitude, position.longitude);
       await prefs.setString('provincia_seleccionada', detected);
+      // NO marcamos 'provincia_manual': sigue siendo detección automática.
       if (mounted) setState(() => _provinciaSeleccionada = detected);
     } catch (e) {
-      // Si falla, queda Madrid por defecto
+      // Si falla, se queda la guardada o Madrid por defecto.
     }
   }
 
   Future<void> _saveProvincia(String slug) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('provincia_seleccionada', slug);
+    // El usuario la eligió a mano: a partir de ahora respetamos su elección
+    // y la detección automática deja de sobreescribirla.
+    await prefs.setBool('provincia_manual', true);
   }
 
   @override
