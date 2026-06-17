@@ -945,10 +945,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     _monitorUserChanges();
                   },
                   onReceivedError: (controller, request, error) {
-                    // Mostrar pantalla offline en errores del frame principal (sin internet,
-                    // host no encontrado, timeout, etc.). Errores de recursos secundarios
-                    // (imágenes, scripts) se ignoran — solo nos importa la página principal.
-                    if (request.isForMainFrame != true) return;
+                    // Mostrar pantalla offline en cualquier error de red.
+                    // Ignoramos solo los errores explícitamente de sub-recursos (isForMainFrame == false).
+                    // Si isForMainFrame es null (desconocido), también mostramos la pantalla.
+                    if (request.isForMainFrame == false) return;
                     if (mounted) {
                       setState(() { _isOffline = true; _isLoading = false; });
                       _pullToRefreshController?.endRefreshing();
