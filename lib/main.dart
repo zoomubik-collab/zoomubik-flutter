@@ -7,7 +7,7 @@ import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
 import "dart:convert";
-import "dart:io" show Platform;
+import "dart:io" show Platform, InternetAddress, SocketException;
 import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
@@ -499,7 +499,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     }),
                     const SizedBox(height: 6),
                     _cuentaOpcion(icon: Icons.logout_rounded, color: const Color(0xFFFF3B30), title: 'Cerrar sesión', danger: true, onTap: () {
-                      Navigator.pop(context); _navigateTo('https://zoomubik.com/logout/');
+                      Navigator.pop(context);
+                      _cerrarSesionInmediato();
                     }),
                   ],
                 ),
@@ -631,6 +632,34 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 5), () { if (entry.mounted) entry.remove(); });
+  }
+
+  // Logout MANUAL e inmediato: limpia el estado al instante (sin esperar al timer)
+  // y navega a la página de logout para cerrar la sesión en el servidor.
+  Future<void> _cerrarSesionInmediato() async {
+    final oldId = _lastUserId;
+    _lastUserId = 0;
+    _zeroStrikes = 0;
+    if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+    if (_fcmToken != null && oldId > 0) {
+      _removeTokenFromServer(oldId, _fcmToken!);
+      try { await FirebaseMessaging.instance.deleteToken(); } catch (_) {}
+      _fcmToken = null;
+    }
+    _navigateTo('https://zoomubik.com/logout/');
+  }
+
+  // Comprueba si hay conexión real a internet (no solo WiFi conectado).
+  Future<bool> _hayConexion() async {
+    try {
+      final result = await InternetAddress.lookup('zoomubik.com')
+          .timeout(const Duration(seconds: 4));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _checkAndSendToken() async {
@@ -930,9 +959,17 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     } catch (_) {}
                     await controller.loadUrl(urlRequest: URLRequest(url: WebUri(startUrl)));
                   },
-                  onLoadStart: (controller, url) {
+                  onLoadStart: (controller, url) async {
                     if (url != null && url.toString() == "about:blank") return;
                     if (mounted) setState(() => _isLoading = true);
+                    // Comprobar conectividad real: si no hay internet, mostrar pantalla offline
+                    // (el WebView no da error si la página está cacheada).
+                    final hayInternet = await _hayConexion();
+                    if (!hayInternet && mounted) {
+                      setState(() { _isOffline = true; _isLoading = false; });
+                      _pullToRefreshController?.endRefreshing();
+                      return;
+                    }
                     // Seguridad: si por lo que sea no llega onLoadStop, ocultamos la rueda a los 15s.
                     Future.delayed(const Duration(seconds: 15), () {
                       if (mounted && _isLoading) setState(() => _isLoading = false);
