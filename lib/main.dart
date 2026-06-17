@@ -869,6 +869,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     javaScriptEnabled: true, domStorageEnabled: true, databaseEnabled: true,
                     cacheEnabled: true, useHybridComposition: true, hardwareAcceleration: true,
                     userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
+                    // Cookies de sesión en Android: necesario para que la cookie de login
+                    // (incluida la que se crea por AJAX) se acepte y persista en el WebView.
+                    thirdPartyCookiesEnabled: true,
                   ),
                   onWebViewCreated: (controller) async {
                     _controller = controller;
