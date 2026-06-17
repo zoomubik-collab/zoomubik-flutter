@@ -406,7 +406,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     _navigateTo(urls[index]);
   }
 
-  void _triggerLoginModal() {
+  void _triggerLoginModal() async {
+    // Antes de abrir el login, limpiar las cookies de sesión "a medias" que el
+    // WebView de Android puede dejar corruptas (causa del "usuario o contraseña
+    // incorrecta" al re-loguearse). Así el login parte de un estado limpio.
+    try {
+      await CookieManager.instance().deleteCookies(url: WebUri("https://zoomubik.com"));
+      await CookieManager.instance().deleteCookies(url: WebUri("https://www.zoomubik.com"));
+    } catch (_) {}
     _controller?.evaluateJavascript(source: """
       (function() {
         // Modal global del header (el correcto: Google + Apple + email)
