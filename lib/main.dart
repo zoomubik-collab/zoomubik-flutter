@@ -4,6 +4,7 @@ import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:firebase_analytics/firebase_analytics.dart";
+import "package:vibration/vibration.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
@@ -983,10 +984,16 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                             ms = int.tryParse(v) ?? 16;
                           }
                         }
-                        if (ms >= 25) {
-                          HapticFeedback.mediumImpact(); // anuncio nuevo en directo
+                        if (Platform.isIOS) {
+                          // iOS: Taptic Engine (fino). Suave al caer, medio en directo.
+                          if (ms >= 25) {
+                            HapticFeedback.mediumImpact();
+                          } else {
+                            HapticFeedback.lightImpact();
+                          }
                         } else {
-                          HapticFeedback.lightImpact();  // marcador cayendo
+                          // Android: control directo del motor por ms (suenan todos)
+                          Vibration.vibrate(duration: ms < 8 ? 8 : ms);
                         }
                       },
                     );
