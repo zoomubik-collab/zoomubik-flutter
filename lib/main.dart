@@ -3,6 +3,7 @@ import "package:flutter/services.dart";
 import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
+import "package:firebase_analytics/firebase_analytics.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
@@ -21,6 +22,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseAnalytics.instance.logAppOpen(); // activa GA4 (flujos app de ios-app-42b04)
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const ZoomubikApp());
 }
@@ -965,6 +967,29 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   ),
                   onWebViewCreated: (controller) async {
                     _controller = controller;
+                    // Canal haptico: el mapa (JS) llama a
+                    // window.flutter_inappwebview.callHandler('haptic', ms)
+                    controller.addJavaScriptHandler(
+                      handlerName: 'haptic',
+                      callback: (args) {
+                        int ms = 16;
+                        if (args.isNotEmpty) {
+                          final v = args[0];
+                          if (v is int) {
+                            ms = v;
+                          } else if (v is double) {
+                            ms = v.round();
+                          } else if (v is String) {
+                            ms = int.tryParse(v) ?? 16;
+                          }
+                        }
+                        if (ms >= 25) {
+                          HapticFeedback.mediumImpact(); // anuncio nuevo en directo
+                        } else {
+                          HapticFeedback.lightImpact();  // marcador cayendo
+                        }
+                      },
+                    );
                     await _restoreCookies();
                     // Si la app se abrió tocando una notificación, ir directo a su destino
                     // (evita cargar Inicio y saltar después a la notificación).
