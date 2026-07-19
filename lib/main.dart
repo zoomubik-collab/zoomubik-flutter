@@ -47,15 +47,17 @@ const Map<String, String> kProvincias = {
   'lleida': 'Lleida', 'tarragona': 'Tarragona', 'cuenca': 'Cuenca',
   'guadalajara': 'Guadalajara', 'toledo': 'Toledo', 'ciudad-real': 'Ciudad Real',
   'albacete': 'Albacete', 'badajoz': 'Badajoz', 'caceres': 'Cáceres',
-  'corunha': 'A Coruña', 'lugo': 'Lugo', 'ourense': 'Ourense',
+  'a-coruna': 'A Coruña', 'lugo': 'Lugo', 'ourense': 'Ourense',
   'pontevedra': 'Pontevedra', 'madrid': 'Madrid', 'murcia': 'Murcia',
   'navarra': 'Navarra', 'alava': 'Álava', 'guipuzcoa': 'Guipúzcoa',
-  'vizcaya': 'Vizcaya', 'la-rioja': 'La Rioja', 'segovia': 'Segovia',
+  'vizcaya': 'Vizcaya', 'la-rioja': 'La Rioja', 'cantabria': 'Cantabria',
+  'segovia': 'Segovia',
   'soria': 'Soria', 'valladolid': 'Valladolid', 'avila': 'Ávila',
   'burgos': 'Burgos', 'leon': 'León', 'palencia': 'Palencia',
   'salamanca': 'Salamanca', 'zamora': 'Zamora', 'alicante': 'Alicante',
-  'castellon': 'Castellón', 'valencia': 'Valencia', 'ceuta': 'Ceuta',
-  'melilla': 'Melilla',
+  'castellon': 'Castellón', 'valencia': 'Valencia',
+  'las-palmas': 'Las Palmas', 'santa-cruz-de-tenerife': 'Santa Cruz de Tenerife',
+  'ceuta': 'Ceuta', 'melilla': 'Melilla',
 };
 
 // Coordenadas (lat, lng) del centro de cada provincia
@@ -84,7 +86,7 @@ const Map<String, List<double>> kProvinciaCoords = {
   'albacete':      [38.9943, -1.8585],
   'badajoz':       [38.8794, -6.9707],
   'caceres':       [39.4753, -6.3725],
-  'corunha':       [43.3623, -8.4115],
+  'a-coruna':      [43.3623, -8.4115],
   'lugo':          [43.0097, -7.5567],
   'ourense':       [42.3401, -7.8645],
   'pontevedra':    [42.4310, -8.6444],
@@ -95,6 +97,7 @@ const Map<String, List<double>> kProvinciaCoords = {
   'guipuzcoa':     [43.3183, -1.9812],
   'vizcaya':       [43.2630, -2.9350],
   'la-rioja':      [42.4627, -2.4451],
+  'cantabria':     [43.4623, -3.8100],
   'segovia':       [40.9429, -4.1088],
   'soria':         [41.7665, -2.4790],
   'valladolid':    [41.6523, -4.7245],
@@ -107,6 +110,8 @@ const Map<String, List<double>> kProvinciaCoords = {
   'alicante':      [38.3452, -0.4810],
   'castellon':     [39.9864, -0.0513],
   'valencia':      [39.4699, -0.3763],
+  'las-palmas':              [28.1235, -15.4363],
+  'santa-cruz-de-tenerife':  [28.4636, -16.2518],
   'ceuta':         [35.8894, -5.3213],
   'melilla':       [35.2923, -2.9381],
 };
@@ -169,11 +174,6 @@ const List<CategoriaUnificada> kCategorias = [
     propietarioSlug: 'alquilo-habitacion',
   ),
   CategoriaUnificada(
-    label: 'Vacacional', emoji: '🏖️',
-    buscadorSlug: 'desean-alquiler-vacacional',
-    propietarioSlug: 'alquilo-vacacional',
-  ),
-  CategoriaUnificada(
     label: 'Garaje en alquiler', emoji: '🚗',
     buscadorSlug: 'desean-alquilar-plaza-de-garaje',
     propietarioSlug: 'alquilo-garaje',
@@ -202,7 +202,6 @@ const List<Categoria> kBuscadores = [
   Categoria(slug: 'desean-comprar-vivienda',         label: 'Comprar vivienda',         emoji: '🏡'),
   Categoria(slug: 'desean-compartir-piso',           label: 'Compartir piso',           emoji: '🤝'),
   Categoria(slug: 'desean-alquilar-habitacion',      label: 'Alquilar habitación',      emoji: '🛏️'),
-  Categoria(slug: 'desean-alquiler-vacacional',      label: 'Alquiler vacacional',      emoji: '🏖️'),
   Categoria(slug: 'desean-alquilar-plaza-de-garaje', label: 'Alquilar plaza de garaje', emoji: '🚗'),
   Categoria(slug: 'desean-comprar-plaza-de-garaje',  label: 'Comprar plaza de garaje',  emoji: '🅿️'),
   Categoria(slug: 'desean-compartir-garaje',         label: 'Compartir garaje',         emoji: '🔑'),
@@ -212,7 +211,6 @@ const List<Categoria> kPropietarios = [
   Categoria(slug: 'alquilo-vivienda',    label: 'Alquilo vivienda',    emoji: '🏠'),
   Categoria(slug: 'vendo-vivienda',      label: 'Vendo vivienda',      emoji: '🏡'),
   Categoria(slug: 'alquilo-habitacion',  label: 'Alquilo habitación',  emoji: '🛏️'),
-  Categoria(slug: 'alquilo-vacacional',  label: 'Alquiler vacacional', emoji: '🏖️'),
   Categoria(slug: 'alquilo-garaje',      label: 'Alquilo garaje',      emoji: '🚗'),
   Categoria(slug: 'vendo-garaje',        label: 'Vendo garaje',        emoji: '🅿️'),
   Categoria(slug: 'comparto-garaje',     label: 'Comparto garaje',     emoji: '🔑'),
@@ -258,6 +256,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _selectedTab = 0;
 
   bool _monitorActive = false;
+  bool _appActive = true;          // app en primer plano
+  DateTime? _lastBackPress;        // doble atrás para salir (Android)
   bool _isOffline = false;
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
@@ -276,8 +276,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Future<void> _loadOrDetectProvincia() async {
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString('provincia_seleccionada');
+    var saved = prefs.getString('provincia_seleccionada');
     final manual = prefs.getBool('provincia_manual') ?? false;
+
+    // Migración: el slug antiguo 'corunha' no existe en la web (llevaba a Madrid).
+    if (saved == 'corunha') {
+      saved = 'a-coruna';
+      await prefs.setString('provincia_seleccionada', saved);
+    }
 
     // Si el usuario eligió la provincia A MANO, respetamos su elección y no detectamos.
     if (manual && saved != null && kProvincias.containsKey(saved)) {
@@ -330,6 +336,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pausamos el sondeo cuando la app no está en primer plano:
+    // ahorra batería del usuario y peticiones al servidor.
+    _appActive = (state == AppLifecycleState.resumed);
     if (state == AppLifecycleState.resumed && _controller != null) {
       _controller!.evaluateJavascript(source: """
         (function() {
@@ -905,14 +914,63 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   void _monitorLoop() {
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 20), () {
       if (!mounted) { _monitorActive = false; return; }
-      _checkAndSendToken();
-      // Guardar cookies periódicamente: mantiene el respaldo en disco siempre fresco,
-      // para que _restoreCookies() pueda recuperar la sesión si el WebView las limpia.
-      if (_lastUserId > 0) _saveCookies();
+      // Solo trabajamos si la app está en primer plano.
+      if (_appActive) {
+        _checkAndSendToken();
+        // Guardar cookies periódicamente: mantiene el respaldo en disco siempre fresco,
+        // para que _restoreCookies() pueda recuperar la sesión si el WebView las limpia.
+        if (_lastUserId > 0) _saveCookies();
+      }
       _monitorLoop();
     });
+  }
+
+  // ==================== BOTÓN ATRÁS (Android) ====================
+
+  // Atrás = volver en el historial de la web. Solo se sale de la app
+  // cuando ya no hay a dónde volver y se pulsa dos veces seguidas.
+  Future<void> _manejarAtras() async {
+    if (_controller != null) {
+      try {
+        if (await _controller!.canGoBack()) {
+          _controller!.goBack();
+          return;
+        }
+      } catch (_) {}
+    }
+    final ahora = DateTime.now();
+    if (_lastBackPress == null ||
+        ahora.difference(_lastBackPress!) > const Duration(seconds: 2)) {
+      _lastBackPress = ahora;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pulsa otra vez para salir'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+    SystemNavigator.pop();
+  }
+
+  // ==================== COMPARTIR ====================
+
+  Future<void> _compartirActual() async {
+    final url = _currentUrl;
+    if (url.isEmpty || url == 'about:blank') return;
+    if (Platform.isIOS) {
+      HapticFeedback.lightImpact();
+    } else {
+      Vibration.vibrate(duration: 12);
+    }
+    try {
+      await Share.share(url, subject: 'Mira esto en Zoomubik');
+    } catch (_) {}
   }
 
   // ==================== BUILD ====================
@@ -921,7 +979,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        await _manejarAtras();
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
       endDrawer: _buildDrawerContent(context),
@@ -958,7 +1022,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   initialSettings: InAppWebViewSettings(
                     javaScriptEnabled: true, domStorageEnabled: true, databaseEnabled: true,
                     cacheEnabled: true, useHybridComposition: true, hardwareAcceleration: true,
-                    userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36 ZoomubikApp/1.0",
+                    userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 ZoomubikApp/1.2.0",
                     // Cookies de sesión en Android: necesario para que la cookie de login
                     // (incluida la que se crea por AJAX) se acepte y persista en el WebView.
                     thirdPartyCookiesEnabled: true,
@@ -1121,6 +1185,32 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     ),
                   ),
 
+                // Botón compartir (a la izquierda de la hamburguesa)
+                if (!_isLoading)
+                  Positioned(
+                    top: 8, right: 60,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _compartirActual,
+                      child: Container(
+                        width: 42, height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF15418A).withOpacity(0.15)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.ios_share_rounded, size: 21, color: Color(0xFF15418A)),
+                      ),
+                    ),
+                  ),
+
                 // Botón hamburguesa
                 if (!_isLoading)
                   Positioned(
@@ -1153,6 +1243,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
             ),
           ),
         ],
+      ),
       ),
     );
   }
