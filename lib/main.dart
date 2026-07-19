@@ -276,14 +276,16 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Future<void> _loadOrDetectProvincia() async {
     final prefs = await SharedPreferences.getInstance();
-    var saved = prefs.getString('provincia_seleccionada');
+    final guardado = prefs.getString('provincia_seleccionada');
     final manual = prefs.getBool('provincia_manual') ?? false;
 
     // Migración: el slug antiguo 'corunha' no existe en la web (llevaba a Madrid).
-    if (saved == 'corunha') {
-      saved = 'a-coruna';
-      await prefs.setString('provincia_seleccionada', saved);
+    if (guardado == 'corunha') {
+      await prefs.setString('provincia_seleccionada', 'a-coruna');
     }
+    // 'final' es necesario: Dart solo garantiza que no es nulo dentro de los
+    // setState() de abajo si la variable no puede cambiar.
+    final String? saved = (guardado == 'corunha') ? 'a-coruna' : guardado;
 
     // Si el usuario eligió la provincia A MANO, respetamos su elección y no detectamos.
     if (manual && saved != null && kProvincias.containsKey(saved)) {
