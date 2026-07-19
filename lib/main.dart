@@ -960,21 +960,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     SystemNavigator.pop();
   }
 
-  // ==================== COMPARTIR ====================
-
-  Future<void> _compartirActual() async {
-    final url = _currentUrl;
-    if (url.isEmpty || url == 'about:blank') return;
-    if (Platform.isIOS) {
-      HapticFeedback.lightImpact();
-    } else {
-      Vibration.vibrate(duration: 12);
-    }
-    try {
-      await Share.share(url, subject: 'Mira esto en Zoomubik');
-    } catch (_) {}
-  }
-
   // ==================== BUILD ====================
 
   @override
@@ -1183,32 +1168,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     child: IgnorePointer(
                       child: Center(
                         child: _ModernSpinner(),
-                      ),
-                    ),
-                  ),
-
-                // Botón compartir (a la izquierda de la hamburguesa)
-                if (!_isLoading)
-                  Positioned(
-                    top: 8, right: 60,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _compartirActual,
-                      child: Container(
-                        width: 42, height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF15418A).withOpacity(0.15)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.ios_share_rounded, size: 21, color: Color(0xFF15418A)),
                       ),
                     ),
                   ),
