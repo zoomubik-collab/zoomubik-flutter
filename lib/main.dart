@@ -17,7 +17,15 @@ import "firebase_options.dart";
 
 @pragma("vm:entry-point")
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Mismo guard que en main(): con el plugin de google-services aplicado,
+  // Android ya ha inicializado [DEFAULT] y reinicializar lanza duplicate-app.
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    debugPrint("[FCM bg] initializeApp fallo: $e");
+  }
 }
 
 void main() async {
