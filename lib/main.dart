@@ -22,9 +22,34 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAnalytics.instance.logAppOpen(); // activa GA4 (flujos app de ios-app-42b04)
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // NADA de lo que hay aqui puede impedir que la app arranque. Antes, un fallo
+  // o un cuelgue de Firebase dejaba la pantalla en blanco porque el await se
+  // quedaba colgado y nunca se llegaba a runApp().
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+          .timeout(const Duration(seconds: 10));
+    }
+  } catch (e) {
+    debugPrint("[Firebase] initializeApp fallo: $e");
+  }
+
+  // Sin await: si GA4 tarda o falla, la app no se queda esperando.
+  try {
+    FirebaseAnalytics.instance.logAppOpen().catchError((e) {
+      debugPrint("[Analytics] logAppOpen fallo: $e");
+    });
+  } catch (e) {
+    debugPrint("[Analytics] no disponible: $e");
+  }
+
+  try {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint("[FCM] onBackgroundMessage fallo: $e");
+  }
+
   runApp(const ZoomubikApp());
 }
 
@@ -587,11 +612,17 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // ==================== PUSH ====================
 
   Future<void> _initPushNotifications() async {
-    final messaging = FirebaseMessaging.instance;
-    await messaging.requestPermission(alert: true, badge: true, sound: true);
-    final fcm = await messaging.getToken();
-    if (fcm != null) _fcmToken = fcm;
-    messaging.onTokenRefresh.listen((t) { _fcmToken = t; _checkAndSendToken(); });
+    final FirebaseMessaging messaging;
+    try {
+      messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission(alert: true, badge: true, sound: true);
+      final fcm = await messaging.getToken();
+      if (fcm != null) _fcmToken = fcm;
+      messaging.onTokenRefresh.listen((t) { _fcmToken = t; _checkAndSendToken(); });
+    } catch (e) {
+      debugPrint("[FCM] init fallo: $e");
+      return;
+    }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final type = message.data['type'] ?? '';
