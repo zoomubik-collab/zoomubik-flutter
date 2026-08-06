@@ -246,6 +246,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   InAppWebViewController? _controller;
   PullToRefreshController? _pullToRefreshController;
   String? _fcmToken;
+  // user_id para el que ya se confirmo (200) el guardado del token, para no
+  // reenviarlo en cada comprobacion de sesion.
+  int _tokenSentForUser = 0;
   int _lastUserId = 0;
   int _zeroStrikes = 0;
   String? _avatarUrl;
@@ -664,6 +667,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
     if (_fcmToken != null && oldId > 0) {
       _removeTokenFromServer(oldId, _fcmToken!);
+      _tokenSentForUser = 0;
       try { await FirebaseMessaging.instance.deleteToken(); } catch (_) {}
       _fcmToken = null;
     }
@@ -715,6 +719,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           _controller?.reload();
           if (_fcmToken != null) {
             await _removeTokenFromServer(oldId, _fcmToken!);
+            _tokenSentForUser = 0;
             await FirebaseMessaging.instance.deleteToken();
             _fcmToken = null;
           }
@@ -738,7 +743,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       // El token FCM se gestiona en segundo plano, sin bloquear nada visual
       if (_lastUserId > 0) {
         _fcmToken ??= await FirebaseMessaging.instance.getToken();
-        if (_fcmToken != null) { _sendTokenViaHttp(_lastUserId, _fcmToken!); }
+        if (_fcmToken != null && _tokenSentForUser != _lastUserId) {
+          _sendTokenViaHttp(_lastUserId, _fcmToken!);
+        }
       }
     } catch (e) {}
   }
@@ -843,13 +850,46 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     }
   }
 
+  // Guarda el token FCM en el servidor.
+  //
+  // IMPORTANTE: el endpoint saca el user_id de get_current_user_id(), es decir
+  // de la cookie de sesion de WordPress. Un http.post desde Dart viaja SIN
+  // cookies, asi que siempre devolvia 401 "no autenticado" y el token no se
+  // guardaba nunca. Por eso hacemos el POST DESDE el WebView con
+  // credentials:'include', igual que en _getUserIdViaAjax: asi van todas las
+  // cookies (incluidas httpOnly) y el servidor reconoce al usuario.
+  //
+  // Se usa admin-ajax.php y no la ruta REST porque la REST API de WordPress
+  // exige ademas la cabecera X-WP-Nonce para aceptar la cookie; admin-ajax
+  // reconoce la sesion sin nonce.
   Future<void> _sendTokenViaHttp(int userId, String token) async {
+    if (_controller == null) return;
     try {
-      await http.post(Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/save-fcm-token"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_id": userId, "token": token}),
+      final result = await _controller!.evaluateJavascript(source:
+        "(async function() {"
+        "  try {"
+        "    const b = new URLSearchParams();"
+        "    b.append('action', 'zmoriginal_save_fcm_token');"
+        "    b.append('token', ${jsonEncode(token)});"
+        "    const r = await fetch('/wp-admin/admin-ajax.php', {"
+        "      method: 'POST', credentials: 'include',"
+        "      headers: {'Content-Type': 'application/x-www-form-urlencoded'},"
+        "      body: b.toString()"
+        "    });"
+        "    return r.status;"
+        "  } catch(e) { return -1; }"
+        "})()"
       ).timeout(const Duration(seconds: 10));
-    } catch (e) {}
+
+      final status = result is int ? result : int.tryParse(result.toString()) ?? -1;
+      if (status == 200) {
+        _tokenSentForUser = userId;
+      } else {
+        debugPrint("[FCM] save-fcm-token fallo, status=$status");
+      }
+    } catch (e) {
+      debugPrint("[FCM] save-fcm-token excepcion: $e");
+    }
   }
 
   Future<void> _restoreCookies() async {
