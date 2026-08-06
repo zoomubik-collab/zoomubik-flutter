@@ -3,15 +3,15 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
     // Procesa google-services.json en tiempo de compilacion. Sin esto, Firebase
-    // Analytics NO se inicializa en Android (por eso GA4 solo mostraba iOS).
+    // Analytics NO reporta en Android (por eso GA4 solo mostraba iOS).
+    // OJO: al aplicarlo, FirebaseInitProvider crea la app [DEFAULT] ANTES de que
+    // arranque Dart, asi que main.dart debe llevar el guard Firebase.apps.isEmpty
+    // o lanza [core/duplicate-app] y la app se queda en pantalla blanca.
     id "com.google.gms.google-services"
 }
 
 android {
     namespace "com.zoomubik.app"
-    // Fijados a mano (36 = Android 16). Antes venian de flutter.compileSdkVersion
-    // y flutter.targetSdkVersion, que con Flutter 3.35.7 daban 35 y Play exige 36
-    // a partir del 31-08-2026.
     compileSdk 36
     ndkVersion flutter.ndkVersion
 
@@ -36,6 +36,7 @@ android {
     defaultConfig {
         applicationId "com.zoomubik.webview"
         minSdk flutter.minSdkVersion
+        // 36 = Android 16, exigido por Play desde el 31-08-2026.
         targetSdk 36
         versionCode flutter.versionCode
         versionName flutter.versionName
