@@ -112,9 +112,9 @@ workflows:
       - name: Build y recoger artefactos
         script: |
           # Build AAB
-          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000))
+          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1020))
           # Build APK
-          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000))
+          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1020))
           # Buscar y copiar donde estén realmente
           mkdir -p $CM_BUILD_DIR/artifacts
           echo "=== Buscando AAB ===" && find $CM_BUILD_DIR -name "*.aab" 2>/dev/null
