@@ -904,23 +904,30 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   Future<void> _sendTokenViaHttp(int userId, String token) async {
     if (_controller == null) return;
     try {
-      final result = await _controller!.evaluateJavascript(source:
-        "(async function() {"
-        "  try {"
-        "    const b = new URLSearchParams();"
-        "    b.append('action', 'zmoriginal_save_fcm_token');"
-        "    b.append('token', ${jsonEncode(token)});"
-        "    const r = await fetch('/wp-admin/admin-ajax.php', {"
-        "      method: 'POST', credentials: 'include',"
-        "      headers: {'Content-Type': 'application/x-www-form-urlencoded'},"
-        "      body: b.toString()"
-        "    });"
-        "    return r.status;"
-        "  } catch(e) { return -1; }"
-        "})()"
+      // callAsyncJavaScript SI espera la promesa y devuelve el valor resuelto en
+      // res.value. Con evaluateJavascript, una funcion async devolvia la Promise
+      // sin resolver: en Android se serializaba como {} y el status caia siempre
+      // a -1 aunque el fetch hubiese funcionado (falso negativo). Eso hacia que
+      // _tokenSentForUser no se marcase nunca y se reintentase cada 20 segundos.
+      final res = await _controller!.callAsyncJavaScript(
+        functionBody: """
+          try {
+            const b = new URLSearchParams();
+            b.append('action', 'zmoriginal_save_fcm_token');
+            b.append('token', token);
+            const r = await fetch('/wp-admin/admin-ajax.php', {
+              method: 'POST', credentials: 'include',
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: b.toString()
+            });
+            return r.status;
+          } catch(e) { return -1; }
+        """,
+        arguments: {'token': token},
       ).timeout(const Duration(seconds: 10));
 
-      final status = result is int ? result : int.tryParse(result.toString()) ?? -1;
+      final value = res?.value;
+      final status = value is int ? value : int.tryParse('$value') ?? -1;
       if (status == 200) {
         _tokenSentForUser = userId;
       } else {
