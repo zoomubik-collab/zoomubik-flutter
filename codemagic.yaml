@@ -83,11 +83,21 @@ workflows:
       flutter: 3.35.7
       groups:
         - android-signing
-        - firebase-secrets
     scripts:
-      - name: Restore google-services.json
+      # NOTA: el paso "Restore google-services.json" se ha eliminado a proposito.
+      # Sobrescribia android/app/google-services.json con la variable
+      # $GOOGLE_SERVICES_JSON, que apuntaba al proyecto Firebase 257703384863
+      # en lugar de ios-app-42b04 (733963653129). Eso hacia que la app registrase
+      # los tokens FCM en otro proyecto y ninguna push llegase a Android.
+      # Ahora se usa el google-services.json versionado en el repo, que es correcto.
+      - name: Comprobar proyecto Firebase de Android
         script: |
-          echo $GOOGLE_SERVICES_JSON | base64 --decode > $CM_BUILD_DIR/android/app/google-services.json
+          echo "=== google-services.json en uso ==="
+          grep -E '"project_id"|"project_number"|"package_name"' $CM_BUILD_DIR/android/app/google-services.json
+          grep -q '"project_number": "733963653129"' $CM_BUILD_DIR/android/app/google-services.json || {
+            echo "ERROR: google-services.json NO es del proyecto ios-app-42b04 (733963653129)"
+            exit 1
+          }
       - name: Install Flutter dependencies
         script: |
           flutter clean
@@ -102,9 +112,9 @@ workflows:
       - name: Build y recoger artefactos
         script: |
           # Build AAB
-          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000)) || true
+          flutter build appbundle --release --build-number=$(($BUILD_NUMBER + 1000))
           # Build APK
-          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000)) || true
+          flutter build apk --release --build-number=$(($BUILD_NUMBER + 1000))
           # Buscar y copiar donde estén realmente
           mkdir -p $CM_BUILD_DIR/artifacts
           echo "=== Buscando AAB ===" && find $CM_BUILD_DIR -name "*.aab" 2>/dev/null
