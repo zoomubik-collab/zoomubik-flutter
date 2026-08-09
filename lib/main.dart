@@ -1102,7 +1102,23 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     // Cookies de sesión en iOS: el WebView usa el almacén compartido en
                     // tiempo real (login y avatar instantáneos, sin el retardo del método antiguo).
                     sharedCookiesEnabled: true,
+                    // Camara desde el WebView (Android): sin estos ajustes, la captura
+                    // de foto se abre pero el archivo no vuelve al <input type=file>.
+                    allowFileAccess: true,
+                    allowContentAccess: true,
+                    mediaPlaybackRequiresUserGesture: false,
+                    iframeAllow: "camera; microphone",
+                    iframeAllowFullscreen: true,
                   ),
+                  onPermissionRequest: (controller, request) async {
+                    // Concede a la web los permisos que solicita (camara/microfono).
+                    // Sin esto, en Android la peticion de camara se deniega en
+                    // silencio y la foto capturada nunca llega al <input type=file>.
+                    return PermissionResponse(
+                      resources: request.resources,
+                      action: PermissionResponseAction.GRANT,
+                    );
+                  },
                   onWebViewCreated: (controller) async {
                     _controller = controller;
                     // Canal haptico: el mapa (JS) llama a
