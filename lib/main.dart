@@ -9,7 +9,7 @@ import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
 import "dart:convert";
-import "dart:io" show Platform, InternetAddress, SocketException, File;
+import "dart:io" show Platform, InternetAddress, SocketException;
 import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
@@ -1111,62 +1111,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     iframeAllow: "camera; microphone",
                     iframeAllowFullscreen: true,
                   ),
-                  onShowFileChooser: (controller, request) async {
-                    // Camara desde el WebView en Android: el plugin (v1.1.3) no
-                    // devuelve al <input> la foto capturada. Cuando la web pide
-                    // captura, la tomamos nosotros con image_picker y devolvemos
-                    // la ruta. Si no es captura, delegamos (handledByClient:false)
-                    // para que la galeria/archivos sigan igual que hasta ahora.
-                    if (!Platform.isAndroid || !request.isCaptureEnabled) {
-                      return ShowFileChooserResponse(handledByClient: false);
-                    }
-                    final tipos = request.acceptTypes.join(",");
-                    final esVideo = tipos.contains("video");
-                    try {
-                      final picker = ImagePicker();
-                      final XFile? x = esVideo
-                          ? await picker.pickVideo(source: ImageSource.camera)
-                          : await picker.pickImage(source: ImageSource.camera);
-                      if (x == null) {
-                        // El usuario cancelo: cerramos el chooser sin archivo.
-                        return ShowFileChooserResponse(
-                            handledByClient: true, filePaths: []);
-                      }
-                      return ShowFileChooserResponse(
-                          handledByClient: true, filePaths: [x.path]);
-                    } catch (e) {
-                      debugPrint("[FileChooser] captura fallo: $e");
-                      // Si algo falla, dejamos que el WebView lo intente por su cuenta.
-                      return ShowFileChooserResponse(handledByClient: false);
-                    }
-                  },
                   onPermissionRequest: (controller, request) async {
-                    // Cuando la web pide camara/microfono, primero pedimos el permiso
-                    // del SISTEMA a Android (hace salir el dialogo nativo, sin tener que
-                    // ir a Ajustes a mano). Solo si el usuario lo concede, se lo damos a
-                    // la web. En iOS WKWebView gestiona esto por su cuenta.
-                    if (Platform.isAndroid) {
-                      final needsCamera = request.resources.contains(
-                          PermissionResourceType.CAMERA);
-                      final needsMic = request.resources.contains(
-                          PermissionResourceType.MICROPHONE);
-                      final permisos = <Permission>[];
-                      if (needsCamera) permisos.add(Permission.CAMERA);
-                      if (needsMic) permisos.add(Permission.MICROPHONE);
-                      if (permisos.isNotEmpty) {
-                        final estado =
-                            await Permission.request(permissions: permisos);
-                        final denegado = estado.values.any((e) =>
-                            e != PermissionStatus.GRANTED &&
-                            e != PermissionStatus.LIMITED);
-                        if (denegado) {
-                          return PermissionResponse(
-                            resources: request.resources,
-                            action: PermissionResponseAction.DENY,
-                          );
-                        }
-                      }
-                    }
+                    // Concede a la web los permisos que solicita (camara/microfono).
+                    // El permiso del SISTEMA (Android) lo declara el manifest; aqui
+                    // solo autorizamos a la pagina web dentro del WebView.
                     return PermissionResponse(
                       resources: request.resources,
                       action: PermissionResponseAction.GRANT,
@@ -1200,6 +1148,45 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         } else {
                           // Android: control directo del motor por ms (suenan todos)
                           Vibration.vibrate(duration: ms < 8 ? 8 : ms);
+                        }
+                      },
+                    );
+                    // Camara para la app: la web llama a
+                    //   window.flutter_inappwebview.callHandler('abrirCamara', 'image'|'video')
+                    // Abrimos la camara nativa con image_picker y devolvemos el archivo
+                    // como data URL (base64) para que el JS lo convierta en File y lo
+                    // suba por su flujo normal. Resuelve que el WebView de Android no
+                    // devuelve la captura al <input type=file>.
+                    controller.addJavaScriptHandler(
+                      handlerName: 'abrirCamara',
+                      callback: (args) async {
+                        final tipo = (args.isNotEmpty ? '${args[0]}' : 'image');
+                        final esVideo = tipo == 'video';
+                        try {
+                          final picker = ImagePicker();
+                          final XFile? x = esVideo
+                              ? await picker.pickVideo(source: ImageSource.camera)
+                              : await picker.pickImage(
+                                  source: ImageSource.camera,
+                                  imageQuality: 85,
+                                  maxWidth: 1920,
+                                );
+                          if (x == null) return {'ok': false, 'cancel': true};
+                          final bytes = await x.readAsBytes();
+                          final b64 = base64Encode(bytes);
+                          final mime = esVideo ? 'video/mp4' : 'image/jpeg';
+                          final nombre = x.name.isNotEmpty
+                              ? x.name
+                              : (esVideo ? 'video.mp4' : 'foto.jpg');
+                          return {
+                            'ok': true,
+                            'dataUrl': 'data:$mime;base64,$b64',
+                            'name': nombre,
+                            'mime': mime,
+                          };
+                        } catch (e) {
+                          debugPrint('[abrirCamara] fallo: $e');
+                          return {'ok': false, 'error': e.toString()};
                         }
                       },
                     );
