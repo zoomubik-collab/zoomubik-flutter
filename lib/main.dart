@@ -9,10 +9,11 @@ import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
 import "dart:collection";
 import "dart:convert";
-import "dart:io" show Platform, InternetAddress, SocketException;
+import "dart:io" show Platform, InternetAddress, SocketException, File;
 import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
+import "package:image_picker/image_picker.dart";
 import "firebase_options.dart";
 
 @pragma("vm:entry-point")
@@ -1110,10 +1111,62 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     iframeAllow: "camera; microphone",
                     iframeAllowFullscreen: true,
                   ),
+                  onShowFileChooser: (controller, request) async {
+                    // Camara desde el WebView en Android: el plugin (v1.1.3) no
+                    // devuelve al <input> la foto capturada. Cuando la web pide
+                    // captura, la tomamos nosotros con image_picker y devolvemos
+                    // la ruta. Si no es captura, delegamos (handledByClient:false)
+                    // para que la galeria/archivos sigan igual que hasta ahora.
+                    if (!Platform.isAndroid || !request.isCaptureEnabled) {
+                      return ShowFileChooserResponse(handledByClient: false);
+                    }
+                    final tipos = request.acceptTypes.join(",");
+                    final esVideo = tipos.contains("video");
+                    try {
+                      final picker = ImagePicker();
+                      final XFile? x = esVideo
+                          ? await picker.pickVideo(source: ImageSource.camera)
+                          : await picker.pickImage(source: ImageSource.camera);
+                      if (x == null) {
+                        // El usuario cancelo: cerramos el chooser sin archivo.
+                        return ShowFileChooserResponse(
+                            handledByClient: true, filePaths: []);
+                      }
+                      return ShowFileChooserResponse(
+                          handledByClient: true, filePaths: [x.path]);
+                    } catch (e) {
+                      debugPrint("[FileChooser] captura fallo: $e");
+                      // Si algo falla, dejamos que el WebView lo intente por su cuenta.
+                      return ShowFileChooserResponse(handledByClient: false);
+                    }
+                  },
                   onPermissionRequest: (controller, request) async {
-                    // Concede a la web los permisos que solicita (camara/microfono).
-                    // Sin esto, en Android la peticion de camara se deniega en
-                    // silencio y la foto capturada nunca llega al <input type=file>.
+                    // Cuando la web pide camara/microfono, primero pedimos el permiso
+                    // del SISTEMA a Android (hace salir el dialogo nativo, sin tener que
+                    // ir a Ajustes a mano). Solo si el usuario lo concede, se lo damos a
+                    // la web. En iOS WKWebView gestiona esto por su cuenta.
+                    if (Platform.isAndroid) {
+                      final needsCamera = request.resources.contains(
+                          PermissionResourceType.CAMERA);
+                      final needsMic = request.resources.contains(
+                          PermissionResourceType.MICROPHONE);
+                      final permisos = <Permission>[];
+                      if (needsCamera) permisos.add(Permission.CAMERA);
+                      if (needsMic) permisos.add(Permission.MICROPHONE);
+                      if (permisos.isNotEmpty) {
+                        final estado =
+                            await Permission.request(permissions: permisos);
+                        final denegado = estado.values.any((e) =>
+                            e != PermissionStatus.GRANTED &&
+                            e != PermissionStatus.LIMITED);
+                        if (denegado) {
+                          return PermissionResponse(
+                            resources: request.resources,
+                            action: PermissionResponseAction.DENY,
+                          );
+                        }
+                      }
+                    }
                     return PermissionResponse(
                       resources: request.resources,
                       action: PermissionResponseAction.GRANT,
