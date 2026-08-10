@@ -307,6 +307,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   bool _appActive = true;          // app en primer plano
   DateTime? _lastBackPress;        // doble atrás para salir (Android)
   bool _isOffline = false;
+  // Mientras se abre la cámara/galería nativa la app va a segundo plano.
+  // Este flag evita que, al reanudar, se recargue el WebView y se pierda el
+  // modal abierto (y con él la foto que acaba de tomarse).
+  bool _esperandoMedia = false;
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
 
@@ -389,6 +393,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     // Pausamos el sondeo cuando la app no está en primer plano:
     // ahorra batería del usuario y peticiones al servidor.
     _appActive = (state == AppLifecycleState.resumed);
+    // Si estamos volviendo de la cámara/galería nativa, NO tocar el WebView:
+    // un reload aquí destruiría el modal abierto y la foto recién tomada se
+    // perdería (la promesa del handler quedaría huérfana). El handler se encarga
+    // de refrescar la vista al terminar.
+    if (_esperandoMedia) return;
     if (state == AppLifecycleState.resumed && _controller != null) {
       _controller!.evaluateJavascript(source: """
         (function() {
@@ -1173,6 +1182,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       callback: (args) async {
                         final tipo = (args.isNotEmpty ? '${args[0]}' : 'image');
                         final esVideo = tipo == 'video';
+                        _esperandoMedia = true;
                         try {
                           final picker = ImagePicker();
                           final XFile? x = esVideo
@@ -1198,6 +1208,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         } catch (e) {
                           debugPrint('[abrirCamara] fallo: $e');
                           return {'ok': false, 'error': e.toString()};
+                        } finally {
+                          _esperandoMedia = false;
                         }
                       },
                     );
@@ -1211,6 +1223,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       callback: (args) async {
                         final tipo = (args.isNotEmpty ? '${args[0]}' : 'image');
                         final esVideo = tipo == 'video';
+                        _esperandoMedia = true;
                         try {
                           final picker = ImagePicker();
                           final List<XFile> seleccion = [];
@@ -1242,6 +1255,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         } catch (e) {
                           debugPrint('[abrirGaleria] fallo: $e');
                           return {'ok': false, 'error': e.toString()};
+                        } finally {
+                          _esperandoMedia = false;
                         }
                       },
                     );
