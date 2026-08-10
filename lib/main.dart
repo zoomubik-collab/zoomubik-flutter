@@ -14,6 +14,8 @@ import "dart:math" as math;
 import "package:http/http.dart" as http;
 import "package:share_plus/share_plus.dart";
 import "package:image_picker/image_picker.dart";
+import "package:image_picker_android/image_picker_android.dart";
+import "package:image_picker_platform_interface/image_picker_platform_interface.dart";
 import "firebase_options.dart";
 
 @pragma("vm:entry-point")
@@ -31,6 +33,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Photo Picker de Android: no requiere READ_MEDIA_IMAGES/VIDEO.
+  // Sin esto, image_picker usa el selector antiguo y sí los necesita.
+  if (Platform.isAndroid) {
+    final ImagePickerPlatform impl = ImagePickerPlatform.instance;
+    if (impl is ImagePickerAndroid) {
+      impl.useAndroidPhotoPicker = true;
+    }
+  }
 
   // NADA de lo que hay aqui puede impedir que la app arranque. Antes, un fallo
   // o un cuelgue de Firebase dejaba la pantalla en blanco porque el await se
@@ -1186,6 +1197,50 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                           };
                         } catch (e) {
                           debugPrint('[abrirCamara] fallo: $e');
+                          return {'ok': false, 'error': e.toString()};
+                        }
+                      },
+                    );
+                    // Galeria para la app: la web llama a
+                    //   window.flutter_inappwebview.callHandler('abrirGaleria', 'image'|'video')
+                    // Usa el Photo Picker de Android (sin permisos READ_MEDIA_*).
+                    // Devuelve una lista de data URLs en 'files' para que el JS las
+                    // convierta en File y las suba por su flujo normal.
+                    controller.addJavaScriptHandler(
+                      handlerName: 'abrirGaleria',
+                      callback: (args) async {
+                        final tipo = (args.isNotEmpty ? '${args[0]}' : 'image');
+                        final esVideo = tipo == 'video';
+                        try {
+                          final picker = ImagePicker();
+                          final List<XFile> seleccion = [];
+                          if (esVideo) {
+                            final v = await picker.pickVideo(source: ImageSource.gallery);
+                            if (v != null) seleccion.add(v);
+                          } else {
+                            seleccion.addAll(await picker.pickMultiImage(
+                              imageQuality: 85,
+                              maxWidth: 1920,
+                              limit: 10,
+                            ));
+                          }
+                          if (seleccion.isEmpty) return {'ok': false, 'cancel': true};
+
+                          final List<Map<String, String>> archivos = [];
+                          for (final x in seleccion) {
+                            final bytes = await x.readAsBytes();
+                            final mime = esVideo ? 'video/mp4' : 'image/jpeg';
+                            archivos.add({
+                              'dataUrl': 'data:$mime;base64,${base64Encode(bytes)}',
+                              'name': x.name.isNotEmpty
+                                  ? x.name
+                                  : (esVideo ? 'video.mp4' : 'foto.jpg'),
+                              'mime': mime,
+                            });
+                          }
+                          return {'ok': true, 'files': archivos};
+                        } catch (e) {
+                          debugPrint('[abrirGaleria] fallo: $e');
                           return {'ok': false, 'error': e.toString()};
                         }
                       },
