@@ -4,6 +4,7 @@ import "package:flutter_inappwebview/flutter_inappwebview.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:firebase_analytics/firebase_analytics.dart";
+import "package:flutter_local_notifications/flutter_local_notifications.dart";
 import "package:vibration/vibration.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
@@ -18,6 +19,89 @@ import "package:image_picker_android/image_picker_android.dart";
 import "package:image_picker_platform_interface/image_picker_platform_interface.dart";
 import "firebase_options.dart";
 
+// ==================== NOTIFICACIONES LOCALES (Android) ====================
+// En segundo plano / app cerrada, FCM pinta una notificación sosa (cuadrado gris,
+// sin banner emergente, sin color). Para que Android se parezca a iOS construimos
+// NOSOTROS la notificación con flutter_local_notifications: canal de importancia
+// ALTA (heads-up), icono grande a color (@mipmap/ic_launcher), imagen grande
+// opcional y color de marca. iOS NO se toca: lo sigue pintando el sistema.
+// Requisito en el servidor: mandar el push a Android como DATA-ONLY (sin bloque
+// "notification"), con las claves type/url/title/body/image en "data". Si llega
+// un bloque "notification", Android lo auto-muestra y saldría duplicado.
+final FlutterLocalNotificationsPlugin _localNotif = FlutterLocalNotificationsPlugin();
+
+const AndroidNotificationChannel _canalZoomubik = AndroidNotificationChannel(
+  'zoomubik_avisos_v2',
+  'Avisos de Zoomubik',
+  description: 'Mensajes nuevos y anuncios',
+  importance: Importance.high, // ← esto hace que salte el banner (heads-up)
+);
+
+// Inicializa el plugin. Se llama tanto en el isolate principal (con onTap) como
+// en el isolate de segundo plano (sin onTap; el tap se recoge al abrir la app).
+Future<void> _initLocalNotif({void Function(NotificationResponse)? onTap}) async {
+  const androidInit = AndroidInitializationSettings('ic_stat_zoomubik');
+  const iosInit = DarwinInitializationSettings(
+    requestAlertPermission: false,
+    requestBadgePermission: false,
+    requestSoundPermission: false,
+  );
+  await _localNotif.initialize(
+    const InitializationSettings(android: androidInit, iOS: iosInit),
+    onDidReceiveNotificationResponse: onTap,
+  );
+  await _localNotif
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_canalZoomubik);
+}
+
+// Construye y muestra la notificación en Android a partir del "data" del push.
+Future<void> _mostrarNotifLocal(RemoteMessage message) async {
+  if (!Platform.isAndroid) return; // iOS lo pinta el sistema
+  final data = message.data;
+  final title = (data['title'] ?? message.notification?.title ?? 'Zoomubik').toString();
+  final body  = (data['body']  ?? message.notification?.body  ?? '').toString();
+  final imageUrl = (data['image'] ?? '').toString();
+
+  const largeIcon = DrawableResourceAndroidBitmap('@mipmap/ic_launcher'); // icono a color
+  StyleInformation? style;
+
+  // Imagen grande opcional (p. ej. foto del anuncio): hay que descargarla.
+  if (imageUrl.isNotEmpty) {
+    try {
+      final resp = await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 8));
+      if (resp.statusCode == 200) {
+        style = BigPictureStyleInformation(
+          ByteArrayAndroidBitmap(resp.bodyBytes),
+          largeIcon: largeIcon,
+          contentTitle: title,
+          summaryText: body,
+        );
+      }
+    } catch (_) {/* si falla la imagen, notificación normal */}
+  }
+
+  final androidDetails = AndroidNotificationDetails(
+    _canalZoomubik.id,
+    _canalZoomubik.name,
+    channelDescription: _canalZoomubik.description,
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: 'ic_stat_zoomubik',        // icono pequeño monocromo (obligatorio en Android)
+    color: const Color(0xFF15418A),  // tiñe el icono pequeño y el título
+    largeIcon: largeIcon,            // icono grande a color = aspecto iOS
+    styleInformation: style,
+  );
+
+  await _localNotif.show(
+    message.hashCode,
+    title,
+    body,
+    NotificationDetails(android: androidDetails),
+    payload: (data['url'] ?? '').toString(), // destino al pulsar
+  );
+}
+
 @pragma("vm:entry-point")
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Mismo guard que en main(): con el plugin de google-services aplicado,
@@ -28,6 +112,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   } catch (e) {
     debugPrint("[FCM bg] initializeApp fallo: $e");
+  }
+  // Construir la notificación bonita en Android (segundo plano / app cerrada).
+  try {
+    await _initLocalNotif();
+    await _mostrarNotifLocal(message);
+  } catch (e) {
+    debugPrint("[FCM bg] notif local fallo: $e");
   }
 }
 
@@ -313,6 +404,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   bool _esperandoMedia = false;
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
+  // Destino de una notificación pulsada antes de que el WebView esté listo.
+  String? _pendingNotifUrl;
 
   @override
   void initState() {
@@ -640,7 +733,34 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   // ==================== PUSH ====================
 
+  // Abre el destino de una notificación. Si el WebView aún no existe, lo deja
+  // pendiente para cargarlo en onWebViewCreated. Si no hay URL, va a mensajes.
+  void _abrirDesdeNotificacion(String? url) {
+    final destino = (url != null && url.isNotEmpty)
+        ? url
+        : 'https://zoomubik.com/mensajes-privados/';
+    if (_controller != null) {
+      _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(destino)));
+    } else {
+      _pendingNotifUrl = destino;
+    }
+  }
+
   Future<void> _initPushNotifications() async {
+    // 1) Notificaciones locales (Android): canal de importancia alta + tap.
+    try {
+      await _initLocalNotif(onTap: (NotificationResponse resp) {
+        _abrirDesdeNotificacion(resp.payload);
+      });
+      // Android 13+: pedir permiso de notificaciones.
+      await _localNotif
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    } catch (e) {
+      debugPrint("[FCM] init local notif fallo: $e");
+    }
+
+    // 2) FCM.
     final FirebaseMessaging messaging;
     try {
       messaging = FirebaseMessaging.instance;
@@ -672,9 +792,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       }
     });
 
+    // Tap sobre la notificación con la app en segundo plano.
+    // iOS: la pinta el sistema, el tap llega aquí. Android: la pinta
+    // flutter_local_notifications, el tap llega por onTap (arriba); esto
+    // cubre por si alguna llegara con bloque "notification".
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      final url = message.data['url'] ?? '';
-      if (url.isNotEmpty && _controller != null) _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+      _abrirDesdeNotificacion(message.data['url']?.toString());
     });
 
     // El destino de una notificación que abrió la app se gestiona en onWebViewCreated
@@ -700,7 +823,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 border: Border.all(color: const Color(0xFF3BA1DA), width: 1.5),
               ),
               child: Row(children: [
-                const Text('🏠', style: TextStyle(fontSize: 24)),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.asset('assets/logo.png', width: 30, height: 30, fit: BoxFit.contain),
+                ),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF15418A))),
@@ -1265,9 +1391,23 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     // (evita cargar Inicio y saltar después a la notificación).
                     String startUrl = "https://zoomubik.com";
                     try {
-                      final initial = await FirebaseMessaging.instance.getInitialMessage();
-                      final nurl = initial?.data['url'] ?? '';
-                      if (nurl is String && nurl.isNotEmpty) startUrl = nurl;
+                      // (a) tap dejado pendiente antes de existir el WebView
+                      if (_pendingNotifUrl != null && _pendingNotifUrl!.isNotEmpty) {
+                        startUrl = _pendingNotifUrl!;
+                        _pendingNotifUrl = null;
+                      } else {
+                        // (b) Android app cerrada: tap sobre notificación local
+                        final launch = await _localNotif.getNotificationAppLaunchDetails();
+                        final lpayload = launch?.notificationResponse?.payload ?? '';
+                        if (launch?.didNotificationLaunchApp == true && lpayload.isNotEmpty) {
+                          startUrl = lpayload;
+                        } else {
+                          // (c) iOS app cerrada: tap sobre notificación del sistema
+                          final initial = await FirebaseMessaging.instance.getInitialMessage();
+                          final nurl = initial?.data['url'] ?? '';
+                          if (nurl is String && nurl.isNotEmpty) startUrl = nurl;
+                        }
+                      }
                     } catch (_) {}
                     await controller.loadUrl(urlRequest: URLRequest(url: WebUri(startUrl)));
                   },
