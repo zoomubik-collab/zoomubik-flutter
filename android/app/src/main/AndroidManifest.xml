@@ -47,6 +47,19 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Icono, color y canal por defecto de las notificaciones (Android).
+             El icono pequeño DEBE ser monocromo (silueta blanca + transparente),
+             si no Android muestra un cuadrado gris. El color tiñe esa silueta. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_zoomubik" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/zoomubik_azul" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="zoomubik_avisos_v2" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
