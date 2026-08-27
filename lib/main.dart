@@ -354,8 +354,10 @@ const List<Categoria> kPropietarios = [
 
 // ==================== TABS ====================
 
-int _tabFromUrl(String url) {
+int _tabFromUrl(String url, {bool esProfesional = false, String? fichaProfesionalUrl}) {
+  if (esProfesional && fichaProfesionalUrl != null && fichaProfesionalUrl.isNotEmpty && url.contains(fichaProfesionalUrl)) return 1;
   if (url.contains('/mis-favoritos')) return 1;
+  if (url.contains('/profesionales/mi-panel')) return 2;
   if (url.contains('abrir_publicar')) return 2;
   if (url.contains('/mensajes-privados')) return 3;
   if (url.contains('/notificaciones')) return 5;
@@ -388,6 +390,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _lastUserId = 0;
   int _zeroStrikes = 0;
   String? _avatarUrl;
+  bool _esProfesional = false;
+  String? _fichaProfesionalUrl;
   int _unreadCount = 0;
   int _notifCount = 0;
   bool _isLoading = true;
@@ -543,6 +547,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       // uid == null (no se pudo comprobar): dejamos pasar; la web mostrará login si hiciera falta.
     }
     if (index == 2) {
+      if (_esProfesional) {
+        // Profesional: el botón central abre su panel, no el modal de publicar.
+        setState(() => _selectedTab = 2);
+        _navigateTo('https://zoomubik.com/profesionales/mi-panel/');
+        return;
+      }
       // Publicar: llamar a la función JS abrirModalProvincias(), o navegar si no existe
       _controller?.evaluateJavascript(source: """
         (function() {
@@ -562,7 +572,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     setState(() => _selectedTab = index);
     final urls = [
       'https://zoomubik.com/',
-      'https://zoomubik.com/mis-favoritos/',
+      (_esProfesional && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
+          ? _fichaProfesionalUrl!
+          : 'https://zoomubik.com/mis-favoritos/',
       '',
       'https://zoomubik.com/mensajes-privados/',
       'https://zoomubik.com/account/',
@@ -850,7 +862,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     final oldId = _lastUserId;
     _lastUserId = 0;
     _zeroStrikes = 0;
-    if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+    if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; });
     if (_fcmToken != null && oldId > 0) {
       _removeTokenFromServer(oldId, _fcmToken!);
       _tokenSentForUser = 0;
@@ -899,7 +911,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           final oldId = _lastUserId;
           _lastUserId = 0;
           _zeroStrikes = 0;
-          if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; });
+          if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; });
           // Recargar la página tras detectar logout para que el modal de login
           // tenga un nonce fresco y no dé "usuario o contraseña incorrecta".
           _controller?.reload();
@@ -920,6 +932,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       if (userId != _lastUserId) {
         _lastUserId = userId;
         _fetchUserAvatar(userId);   // sin await: aparece en cuanto responde
+        _fetchEsProfesional(userId);   // sin await: la barra se adapta en cuanto responde
       }
       if (_lastUserId > 0) {
         _fetchUnreadCount(_lastUserId);
@@ -976,6 +989,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         final url = data['avatar_url'] as String?;
         if (url != null && url.isNotEmpty && mounted) {
           setState(() => _avatarUrl = url);
+        }
+      }
+    } catch (e) {}
+  }
+
+  Future<void> _fetchEsProfesional(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/is-professional?user_id=$userId"),
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final activo = data['activo'] as bool? ?? false;
+        final url = data['ficha_url'] as String?;
+        if (mounted) {
+          setState(() {
+            _esProfesional = activo;
+            _fichaProfesionalUrl = url;
+          });
         }
       }
     } catch (e) {}
@@ -1431,7 +1463,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     if (url != null && url.toString() == "about:blank") return;
                     _pullToRefreshController?.endRefreshing();
                     if (url != null) {
-                      setState(() { _currentUrl = url.toString(); _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(url.toString()); });
+                      setState(() { _currentUrl = url.toString(); _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(url.toString(), esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
                     }
                     await _saveCookies();
                     await _hideAppBanners(controller);
@@ -1451,7 +1483,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                   onUpdateVisitedHistory: (controller, url, isReload) {
                     if (url != null) {
-                      setState(() { _currentUrl = url.toString(); _selectedTab = _tabFromUrl(url.toString()); });
+                      setState(() { _currentUrl = url.toString(); _selectedTab = _tabFromUrl(url.toString(), esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
                     }
                   },
                 ),
@@ -1578,7 +1610,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           child: Row(
             children: [
               _navItem(index: 0, icon: Icons.home_rounded, label: 'Inicio'),
-              _navItem(index: 1, icon: Icons.favorite_rounded, label: 'Favoritos'),
+              _navItem(
+                index: 1,
+                icon: _esProfesional ? Icons.visibility_outlined : Icons.favorite_rounded,
+                label: _esProfesional ? 'Mi anuncio' : 'Favoritos',
+              ),
               _navItemPublicar(),
               _navItem(index: 3, icon: Icons.chat_bubble_outline_rounded, label: 'Mensajes'),
               _navItem(index: 4, icon: Icons.person_outline_rounded, label: 'Cuenta'),
@@ -1730,9 +1766,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
             ),
             const SizedBox(height: 3),
-            const Text(
-              'Publicar',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF15418A)),
+            Text(
+              _esProfesional ? 'Mi panel' : 'Publicar',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF15418A)),
             ),
           ],
         ),
