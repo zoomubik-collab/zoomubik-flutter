@@ -616,12 +616,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     """);
   }
 
-  void _showCuentaSheet() {
-    // El avatar solo se pedía una vez al iniciar sesión, así que si el
-    // usuario cambiaba su foto dentro de la app (WebView) no se veía
-    // actualizada hasta reabrir la app entera. Refrescarlo aquí también,
-    // justo antes de abrir el desplegable, es donde más se nota.
-    if (_lastUserId > 0) _fetchUserAvatar(_lastUserId);
+  void _showCuentaSheet() async {
+    // Esperar (await) a que termine la petición antes de abrir el
+    // desplegable: si no se espera, el sheet se construye con la foto
+    // vieja igualmente y no se entera cuando la nueva llega después,
+    // porque su builder no está suscrito a más cambios de estado.
+    if (_lastUserId > 0) await _fetchUserAvatar(_lastUserId);
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
