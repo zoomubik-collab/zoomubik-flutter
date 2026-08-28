@@ -671,9 +671,33 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     _cuentaOpcion(icon: Icons.manage_accounts_rounded, color: const Color(0xFF3BA1DA), title: 'Mi cuenta', subtitle: 'Datos y ajustes', onTap: () {
                       Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
                     }),
-                    _cuentaOpcion(icon: Icons.list_alt_rounded, color: const Color(0xFF15418A), title: 'Mis anuncios', subtitle: 'Gestiona tus publicaciones', onTap: () {
-                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mis-anuncios/');
-                    }),
+                    if (_esProfesional)
+                      _cuentaOpcion(
+                        icon: Icons.dashboard_customize_outlined,
+                        color: const Color(0xFF3BA1DA),
+                        title: 'Mi panel',
+                        subtitle: 'Edita tu ficha de profesional',
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() => _selectedTab = 2);
+                          _navigateTo('https://zoomubik.com/profesionales/mi-panel/');
+                        },
+                      ),
+                    _cuentaOpcion(
+                      icon: _esProfesional ? Icons.campaign_outlined : Icons.list_alt_rounded,
+                      color: const Color(0xFF15418A),
+                      title: _esProfesional ? 'Mi anuncio' : 'Mis anuncios',
+                      subtitle: _esProfesional ? 'Ve tu ficha pública' : 'Gestiona tus publicaciones',
+                      onTap: () {
+                        Navigator.pop(context);
+                        setState(() => _selectedTab = 4);
+                        _navigateTo(
+                          (_esProfesional && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
+                              ? _fichaProfesionalUrl!
+                              : 'https://zoomubik.com/mis-anuncios/',
+                        );
+                      },
+                    ),
                     _cuentaOpcion(icon: Icons.photo_camera_rounded, color: const Color(0xFF7C5CFF), title: 'Mi foto', subtitle: 'Cambia tu avatar', onTap: () {
                       Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-avatar/');
                     }),
@@ -1612,7 +1636,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               _navItem(index: 0, icon: Icons.home_rounded, label: 'Inicio'),
               _navItem(
                 index: 1,
-                icon: _esProfesional ? Icons.visibility_outlined : Icons.favorite_rounded,
+                icon: _esProfesional ? Icons.campaign_outlined : Icons.favorite_rounded,
                 label: _esProfesional ? 'Mi anuncio' : 'Favoritos',
               ),
               _navItemPublicar(),
@@ -1840,12 +1864,17 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         onPressed: () {
                           _navigatedFromDrawer = true;
                           Navigator.of(context).pop();
+                          if (_esProfesional) {
+                            setState(() => _selectedTab = 2);
+                            _navigateTo('https://zoomubik.com/profesionales/mi-panel/');
+                            return;
+                          }
                           Future.delayed(const Duration(milliseconds: 300), () {
                             _controller?.evaluateJavascript(source: "if(typeof abrirModalProvincias==='function'){abrirModalProvincias();}else{window.location.href='https://zoomubik.com/?abrir_publicar=1';}");
                           });
                         },
-                        icon: const Icon(Icons.add_rounded, size: 20),
-                        label: const Text('Publicar anuncio'),
+                        icon: Icon(_esProfesional ? Icons.dashboard_customize_outlined : Icons.add_rounded, size: 20),
+                        label: Text(_esProfesional ? 'Mi panel' : 'Publicar anuncio'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF15418A),
                           foregroundColor: Colors.white,
