@@ -396,6 +396,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _notifCount = 0;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
+  bool _veniaDeFotoPerfil = false;
   int _selectedTab = 0;
 
   bool _monitorActive = false;
@@ -1011,14 +1012,27 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
 
   Future<void> _fetchUserAvatar(int userId) async {
     try {
+      // Cache-busting: aunque el servidor ya manda nocache_headers(),
+      // cualquier caché intermedia entre el móvil y el servidor (red del
+      // operador, DNS/proxy, etc.) podría seguir sirviendo una respuesta
+      // vieja para la MISMA url exacta. Al variar la query en cada llamada,
+      // ninguna caché por el camino puede devolver una copia guardada.
+      final cacheBuster = DateTime.now().millisecondsSinceEpoch;
       final response = await http.get(
-        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/user-avatar?user_id=$userId"),
+        Uri.parse("https://www.zoomubik.com/wp-json/zoomubik/v1/user-avatar?user_id=$userId&_=$cacheBuster"),
+        headers: {'Cache-Control': 'no-cache'},
       ).timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final url = data['avatar_url'] as String?;
         if (url != null && url.isNotEmpty && mounted) {
-          setState(() => _avatarUrl = url);
+          // Aunque el servidor devuelva la misma URL que antes (p. ej. si se
+          // edita la foto en el mismo archivo en vez de subir uno nuevo),
+          // Flutter cachea la IMAGEN por esa URL exacta. Añadir un sello
+          // distinto en cada fetch evita que NetworkImage sirva una copia
+          // vieja de su propia caché de imágenes.
+          final urlFresca = url.contains('?') ? '$url&_cb=$cacheBuster' : '$url?_cb=$cacheBuster';
+          setState(() => _avatarUrl = urlFresca);
         }
       }
     } catch (e) {}
@@ -1475,6 +1489,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                   onLoadStart: (controller, url) async {
                     if (url != null && url.toString() == "about:blank") return;
+                    // Capturar AQUÍ si veníamos de una página de foto de perfil,
+                    // antes de que onUpdateVisitedHistory pise _currentUrl con la
+                    // URL nueva (se dispara antes que onLoadStop, así que para
+                    // cuando este llega, _currentUrl ya no sirve para saber de
+                    // dónde veníamos).
+                    _veniaDeFotoPerfil = _currentUrl.contains('/mi-avatar') || _currentUrl.contains('/profesionales/mi-panel');
                     if (mounted) setState(() => _isLoading = true);
                     // Comprobar conectividad real: si no hay internet, mostrar pantalla offline
                     // (el WebView no da error si la página está cacheada).
@@ -1497,9 +1517,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       // Si se sale de una página donde se puede cambiar la foto de
                       // perfil, refrescar el avatar nativo (icono de "Cuenta" y su
                       // desplegable) sin esperar a que se reabra la app entera.
-                      final veniaDeFotoPerfil = _currentUrl.contains('/mi-avatar') || _currentUrl.contains('/profesionales/mi-panel');
+                      // Se usa _veniaDeFotoPerfil (fijada en onLoadStart) en vez de
+                      // volver a mirar _currentUrl aquí, porque onUpdateVisitedHistory
+                      // puede haberlo pisado ya con la URL nueva para cuando esto se
+                      // ejecuta.
                       final siguesEnFotoPerfil = nuevaUrl.contains('/mi-avatar') || nuevaUrl.contains('/profesionales/mi-panel');
-                      if (veniaDeFotoPerfil && !siguesEnFotoPerfil && _lastUserId > 0) {
+                      if (_veniaDeFotoPerfil && !siguesEnFotoPerfil && _lastUserId > 0) {
                         _fetchUserAvatar(_lastUserId);
                       }
                       setState(() { _currentUrl = nuevaUrl; _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(nuevaUrl, esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
