@@ -396,7 +396,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _notifCount = 0;
   bool _isLoading = true;
   String _currentUrl = "https://zoomubik.com";
-  bool _veniaDeFotoPerfil = false;
   int _selectedTab = 0;
 
   bool _monitorActive = false;
@@ -1489,12 +1488,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                   },
                   onLoadStart: (controller, url) async {
                     if (url != null && url.toString() == "about:blank") return;
-                    // Capturar AQUÍ si veníamos de una página de foto de perfil,
-                    // antes de que onUpdateVisitedHistory pise _currentUrl con la
-                    // URL nueva (se dispara antes que onLoadStop, así que para
-                    // cuando este llega, _currentUrl ya no sirve para saber de
-                    // dónde veníamos).
-                    _veniaDeFotoPerfil = _currentUrl.contains('/mi-avatar') || _currentUrl.contains('/profesionales/mi-panel');
                     if (mounted) setState(() => _isLoading = true);
                     // Comprobar conectividad real: si no hay internet, mostrar pantalla offline
                     // (el WebView no da error si la página está cacheada).
@@ -1514,17 +1507,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     _pullToRefreshController?.endRefreshing();
                     if (url != null) {
                       final nuevaUrl = url.toString();
-                      // Si se sale de una página donde se puede cambiar la foto de
-                      // perfil, refrescar el avatar nativo (icono de "Cuenta" y su
-                      // desplegable) sin esperar a que se reabra la app entera.
-                      // Se usa _veniaDeFotoPerfil (fijada en onLoadStart) en vez de
-                      // volver a mirar _currentUrl aquí, porque onUpdateVisitedHistory
-                      // puede haberlo pisado ya con la URL nueva para cuando esto se
-                      // ejecuta.
-                      final siguesEnFotoPerfil = nuevaUrl.contains('/mi-avatar') || nuevaUrl.contains('/profesionales/mi-panel');
-                      if (_veniaDeFotoPerfil && !siguesEnFotoPerfil && _lastUserId > 0) {
-                        _fetchUserAvatar(_lastUserId);
-                      }
+                      // Refrescar el avatar en CADA carga de página completada, en
+                      // vez de intentar detectar si "veníamos de" /mi-avatar o
+                      // /profesionales/mi-panel: el orden entre onLoadStart,
+                      // onUpdateVisitedHistory y onLoadStop no es fiable al 100%
+                      // (varía entre iOS y Android), así que cualquier lógica que
+                      // dependiera de ese orden se rompía en la práctica. Es una
+                      // llamada ligera, así que no tiene coste real hacerla siempre.
+                      if (_lastUserId > 0) _fetchUserAvatar(_lastUserId);
                       setState(() { _currentUrl = nuevaUrl; _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(nuevaUrl, esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
                     }
                     await _saveCookies();
