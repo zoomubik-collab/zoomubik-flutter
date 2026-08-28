@@ -617,6 +617,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   }
 
   void _showCuentaSheet() {
+    // El avatar solo se pedía una vez al iniciar sesión, así que si el
+    // usuario cambiaba su foto dentro de la app (WebView) no se veía
+    // actualizada hasta reabrir la app entera. Refrescarlo aquí también,
+    // justo antes de abrir el desplegable, es donde más se nota.
+    if (_lastUserId > 0) _fetchUserAvatar(_lastUserId);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1487,7 +1492,16 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     if (url != null && url.toString() == "about:blank") return;
                     _pullToRefreshController?.endRefreshing();
                     if (url != null) {
-                      setState(() { _currentUrl = url.toString(); _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(url.toString(), esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
+                      final nuevaUrl = url.toString();
+                      // Si se sale de una página donde se puede cambiar la foto de
+                      // perfil, refrescar el avatar nativo (icono de "Cuenta" y su
+                      // desplegable) sin esperar a que se reabra la app entera.
+                      final veniaDeFotoPerfil = _currentUrl.contains('/mi-avatar') || _currentUrl.contains('/profesionales/mi-panel');
+                      final siguesEnFotoPerfil = nuevaUrl.contains('/mi-avatar') || nuevaUrl.contains('/profesionales/mi-panel');
+                      if (veniaDeFotoPerfil && !siguesEnFotoPerfil && _lastUserId > 0) {
+                        _fetchUserAvatar(_lastUserId);
+                      }
+                      setState(() { _currentUrl = nuevaUrl; _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(nuevaUrl, esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
                     }
                     await _saveCookies();
                     await _hideAppBanners(controller);
