@@ -361,7 +361,7 @@ int _tabFromUrl(String url, {bool esProfesional = false, String? fichaProfesiona
   if (url.contains('abrir_publicar')) return 2;
   if (url.contains('/mensajes-privados')) return 3;
   if (url.contains('/notificaciones')) return 5;
-  if (url.contains('/account') || url.contains('/mis-anuncios') || url.contains('/mi-avatar')) return 4;
+  if (url.contains('/account') || url.contains('/mis-anuncios') || url.contains('/mi-avatar') || url.contains('/mi-perfil')) return 4;
   return 0;
 }
 
@@ -674,8 +674,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
-                    _cuentaOpcion(icon: Icons.manage_accounts_rounded, color: const Color(0xFF3BA1DA), title: 'Mi cuenta', subtitle: 'Datos y ajustes', onTap: () {
-                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
+                    _cuentaOpcion(icon: Icons.person_rounded, color: const Color(0xFF3BA1DA), title: 'Mi perfil', subtitle: 'Fotos, bio y ajustes de tu cuenta', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-perfil/');
                     }),
                     if (_esProfesional)
                       _cuentaOpcion(
@@ -704,9 +704,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         );
                       },
                     ),
-                    _cuentaOpcion(icon: Icons.photo_camera_rounded, color: const Color(0xFF7C5CFF), title: 'Mi foto', subtitle: 'Cambia tu avatar', onTap: () {
-                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-avatar/');
-                    }),
                     _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', badge: _notifCount, onTap: () {
                       Navigator.pop(context); setState(() { _selectedTab = 5; _notifCount = 0; }); _navigateTo('https://zoomubik.com/notificaciones/');
                     }),
