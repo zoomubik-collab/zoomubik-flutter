@@ -1,7 +1,7 @@
 name: zoomubik
 description: A minimal Flutter app for Zoomubik.
 publish_to: 'none'
-version: 1.2.4+256
+version: 1.2.5+257
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.16.0'
@@ -20,6 +20,7 @@ dependencies:
   geolocator: ^13.0.0
   image_picker: ^1.1.2
   flutter_local_notifications: ^18.0.1
+  in_app_review: ^2.0.9
 dev_dependencies:
   flutter_test:
     sdk: flutter
