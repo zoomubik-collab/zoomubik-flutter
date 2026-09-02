@@ -17,6 +17,7 @@ import "package:share_plus/share_plus.dart";
 import "package:image_picker/image_picker.dart";
 import "package:image_picker_android/image_picker_android.dart";
 import "package:image_picker_platform_interface/image_picker_platform_interface.dart";
+import "package:in_app_review/in_app_review.dart";
 import "firebase_options.dart";
 
 // ==================== NOTIFICACIONES LOCALES (Android) ====================
@@ -1455,6 +1456,27 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                           return {'ok': false, 'error': e.toString()};
                         } finally {
                           _esperandoMedia = false;
+                        }
+                      },
+                    );
+                    // Valoración de la app: la web llama a
+                    //   window.flutter_inappwebview.callHandler('pedirValoracionApp')
+                    // tras detectar una conversación activa (4+ mensajes por lado).
+                    // requestReview() no devuelve si el usuario valoró ni con
+                    // cuántas estrellas (así lo definen Apple/Google) — solo
+                    // intentamos mostrarlo; el sistema decide si lo hace de verdad.
+                    controller.addJavaScriptHandler(
+                      handlerName: 'pedirValoracionApp',
+                      callback: (args) async {
+                        try {
+                          final inAppReview = InAppReview.instance;
+                          if (await inAppReview.isAvailable()) {
+                            await inAppReview.requestReview();
+                          }
+                          return {'ok': true};
+                        } catch (e) {
+                          debugPrint('[pedirValoracionApp] fallo: $e');
+                          return {'ok': false, 'error': e.toString()};
                         }
                       },
                     );
