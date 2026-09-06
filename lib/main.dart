@@ -359,6 +359,7 @@ int _tabFromUrl(String url, {bool esProfesional = false, String? fichaProfesiona
   if (esProfesional && fichaProfesionalUrl != null && fichaProfesionalUrl.isNotEmpty && url.contains(fichaProfesionalUrl)) return 1;
   if (url.contains('/mis-favoritos')) return 1;
   if (url.contains('/profesionales/mi-panel')) return 2;
+  if (url.contains('/profesionales/registro')) return 2;
   if (url.contains('abrir_publicar')) return 2;
   if (url.contains('/mensajes-privados')) return 3;
   if (url.contains('/notificaciones')) return 5;
@@ -392,6 +393,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   int _zeroStrikes = 0;
   String? _avatarUrl;
   bool _esProfesional = false;
+  // Estado real de la ficha: '', 'pendiente', 'activo', 'pausado' o 'rechazado'.
+  // Hace falta aparte de _esProfesional porque la cuenta ES profesional desde
+  // que se registra, pero su ficha publica solo existe cuando esta 'activo'.
+  String _estadoProfesional = '';
+  // Se registro como profesional pero aun no ha enviado la ficha: se comporta
+  // como profesional, y lo util para el es terminar el alta, no ver nada.
+  bool _soloIntencionProf = false;
   String? _fichaProfesionalUrl;
   int _unreadCount = 0;
   int _notifCount = 0;
@@ -550,8 +558,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     if (index == 2) {
       if (_esProfesional) {
         // Profesional: el botón central abre su panel, no el modal de publicar.
+        // Si aún no ha enviado la ficha, el panel está vacío: se le lleva a
+        // terminar el alta, que es lo único que le sirve en ese momento.
         setState(() => _selectedTab = 2);
-        _navigateTo('https://zoomubik.com/profesionales/mi-panel/');
+        _navigateTo(_soloIntencionProf
+            ? 'https://zoomubik.com/profesionales/registro/'
+            : 'https://zoomubik.com/profesionales/mi-panel/');
         return;
       }
       // Publicar: llamar a la función JS abrirModalProvincias(), o navegar si no existe
@@ -573,8 +585,14 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     setState(() => _selectedTab = index);
     final urls = [
       'https://zoomubik.com/',
-      (_esProfesional && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
-          ? _fichaProfesionalUrl!
+      // Sin la ficha 'activa' no hay pagina publica que abrir (los listados
+      // filtran por estado), asi que se le lleva a su panel en vez de a un 404.
+      _esProfesional
+          ? (_soloIntencionProf
+              ? 'https://zoomubik.com/profesionales/registro/'
+              : ((_estadoProfesional == 'activo' && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
+                  ? _fichaProfesionalUrl!
+                  : 'https://zoomubik.com/profesionales/mi-panel/'))
           : 'https://zoomubik.com/mis-favoritos/',
       '',
       'https://zoomubik.com/mensajes-privados/',
@@ -694,12 +712,22 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       icon: _esProfesional ? Icons.campaign_outlined : Icons.list_alt_rounded,
                       color: const Color(0xFF15418A),
                       title: _esProfesional ? 'Mi anuncio' : 'Mis anuncios',
-                      subtitle: _esProfesional ? 'Ve tu ficha pública' : 'Gestiona tus publicaciones',
+                      subtitle: !_esProfesional
+                          ? 'Gestiona tus publicaciones'
+                          : _soloIntencionProf
+                          ? 'Termina de rellenar tu ficha'
+                          : (_estadoProfesional == 'activo'
+                              ? 'Ve tu ficha pública'
+                              : (_estadoProfesional == 'pausado'
+                                  ? 'Ficha pausada'
+                                  : (_estadoProfesional == 'rechazado'
+                                      ? 'Ficha no aprobada'
+                                      : 'Pendiente de aprobación'))),
                       onTap: () {
                         Navigator.pop(context);
                         setState(() => _selectedTab = 4);
                         _navigateTo(
-                          (_esProfesional && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
+                          (_esProfesional && _estadoProfesional == 'activo' && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
                               ? _fichaProfesionalUrl!
                               : 'https://zoomubik.com/mis-anuncios/',
                         );
@@ -890,7 +918,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     final oldId = _lastUserId;
     _lastUserId = 0;
     _zeroStrikes = 0;
-    if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; });
+    if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; _estadoProfesional = ''; _soloIntencionProf = false; });
     if (_fcmToken != null && oldId > 0) {
       _removeTokenFromServer(oldId, _fcmToken!);
       _tokenSentForUser = 0;
@@ -939,7 +967,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           final oldId = _lastUserId;
           _lastUserId = 0;
           _zeroStrikes = 0;
-          if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; });
+          if (mounted) setState(() { _avatarUrl = null; _unreadCount = 0; _notifCount = 0; _esProfesional = false; _estadoProfesional = ''; _soloIntencionProf = false; });
           // Recargar la página tras detectar logout para que el modal de login
           // tenga un nonce fresco y no dé "usuario o contraseña incorrecta".
           _controller?.reload();
@@ -1044,9 +1072,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         final data = jsonDecode(response.body);
         final activo = data['activo'] as bool? ?? false;
         final url = data['ficha_url'] as String?;
+        // 'es_profesional' y 'estado' los anade la version nueva del plugin. El
+        // ?? deja la app funcionando contra un servidor antiguo, que solo manda
+        // 'activo'.
+        final esProf = data['es_profesional'] as bool? ?? activo;
+        final estado = data['estado'] as String? ?? (activo ? 'activo' : '');
+        // Registrado como profesional pero sin ficha enviada todavia.
+        final soloIntencion = data['solo_intencion'] as bool? ?? false;
         if (mounted) {
           setState(() {
-            _esProfesional = activo;
+            _esProfesional = esProf;
+            _estadoProfesional = estado;
+            _soloIntencionProf = soloIntencion;
             _fichaProfesionalUrl = url;
           });
         }
@@ -1534,6 +1571,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       // dependiera de ese orden se rompía en la práctica. Es una
                       // llamada ligera, así que no tiene coste real hacerla siempre.
                       if (_lastUserId > 0) _fetchUserAvatar(_lastUserId);
+                      // Si acaba de moverse por la zona de profesionales, su
+                      // estado puede haber cambiado dentro del WebView (enviar
+                      // la ficha, reenviarla tras un rechazo, pasarse a
+                      // particular). La barra nativa no se entera sola: se
+                      // vuelve a preguntar al servidor. Solo en esas URLs, para
+                      // no lanzar una peticion en cada pagina que visite.
+                      if (_lastUserId > 0 && nuevaUrl.contains('/profesionales/')) {
+                        _fetchEsProfesional(_lastUserId);
+                      }
                       setState(() { _currentUrl = nuevaUrl; _isLoading = false; _isOffline = false; _selectedTab = _tabFromUrl(nuevaUrl, esProfesional: _esProfesional, fichaProfesionalUrl: _fichaProfesionalUrl); });
                     }
                     await _saveCookies();
@@ -1684,7 +1730,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
               _navItem(
                 index: 1,
                 icon: _esProfesional ? Icons.campaign_outlined : Icons.favorite_rounded,
-                label: _esProfesional ? 'Mi anuncio' : 'Favoritos',
+                label: !_esProfesional
+                    ? 'Favoritos'
+                    : (_soloIntencionProf ? 'Mi alta' : 'Mi anuncio'),
               ),
               _navItemPublicar(),
               _navItem(index: 3, icon: Icons.chat_bubble_outline_rounded, label: 'Mensajes'),
@@ -1838,7 +1886,9 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 3),
             Text(
-              _esProfesional ? 'Mi panel' : 'Publicar',
+              !_esProfesional
+                  ? 'Publicar'
+                  : (_soloIntencionProf ? 'Completar alta' : 'Mi panel'),
               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF15418A)),
             ),
           ],
