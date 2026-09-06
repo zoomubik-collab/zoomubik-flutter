@@ -693,19 +693,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
-                    _cuentaOpcion(icon: Icons.person_rounded, color: const Color(0xFF3BA1DA), title: 'Mi perfil', subtitle: 'Fotos, bio y ajustes de tu cuenta', onTap: () {
-                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-perfil/');
-                    }),
+                    // "Mi perfil" es la pantalla del particular (fotos, bio). Para
+                    // el profesional repite lo que ya hace "Mi panel", asi que no
+                    // se le muestra, igual que en la web.
+                    if (!_esProfesional)
+                      _cuentaOpcion(icon: Icons.person_rounded, color: const Color(0xFF3BA1DA), title: 'Mi perfil', subtitle: 'Fotos, bio y ajustes de tu cuenta', onTap: () {
+                        Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-perfil/');
+                      }),
                     if (_esProfesional)
                       _cuentaOpcion(
                         icon: Icons.dashboard_customize_outlined,
                         color: const Color(0xFF3BA1DA),
                         title: 'Mi panel',
-                        subtitle: 'Edita tu ficha de profesional',
+                        subtitle: _soloIntencionProf ? 'Termina tu alta de profesional' : 'Edita tu ficha de profesional',
                         onTap: () {
                           Navigator.pop(context);
                           setState(() => _selectedTab = 2);
-                          _navigateTo('https://zoomubik.com/profesionales/mi-panel/');
+                          _navigateTo(_soloIntencionProf
+                              ? 'https://zoomubik.com/profesionales/registro/'
+                              : 'https://zoomubik.com/profesionales/mi-panel/');
                         },
                       ),
                     _cuentaOpcion(
@@ -726,13 +732,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                       onTap: () {
                         Navigator.pop(context);
                         setState(() => _selectedTab = 4);
+                        // Sin ficha activa no hay pagina publica: al panel, o al
+                        // formulario si todavia no la ha enviado.
                         _navigateTo(
-                          (_esProfesional && _estadoProfesional == 'activo' && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
-                              ? _fichaProfesionalUrl!
-                              : 'https://zoomubik.com/mis-anuncios/',
+                          !_esProfesional
+                              ? 'https://zoomubik.com/mis-anuncios/'
+                              : _soloIntencionProf
+                                  ? 'https://zoomubik.com/profesionales/registro/'
+                                  : ((_estadoProfesional == 'activo' && _fichaProfesionalUrl != null && _fichaProfesionalUrl!.isNotEmpty)
+                                      ? _fichaProfesionalUrl!
+                                      : 'https://zoomubik.com/profesionales/mi-panel/'),
                         );
                       },
                     ),
+                    // Contraseña, email y ELIMINAR CUENTA. Apple exige que el
+                    // borrado sea accesible desde la propia app, y el profesional
+                    // no llega por "Mi perfil" porque no lo ve.
+                    _cuentaOpcion(icon: Icons.settings_outlined, color: const Color(0xFF5F6B7A), title: 'Mi cuenta', subtitle: 'Contraseña, email y darte de baja', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
+                    }),
                     _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', badge: _notifCount, onTap: () {
                       Navigator.pop(context); setState(() { _selectedTab = 5; _notifCount = 0; }); _navigateTo('https://zoomubik.com/notificaciones/');
                     }),
