@@ -436,6 +436,8 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   // Este flag evita que, al reanudar, se recargue el WebView y se pierda el
   // modal abierto (y con él la foto que acaba de tomarse).
   bool _esperandoMedia = false;
+  // Ultima vez que vibro el mapa en Android (ver el handler 'haptic').
+  DateTime _ultimaVibracion = DateTime.fromMillisecondsSinceEpoch(0);
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
   // Destino de una notificación pulsada antes de que el WebView esté listo.
@@ -1505,8 +1507,22 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                             HapticFeedback.lightImpact();
                           }
                         } else {
-                          // Android: control directo del motor por ms (suenan todos)
-                          Vibration.vibrate(duration: ms < 8 ? 8 : ms);
+                          // Android: el mapa pide 12-28 ms (pensado para el Taptic de
+                          // iOS), pero el motor de un Android tarda en arrancar y por
+                          // debajo de ~30 ms NO se nota. Se suben a un minimo perceptible
+                          // y con amplitud alta. Ademas cada Vibration.vibrate() cancela
+                          // la anterior, asi que se limita a un pulso cada 90 ms: en la
+                          // cascada de marcadores (uno cada 50 ms) acabaria en un zumbido
+                          // continuo o en nada.
+                          final ahora = DateTime.now();
+                          if (ahora.difference(_ultimaVibracion).inMilliseconds >= 90) {
+                            _ultimaVibracion = ahora;
+                            final fuerte = ms >= 25; // anuncio nuevo en directo
+                            Vibration.vibrate(
+                              duration: fuerte ? 45 : 30,
+                              amplitude: fuerte ? 255 : 180,
+                            );
+                          }
                         }
                       },
                     );
