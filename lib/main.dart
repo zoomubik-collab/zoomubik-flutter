@@ -41,13 +41,14 @@ const AndroidNotificationChannel _canalZoomubik = AndroidNotificationChannel(
 // Canal SIN sonido ni vibración, para los push de noche (23:00-8:00). El servidor
 // (zoomubik-messages.php v7.2.0) manda data.silencioso = '1' en ese horario. Un
 // canal de Android no puede cambiar de sonido una vez creado, por eso es un canal
-// aparte y no un ajuste del canal normal. Importance.low: aparece en la bandeja
-// de notificaciones pero no suena, no vibra y no salta el banner emergente.
+// aparte y no un ajuste del canal normal. Importance.high con playSound y
+// enableVibration a false: el banner emergente SALE (igual que en iOS), pero sin
+// sonido ni vibración.
 const AndroidNotificationChannel _canalSilencioso = AndroidNotificationChannel(
   'zoomubik_silencioso',
   'Avisos silenciosos (noche)',
   description: 'Avisos que llegan de noche, sin sonido ni vibración',
-  importance: Importance.low,
+  importance: Importance.high,
   playSound: false,
   enableVibration: false,
 );
@@ -104,8 +105,8 @@ Future<void> _mostrarNotifLocal(RemoteMessage message) async {
     canal.id,
     canal.name,
     channelDescription: canal.description,
-    importance: silencioso ? Importance.low : Importance.high,
-    priority: silencioso ? Priority.low : Priority.high,
+    importance: Importance.high, // el banner sale también de noche; el silencio lo da el canal
+    priority: Priority.high,
     playSound: !silencioso,
     enableVibration: !silencioso,
     icon: 'ic_stat_zoomubik',        // icono pequeño monocromo (obligatorio en Android)
