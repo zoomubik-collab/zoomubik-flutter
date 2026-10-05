@@ -915,8 +915,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       final url  = message.data['url']  ?? '';
       if ((type == 'nuevo_anuncio' || type == 'nuevo_mensaje') && url.isNotEmpty && _controller != null) {
         _showInAppNotificationBanner(
-          title: message.notification?.title ?? (type == 'nuevo_mensaje' ? 'Nuevo mensaje' : '¡Nuevo anuncio!'),
-          body:  message.notification?.body  ?? '',
+          // Android recibe el push DATA-ONLY (sin bloque "notification"), asi que el
+          // texto viene en data.title / data.body. iOS sigue trayendo notification.
+          title: (message.data['title'] ?? message.notification?.title ?? (type == 'nuevo_mensaje' ? 'Nuevo mensaje' : '¡Nuevo anuncio!')).toString(),
+          body:  (message.data['body']  ?? message.notification?.body  ?? '').toString(),
           onTap: () => _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(url))),
         );
       }
