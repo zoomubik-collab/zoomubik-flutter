@@ -62,8 +62,15 @@ class MainActivity : FlutterActivity() {
         val v = obtenerVibrador() ?: return
         if (!v.hasVibrator()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val efecto = if (fuerte) VibrationEffect.EFFECT_HEAVY_CLICK else VibrationEffect.EFFECT_CLICK
-            v.vibrate(VibrationEffect.createPredefined(efecto))
+            if (fuerte) {
+                // Anuncio nuevo en directo: doble golpe fuerte (pausa de 40 ms)
+                val tiempos = longArrayOf(0, 45, 40, 45)
+                val amplitudes = intArrayOf(0, 255, 0, 255)
+                v.vibrate(VibrationEffect.createWaveform(tiempos, amplitudes, -1))
+            } else {
+                // Marcador que cae: click fuerte
+                v.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK))
+            }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(if (fuerte) 45L else 30L, 255))
         } else {
