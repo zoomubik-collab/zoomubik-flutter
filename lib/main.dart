@@ -453,7 +453,25 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     _initPushNotifications();
   }
 
+  // true en cuanto se ha detectado la provincia por GPS en esta sesion. Mientras
+  // sea false, al volver a la app (resumed) se reintenta: en la primera
+  // instalacion el usuario suele contestar el permiso de ubicacion DESPUES de que
+  // la deteccion haya terminado, y entonces se quedaba en Madrid hasta el
+  // siguiente arranque.
+  bool _provinciaDetectada = false;
+  bool _detectandoProvincia = false;
+
   Future<void> _loadOrDetectProvincia() async {
+    if (_detectandoProvincia) return;
+    _detectandoProvincia = true;
+    try {
+      await _loadOrDetectProvinciaInterno();
+    } finally {
+      _detectandoProvincia = false;
+    }
+  }
+
+  Future<void> _loadOrDetectProvinciaInterno() async {
     final prefs = await SharedPreferences.getInstance();
     final guardado = prefs.getString('provincia_seleccionada');
     final manual = prefs.getBool('provincia_manual') ?? false;
@@ -489,11 +507,20 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         if (permission == LocationPermission.denied) return;
       }
       if (permission == LocationPermission.deniedForever) return;
-      final position = await Geolocator.getCurrentPosition(
+      // 1) Ultima posicion conocida: es instantanea. 2) Si no hay (movil recien
+      // instalado, sin ninguna app que haya pedido ubicacion), se pide una nueva:
+      // el primer GPS fix en frio puede tardar bastante mas de los 8 s de antes,
+      // que era justo lo que dejaba la barra lateral en "Madrid".
+      Position? position;
+      try {
+        position = await Geolocator.getLastKnownPosition();
+      } catch (_) {}
+      position ??= await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.low,
-      ).timeout(const Duration(seconds: 8));
+      ).timeout(const Duration(seconds: 25));
       final detected = _findNearestProvincia(position.latitude, position.longitude);
       await prefs.setString('provincia_seleccionada', detected);
+      _provinciaDetectada = true;
       // NO marcamos 'provincia_manual': sigue siendo detección automática.
       if (mounted) setState(() => _provinciaSeleccionada = detected);
     } catch (e) {
@@ -534,6 +561,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       """).catchError((_) => _controller?.reload());
       _hideAppBanners(_controller!);
       _checkAndSendToken();
+    }
+    // Primera instalacion: si aun no se ha podido detectar la provincia (permiso
+    // contestado tarde, GPS en frio...), se reintenta al volver a la app.
+    if (state == AppLifecycleState.resumed && !_provinciaDetectada) {
+      _loadOrDetectProvincia();
     }
   }
 
