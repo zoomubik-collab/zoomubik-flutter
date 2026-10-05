@@ -502,14 +502,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     // Intentamos detectar la ubicación SIEMPRE que NO sea elección manual,
     // para corregir provincias antiguas o por defecto (ej. quedarse en "madrid").
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      // Primero el PERMISO (sale el dialogo del sistema aunque el GPS este
+      // apagado) y despues se mira si el servicio de ubicacion esta activo.
+      // Antes se miraba el servicio primero y, con la ubicacion del movil
+      // apagada, se salia en silencio sin pedir nada.
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) return;
       }
       if (permission == LocationPermission.deniedForever) return;
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
       // 1) Ultima posicion conocida: es instantanea. 2) Si no hay (movil recien
       // instalado, sin ninguna app que haya pedido ubicacion), se pide una nueva:
       // el primer GPS fix en frio puede tardar bastante mas de los 8 s de antes,
