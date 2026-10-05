@@ -38,6 +38,20 @@ const AndroidNotificationChannel _canalZoomubik = AndroidNotificationChannel(
   importance: Importance.high, // ← esto hace que salte el banner (heads-up)
 );
 
+// Canal SIN sonido ni vibración, para los push de noche (23:00-8:00). El servidor
+// (zoomubik-messages.php v7.2.0) manda data.silencioso = '1' en ese horario. Un
+// canal de Android no puede cambiar de sonido una vez creado, por eso es un canal
+// aparte y no un ajuste del canal normal. Importance.low: aparece en la bandeja
+// de notificaciones pero no suena, no vibra y no salta el banner emergente.
+const AndroidNotificationChannel _canalSilencioso = AndroidNotificationChannel(
+  'zoomubik_silencioso',
+  'Avisos silenciosos (noche)',
+  description: 'Avisos que llegan de noche, sin sonido ni vibración',
+  importance: Importance.low,
+  playSound: false,
+  enableVibration: false,
+);
+
 // Inicializa el plugin. Se llama tanto en el isolate principal (con onTap) como
 // en el isolate de segundo plano (sin onTap; el tap se recoge al abrir la app).
 Future<void> _initLocalNotif({void Function(NotificationResponse)? onTap}) async {
@@ -51,9 +65,10 @@ Future<void> _initLocalNotif({void Function(NotificationResponse)? onTap}) async
     const InitializationSettings(android: androidInit, iOS: iosInit),
     onDidReceiveNotificationResponse: onTap,
   );
-  await _localNotif
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(_canalZoomubik);
+  final androidImpl = _localNotif
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  await androidImpl?.createNotificationChannel(_canalZoomubik);
+  await androidImpl?.createNotificationChannel(_canalSilencioso);
 }
 
 // Construye y muestra la notificación en Android a partir del "data" del push.
@@ -63,6 +78,9 @@ Future<void> _mostrarNotifLocal(RemoteMessage message) async {
   final title = (data['title'] ?? message.notification?.title ?? 'Zoomubik').toString();
   final body  = (data['body']  ?? message.notification?.body  ?? '').toString();
   final imageUrl = (data['image'] ?? '').toString();
+  // De noche el servidor marca el push como silencioso: va por el canal sin sonido.
+  final silencioso = (data['silencioso'] ?? '').toString() == '1';
+  final canal = silencioso ? _canalSilencioso : _canalZoomubik;
 
   const largeIcon = DrawableResourceAndroidBitmap('@mipmap/ic_launcher'); // icono a color
   StyleInformation? style;
@@ -83,11 +101,13 @@ Future<void> _mostrarNotifLocal(RemoteMessage message) async {
   }
 
   final androidDetails = AndroidNotificationDetails(
-    _canalZoomubik.id,
-    _canalZoomubik.name,
-    channelDescription: _canalZoomubik.description,
-    importance: Importance.high,
-    priority: Priority.high,
+    canal.id,
+    canal.name,
+    channelDescription: canal.description,
+    importance: silencioso ? Importance.low : Importance.high,
+    priority: silencioso ? Priority.low : Priority.high,
+    playSound: !silencioso,
+    enableVibration: !silencioso,
     icon: 'ic_stat_zoomubik',        // icono pequeño monocromo (obligatorio en Android)
     color: const Color(0xFF15418A),  // tiñe el icono pequeño y el título
     largeIcon: largeIcon,            // icono grande a color = aspecto iOS
@@ -363,7 +383,7 @@ int _tabFromUrl(String url, {bool esProfesional = false, String? fichaProfesiona
   if (url.contains('abrir_publicar')) return 2;
   if (url.contains('/mensajes-privados')) return 3;
   if (url.contains('/notificaciones')) return 5;
-  if (url.contains('/account') || url.contains('/mis-anuncios') || url.contains('/mi-avatar') || url.contains('/mi-perfil')) return 4;
+  if (url.contains('/account') || url.contains('/ajustes') || url.contains('/mis-ofertas') || url.contains('/mis-anuncios') || url.contains('/mi-avatar') || url.contains('/mi-perfil')) return 4;
   return 0;
 }
 
@@ -596,7 +616,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
           : 'https://zoomubik.com/mis-favoritos/',
       '',
       'https://zoomubik.com/mensajes-privados/',
-      'https://zoomubik.com/account/',
+      'https://zoomubik.com/ajustes/',
     ];
     _navigateTo(urls[index]);
   }
@@ -630,19 +650,41 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
         var btn = document.querySelector('#cuenta-menu-login-btn, .cuenta-menu-btn-login');
         if (btn) { btn.click(); return; }
         // Último recurso: navegar
-        window.location.href = 'https://zoomubik.com/account/';
+        window.location.href = 'https://zoomubik.com/login/';
       })();
     """);
   }
 
+  // true desde el primer toque hasta que el desplegable se cierra. Sin esto, cada
+  // toque impaciente mientras se descargaba la foto lanzaba OTRA apertura y el
+  // desplegable salía 3 o 4 veces apilado.
+  bool _cuentaSheetEnCurso = false;
+
   void _showCuentaSheet() async {
-    // Esperar (await) a que termine la petición antes de abrir el
-    // desplegable: si no se espera, el sheet se construye con la foto
-    // vieja igualmente y no se entera cuando la nueva llega después,
-    // porque su builder no está suscrito a más cambios de estado.
-    if (_lastUserId > 0) await _fetchUserAvatar(_lastUserId);
-    if (!mounted) return;
-    showModalBottomSheet(
+    if (_cuentaSheetEnCurso) return;
+    _cuentaSheetEnCurso = true;
+    try {
+      // Esperar a la foto para que el desplegable salga ya con la foto nueva
+      // (su builder no se entera si llega después), pero como MUCHO 700 ms: si la
+      // red va lenta se abre igualmente con la que haya y la nueva queda lista
+      // para la próxima vez.
+      if (_lastUserId > 0) {
+        try {
+          await _fetchUserAvatar(_lastUserId).timeout(const Duration(milliseconds: 700));
+        } catch (_) {}
+      }
+      if (!mounted) {
+        _cuentaSheetEnCurso = false;
+        return;
+      }
+      await _abrirCuentaSheet();
+    } finally {
+      _cuentaSheetEnCurso = false;
+    }
+  }
+
+  Future<dynamic> _abrirCuentaSheet() {
+    return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -697,7 +739,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     // el profesional repite lo que ya hace "Mi panel", asi que no
                     // se le muestra, igual que en la web.
                     if (!_esProfesional)
-                      _cuentaOpcion(icon: Icons.person_rounded, color: const Color(0xFF3BA1DA), title: 'Mi perfil', subtitle: 'Fotos, bio y ajustes de tu cuenta', onTap: () {
+                      _cuentaOpcion(icon: Icons.person_rounded, color: const Color(0xFF3BA1DA), title: 'Mi perfil', subtitle: 'Tus fotos y lo que ven los demás', onTap: () {
                         Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mi-perfil/');
                       }),
                     if (_esProfesional)
@@ -745,11 +787,19 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                         );
                       },
                     ),
-                    // Contraseña, email y ELIMINAR CUENTA. Apple exige que el
-                    // borrado sea accesible desde la propia app, y el profesional
-                    // no llega por "Mi perfil" porque no lo ve.
-                    _cuentaOpcion(icon: Icons.settings_outlined, color: const Color(0xFF5F6B7A), title: 'Mi cuenta', subtitle: 'Contraseña, email y darte de baja', onTap: () {
-                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/account/');
+                    // Ofertas (solo particulares, igual que en la web): las del
+                    // anuncio propio. Antes solo se llegaba por Mis anuncios y por
+                    // la campanita/push.
+                    if (!_esProfesional)
+                      _cuentaOpcion(icon: Icons.local_offer_outlined, color: const Color(0xFF16A34A), title: 'Ofertas', subtitle: 'Las ofertas de tus anuncios', onTap: () {
+                        Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/mis-ofertas/');
+                      }),
+                    // Ajustes (antes "Mi cuenta"): privacidad, avisos, correo,
+                    // contraseña y ELIMINAR CUENTA. Apple exige que el borrado sea
+                    // accesible desde la propia app, y el profesional no llega por
+                    // "Mi perfil" porque no lo ve.
+                    _cuentaOpcion(icon: Icons.settings_outlined, color: const Color(0xFF5F6B7A), title: 'Ajustes', subtitle: 'Privacidad, contraseña y darte de baja', onTap: () {
+                      Navigator.pop(context); setState(() => _selectedTab = 4); _navigateTo('https://zoomubik.com/ajustes/');
                     }),
                     _cuentaOpcion(icon: Icons.notifications_none_rounded, color: const Color(0xFFFF9500), title: 'Notificaciones', subtitle: 'Tus avisos', badge: _notifCount, onTap: () {
                       Navigator.pop(context); setState(() { _selectedTab = 5; _notifCount = 0; }); _navigateTo('https://zoomubik.com/notificaciones/');
