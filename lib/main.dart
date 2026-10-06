@@ -438,7 +438,6 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   bool _esperandoMedia = false;
   // Ultima vez que vibro el mapa en Android (ver el handler 'haptic').
   DateTime _ultimaVibracion = DateTime.fromMillisecondsSinceEpoch(0);
-  static const MethodChannel _canalHaptico = MethodChannel('zoomubik/haptic');
   String _provinciaSeleccionada = 'madrid';
   bool _navigatedFromDrawer = false;
   // Destino de una notificación pulsada antes de que el WebView esté listo.
@@ -1488,7 +1487,7 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                     // window.flutter_inappwebview.callHandler('haptic', ms)
                     controller.addJavaScriptHandler(
                       handlerName: 'haptic',
-                      callback: (args) async {
+                      callback: (args) {
                         int ms = 16;
                         if (args.isNotEmpty) {
                           final v = args[0];
@@ -1519,19 +1518,12 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                           if (ahora.difference(_ultimaVibracion).inMilliseconds >= 90) {
                             _ultimaVibracion = ahora;
                             final fuerte = ms >= 25; // anuncio nuevo en directo
-                            // Primero el efecto nativo (CLICK / HEAVY_CLICK): mas
-                            // contundente que un pulso plano. Si el canal falla o el
-                            // movil no lo soporta, respaldo con el plugin.
-                            var hecho = false;
-                            try {
-                              hecho = (await _canalHaptico.invokeMethod<bool>('golpe', {'fuerte': fuerte})) ?? false;
-                            } catch (_) {}
-                            if (!hecho) {
-                              Vibration.vibrate(
-                                duration: fuerte ? 45 : 30,
-                                amplitude: 255,
-                              );
-                            }
+                            // Marcador que cae: pulso corto y SUAVE (amplitud baja).
+                            // Anuncio nuevo en directo: algo mas largo y fuerte.
+                            Vibration.vibrate(
+                              duration: fuerte ? 45 : 30,
+                              amplitude: fuerte ? 200 : 90,
+                            );
                           }
                         }
                       },
