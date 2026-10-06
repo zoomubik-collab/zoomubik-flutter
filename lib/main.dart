@@ -451,8 +451,18 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
       settings: PullToRefreshSettings(color: const Color(0xFF3BA1DA)),
       onRefresh: () async => await _controller?.reload(),
     );
+    // Limpia la CACHE del WebView (no las cookies/sesion) en cada arranque en
+    // frio: asi los cambios de JS/CSS del servidor se ven al abrir la app, sin
+    // tener que reinstalarla. Si se nota lento al abrir, se puede quitar.
+    _limpiarCacheWebView();
     _loadOrDetectProvincia();
     _initPushNotifications();
+  }
+
+  Future<void> _limpiarCacheWebView() async {
+    try {
+      await InAppWebViewController.clearAllCache();
+    } catch (_) {}
   }
 
   // true en cuanto se ha detectado la provincia por GPS en esta sesion. Mientras
