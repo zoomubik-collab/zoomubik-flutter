@@ -1518,9 +1518,11 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
                           if (ahora.difference(_ultimaVibracion).inMilliseconds >= 90) {
                             _ultimaVibracion = ahora;
                             final fuerte = ms >= 25; // anuncio nuevo en directo
+                            // Marcador que cae: pulso corto y SUAVE (amplitud baja).
+                            // Anuncio nuevo en directo: algo mas largo y fuerte.
                             Vibration.vibrate(
                               duration: fuerte ? 45 : 30,
-                              amplitude: fuerte ? 255 : 180,
+                              amplitude: fuerte ? 200 : 90,
                             );
                           }
                         }
