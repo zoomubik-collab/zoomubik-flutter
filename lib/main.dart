@@ -8,6 +8,7 @@ import "package:flutter_local_notifications/flutter_local_notifications.dart";
 import "package:vibration/vibration.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:geolocator/geolocator.dart";
+import "dart:async";
 import "dart:collection";
 import "dart:convert";
 import "dart:io" show Platform, InternetAddress, SocketException;
@@ -463,6 +464,15 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
   bool _provinciaDetectada = false;
   bool _detectandoProvincia = false;
 
+  // Android no deja pedir DOS permisos a la vez: si salen a la vez el de
+  // notificaciones y el de ubicacion, uno se descarta sin mostrarse (en la primera
+  // instalacion no salia el de ubicacion hasta el siguiente arranque). Por eso la
+  // ubicacion espera a que termine el dialogo de notificaciones.
+  final Completer<void> _permisosNotifListos = Completer<void>();
+  void _marcarPermisosNotifListos() {
+    if (!_permisosNotifListos.isCompleted) _permisosNotifListos.complete();
+  }
+
   Future<void> _loadOrDetectProvincia() async {
     if (_detectandoProvincia) return;
     _detectandoProvincia = true;
@@ -503,6 +513,10 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
+      try {
+        await _permisosNotifListos.future.timeout(const Duration(seconds: 30));
+        await Future.delayed(const Duration(milliseconds: 400)); // deja cerrar el dialogo
+      } catch (_) {}
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -936,11 +950,13 @@ class _WebPageState extends State<WebPage> with WidgetsBindingObserver {
     try {
       messaging = FirebaseMessaging.instance;
       await messaging.requestPermission(alert: true, badge: true, sound: true);
+      _marcarPermisosNotifListos();
       final fcm = await messaging.getToken();
       if (fcm != null) _fcmToken = fcm;
       messaging.onTokenRefresh.listen((t) { _fcmToken = t; _checkAndSendToken(); });
     } catch (e) {
       debugPrint("[FCM] init fallo: $e");
+      _marcarPermisosNotifListos();
       return;
     }
 
